@@ -3,3 +3,5 @@
 {"ts":"2026-08-22T22:30:00+08:00","agent":"setup","event":"env_incident","refs":["memory/failure_modes.md"],"note":"torch环境mv改名致ELF损坏，删除重建env cac(py3.12)；教训入库"}
 {"ts":"2026-08-22T22:40:00+08:00","agent":"setup","event":"node_create","refs":["tree/nodes/S0001_smoke"],"note":"冒烟节点创建并推送（契约验证用）"}
 {"ts":"2026-08-22T22:55:00+08:00","agent":"setup","event":"torch_fix_running","refs":["STATE.md"],"note":"torch 2.13+cu130与驱动12.4不兼容，回装2.10.0+cu128（阿里源，tmux会话fixtorch）"}
+{"ts":"2026-08-22T23:30:00+08:00","agent":"setup","event":"dataset_upload","refs":["/data/dataset/FSC147.zip"],"note":"用户本地1.5G官方FSC147经scp上传(10MB/s)；弃用5.19GB镜像与代理慢速方案"}
+{"ts":"2026-08-22T23:32:00+08:00","agent":"setup","event":"torch_resolution","refs":["memory/failure_modes.md"],"note":"PyPI默认torch==2.10.0即cu128构建(元数据验证)，清华源直装，无需手动下载"}
