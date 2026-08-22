@@ -34,9 +34,10 @@ class FSC147Density(torch.utils.data.Dataset):
 
     def __getitem__(self, i):
         im_id = self.ids[i]
-        img = Image.open(os.path.join(self.img_dir, f"{im_id}.jpg")).convert("RGB")
+        stem = im_id[:-4] if im_id.endswith(".jpg") else im_id
+        img = Image.open(os.path.join(self.img_dir, f"{stem}.jpg")).convert("RGB")
         W0, H0 = img.size
-        dens = torch.from_numpy(np.load(os.path.join(self.den_dir, f"{im_id}.npy"))).float()
+        dens = torch.from_numpy(np.load(os.path.join(self.den_dir, f"{stem}.npy"))).float()
         if dens.dim() == 3:
             dens = dens[0]
         count0 = float(dens.sum())
