@@ -80,6 +80,8 @@
 
 ## 4. 服务器轮换演练（实例重租后地址密码全变时照此恢复）
 
+**仓库外的本机依赖（已配置好，勿动）**：push 凭据在 `~/.git-credentials`（备份 token 在 `~/cv_study/github_token.txt`，注意 `~/.github_token` 是无效旧文件已删）；SSH 私钥 `~/.ssh/id_ed25519`；提交邮箱必须用 `qkun-zh@users.noreply.github.com`。
+
 1. 用户把新连接串+密码更新到本地 `~/cv_study/address_and_password.md`
 2. 本地：`python3 ~/cac_explore/scripts/install_key.py`（装公钥、重写 ssh 别名）
 3. 服务器：`ssh cac-server 'bash /data/repo/scripts/bootstrap_remote.sh'`（幂等；若 /data 被清则先重新 clone）
