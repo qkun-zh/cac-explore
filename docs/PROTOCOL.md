@@ -18,7 +18,7 @@ ID 格式：`N####_<短名>`（正式节点）/ `S0001_smoke`（冒烟）。
 | 文件 | 作者 | 内容 |
 |---|---|---|
 | `idea.md` | Idea Agent | 固定小节：`## 标题`、`## 动机与直觉`、`## 架构规格`（core_ideas/core_blocks/network_structure/tunable_aspects/invariants）、`## 提出的假设`（每条含 falsification）、`## 与父节点的差异`、`## 新颖性声明` |
-| `model.py` | Coding Agent | 必须暴露 `build_model(cfg) -> nn.Module`；输入 `[B,3,H,W]` |
+| `model.py` | Coding Agent | 必须暴露 `build_model(cfg) -> nn.Module`；输入 `[B,3,H,W]`+bbox，输出 dict 含 `density`；**density 形状必须与数据集密度目标一致**（engine 不做隐式插值，形状不符直接报错） |
 | `config.py` | Coding Agent | 必须 `cfg = dict(...)`，必含键：`exp_name, epochs, batch_size, lr, input_size, num_classes, smoke(默认False)`。可自由增键 |
 | `result.json` | Executor 回传 | `{node, status: success\|failed\|timeout, metrics:{mae,rmse,...}, timing:{train_seconds, epochs_done}, diagnostics:{oom,instability,notes}, run_dir}` |
 | `feedback/quantitative.md` 等 ×4 | 反馈 Agent | 每份固定结构：`## reasoning` / `## actionable_feedback` / `## hypothesis_updates`（列表：hypothesis_id, evidence_type∈supports/contradicts/neutral, strength∈[0,1], reasoning）；diagnostic 仅失败/超时时存在 |
