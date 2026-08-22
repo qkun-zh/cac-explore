@@ -80,9 +80,9 @@
 
 ## 4. 服务器轮换演练（实例重租后地址密码全变时照此恢复）
 
-**仓库外的本机依赖（已配置好，勿动）**：push 凭据在 `~/.git-credentials`（备份 token 在 `~/cv_study/github_token.txt`，注意 `~/.github_token` 是无效旧文件已删）；SSH 私钥 `~/.ssh/id_ed25519`；提交邮箱必须用 `qkun-zh@users.noreply.github.com`。
+**本机敏感资料集中在 `<仓库>/local/`（已 gitignore，永不入库）**：`address_and_password.md`（服务器连接串+密码）、`github_token.txt`（push token 备份；运行时凭据在 `~/.git-credentials`）。SSH 私钥必须在 `~/.ssh/id_ed25519`、提交邮箱必须用 `qkun-zh@users.noreply.github.com`（工具链硬性路径，无法搬进仓库）。论文摘要见 `docs/arXiv-2604.12999_HypoExplore_summary.txt`。
 
-1. 用户把新连接串+密码更新到本地 `~/cv_study/address_and_password.md`
+1. 用户把新连接串+密码更新到本地 `local/address_and_password.md`
 2. 本地：`python3 ~/cac_explore/scripts/install_key.py`（装公钥、重写 ssh 别名）
 3. 服务器：`ssh cac-server 'bash /data/repo/scripts/bootstrap_remote.sh'`（幂等；若 /data 被清则先重新 clone）
 4. 数据集若丢：请用户重新上传 zip 至 `/data/dataset/` 后在 FSC147 目录内解压，跑 check_data 验证

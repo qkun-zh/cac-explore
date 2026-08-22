@@ -9,3 +9,6 @@ locks/
 data_local/
 runs_full/
 .DS_Store
+
+# 本机敏感资料（永不入库）
+local/

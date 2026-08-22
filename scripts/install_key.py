@@ -2,7 +2,7 @@
 """服务器轮换后的一键重接：读凭据文件 -> 装公钥(含/data持久副本) -> 重写本地 ssh config。
 
 用法: python3 scripts/install_key.py [凭据文件路径]
-凭据文件格式（默认 ~/cv_study/address_and_password.md）:
+凭据文件格式（默认 <仓库>/local/address_and_password.md）:
   第1行: ssh -p <端口> <用户>@<主机>
   第2行: <密码>
 """
@@ -15,7 +15,7 @@ HOME = os.path.expanduser("~")
 PUBKEY_PATH = os.path.join(HOME, ".ssh", "id_ed25519.pub")
 CONF_PATH = os.path.join(HOME, ".ssh", "config")
 ALIAS = "cac-server"
-DEFAULT_CREDS = os.path.join(HOME, "cv_study", "address_and_password.md")
+DEFAULT_CREDS = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "local", "address_and_password.md")
 
 
 def parse_creds(path):

@@ -43,8 +43,10 @@
 | `scripts/collect_node.sh` | 【本地】SSH 回传某节点的 result.json + train.log 尾部并放入节点目录 |
 | `scripts/check_data.py` | 数据集健全性检查（划分数量、形状、计数守恒） |
 | `scripts/bootstrap_remote.sh` | 【服务器】新实例一键初始化环境（幂等） |
-| `scripts/install_key.py` | 【本地】实例轮换后重装 SSH 公钥并更新连接别名 |
+| `scripts/install_key.py` | 【本地】实例轮换后重装 SSH 公钥并更新连接别名（读 `local/address_and_password.md`） |
 | `scripts/rebuild_index.py` | 从 hypotheses.jsonl 重建 index.json（快照损坏时自救） |
+| `scripts/revproxy.py` | 备用：本地起 socks 代理供服务器借道（默认用不上，GitHub 直连可用） |
+| `local/` | **本机敏感资料（gitignore，永不入库）**：`address_and_password.md` 服务器凭据、`github_token.txt` token 备份 |
 | `tasks/_template.md` | 任务卡模板；`T####_pending_*.md` 待领，**改名 `*_claimed_*` 即占有** |
 | `journal/events.jsonl` | 全局审计流水（append-only）：谁在何时做了什么 |
 | `memory/hypotheses.jsonl` | **假设记忆库**（append-only，永不改写历史行） |
