@@ -19,14 +19,21 @@ DEFAULT_CREDS = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__f
 
 
 def parse_creds(path):
+    """容忍任意粘贴格式：连接串和密码各占一行，可有标题/注释/『密码：』前缀。"""
     lines = open(path).read().splitlines()
-    m = re.search(r"-p\s+(\d+)\s+(\S+)@([\w.-]+)", "\n".join(lines[:3]))
+    m = re.search(r"ssh\s+\S*\s*-p\s+(\d+)\s+(\S+)@([\w.-]+)", "\n".join(lines))
     if not m:
-        sys.exit(f"[install_key] 无法从 {path} 解析 ssh 连接串")
+        sys.exit(f"[install_key] 无法从 {path} 解析连接串（应为: ssh -p <端口> <用户>@<主机>）")
     port, user, host = int(m.group(1)), m.group(2), m.group(3)
-    pw = next((l.strip() for l in lines if l.strip() and l.strip() != lines[0].strip() and not l.startswith("ssh ") and len(l.strip()) > 8), None)
-    if not pw:
-        pw = lines[1].strip()
+    pw = None
+    for l in lines:  # 连接串之后的第一个非空、非注释行 = 密码
+        s = l.strip()
+        if not s or s.startswith("#") or "ssh" in s.split()[0:1]:
+            continue
+        pw = s.split("：")[-1].split(":")[-1].strip()
+        break
+    if not pw or len(pw) < 6:
+        sys.exit("[install_key] 未找到密码行：连接串下一行非空行应为密码")
     return host, port, user, pw
 
 

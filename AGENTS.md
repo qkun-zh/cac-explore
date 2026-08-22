@@ -78,14 +78,22 @@
 | 网络 | GitHub 直连可用；pip 必带 `-i https://pypi.tuna.tsinghua.edu.cn/simple` |
 | 数据验证 | `/data/miniconda/envs/cac/bin/python scripts/check_data.py` 应全过 |
 
-## 4. 服务器轮换演练（实例重租后地址密码全变时照此恢复）
+## 4. 服务器轮换演练（每次租到新实例时照此执行）
 
-**本机敏感资料集中在 `<仓库>/local/`（已 gitignore，永不入库）**：`address_and_password.md`（服务器连接串+密码）、`github_token.txt`（push token 备份；运行时凭据在 `~/.git-credentials`）。SSH 私钥必须在 `~/.ssh/id_ed25519`、提交邮箱必须用 `qkun-zh@users.noreply.github.com`（工具链硬性路径，无法搬进仓库）。论文摘要见 `docs/arXiv-2604.12999_HypoExplore_summary.txt`。
+**你只需要做一件事**：把 DeepLn 给的两行原样粘到 `local/address_and_password.md`——
+```
+ssh -p <端口> root@<主机>
+<密码>
+```
+然后本地跑一条命令完成全部恢复：
+```bash
+bash scripts/onboard.sh
+```
+（自动：读凭据→装公钥→写 ssh 别名→clone 仓库(若缺)→初始化环境→验证数据集。幂等，可重复跑。）
 
-1. 用户把新连接串+密码更新到本地 `local/address_and_password.md`
-2. 本地：`python3 ~/cac_explore/scripts/install_key.py`（装公钥、重写 ssh 别名）
-3. 服务器：`ssh cac-server 'bash /data/repo/scripts/bootstrap_remote.sh'`（幂等；若 /data 被清则先重新 clone）
-4. 数据集若丢：请用户重新上传 zip 至 `/data/dataset/` 后在 FSC147 目录内解压，跑 check_data 验证
+数据集丢失时额外一步：上传 FSC147.zip 到 `/data/dataset/`，在 `FSC147/` 目录内解压后重跑 onboard.sh。
+
+**仓库外固定依赖（已配置，勿动）**：push 凭据 `~/.git-credentials`（token 备份在 `local/github_token.txt`）；SSH 私钥 `~/.ssh/id_ed25519`；提交邮箱必须 `qkun-zh@users.noreply.github.com`。
 
 ## 5. 假设记录格式
 

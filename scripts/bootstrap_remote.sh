@@ -23,5 +23,5 @@ fi
 $PY -c "import torch; print('torch', torch.__version__, 'cuda', torch.cuda.is_available())"
 
 echo "== 4. FSC147 数据集 =="
-[ -f /data/dataset/FSC147/FSC147_anno.json ] && echo "FSC147 就绪" || echo "!! FSC147 未就位（训练用 --smoke 模式不受影响）"
+[ -f /data/dataset/FSC147/annotation_FSC147_384.json ] && [ -d /data/dataset/FSC147/images_384_VarV2 ] && echo "FSC147(VarV2) 就绪" || echo "!! FSC147 未就位（训练用 --smoke 模式不受影响）"
 echo "[bootstrap_remote] 完成。"
