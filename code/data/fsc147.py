@@ -3,7 +3,7 @@
 服务器布局 /data/dataset/FSC147/：
   images_384_VarV2/<id>.jpg                 # 已缩放至长边~384的可变尺寸图
   gt_density_map_adaptive_384_VarV2/<id>.npy  # 预计算自适应密度图（与图像同尺寸）
-  annotation_FSC147_384.json                # {"<id>": {"box":[x1,y1,x2,y2], ...}}
+  annotation_FSC147_384.json                # {"<id>.jpg": {"W","H","box_examples_coordinates"(原图坐标), ...}}
   Train_Test_Val_FSC_147.json               # {"train": [...], "val": [...], "test": [...]}
 
 输出契约：imgs [3,S,S] / bboxes [4](S坐标系) / density [1,S,S] / counts 标量。
@@ -43,13 +43,17 @@ class FSC147Density(torch.utils.data.Dataset):
         count0 = float(dens.sum())
 
         S = self.size
-        sx, sy = S / W0, S / H0
         img = img.resize((S, S), Image.BILINEAR)
         dens = F.interpolate(dens[None, None], size=(S, S), mode="bilinear", align_corners=False)[0, 0]
         dens = dens * (count0 / dens.sum().clamp_min(1e-8))  # 总和守恒 → 计数不变
 
-        box = self.anno[im_id]["box"]
-        bbox = torch.tensor([box[0] * sx, box[1] * sy, box[2] * sx, box[3] * sy], dtype=torch.float32)
+        ann = self.anno[im_id]
+        corners = ann["box_examples_coordinates"][0]
+        xs = [p[0] for p in corners]
+        ys = [p[1] for p in corners]
+        S = self.size
+        sx, sy = S / float(ann["W"]), S / float(ann["H"])
+        bbox = torch.tensor([min(xs) * sx, min(ys) * sy, max(xs) * sx, max(ys) * sy], dtype=torch.float32)
 
         if self.augment and torch.rand(1).item() < 0.5:
             img = img.transpose(Image.FLIP_LEFT_RIGHT)
