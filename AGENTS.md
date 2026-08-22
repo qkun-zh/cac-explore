@@ -42,12 +42,21 @@
 
 | 项 | 值 |
 |---|---|
-| 连接 | `ssh cac-server`（配置在本机 `~/.ssh/config`） |
+| 连接 | `ssh cac-server`（别名由 `~/.ssh/config` 映射，随实例轮换自动更新） |
 | 持久化 | 仅 `/data`。目录：`/data/repo`（仓库克隆）、`/data/dataset/FSC147`、`/data/runs/<节点>`、`/data/asset` |
 | Python | `/data/miniconda/envs/cac/bin/python` |
 | GPU | RTX 3060 12GB（单卡） |
 | 网络 | GitHub 直连可用；PyPI 用清华源 `-i https://pypi.tuna.tsinghua.edu.cn/simple` |
 | tmux | 会话名约定 `node_<ID>`；查看 `tmux capture-pane -t node_<ID> -p \| tail -30` |
+
+## 服务器轮换演练（DeepLn 实例重启/重租后地址密码全变，按此恢复）
+
+1. 用户把新连接串+密码更新到本地 `~/cv_study/address_and_password.md`
+2. 本地跑一次：`python3 scripts/install_key.py`
+   （装公钥到 /root/.ssh 并在 /data/.ssh 留持久副本，重写 ssh 别名）
+3. 服务器上跑：`ssh cac-server 'bash /data/repo/scripts/bootstrap_remote.sh'`
+   （若 /data 也被清空：先重新 clone 仓库再执行；脚本幂等）
+4. 数据集若丢失需用户重新上传 `/data/dataset/FSC147`
 
 ## 假设记录格式（HypoExplore 式）
 
