@@ -1,7 +1,8 @@
 """数据集与加载器健全性检查：python scripts/check_data.py [root]"""
+import os
 import sys
 
-sys.path.insert(0, "code")
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "code"))
 from data.fsc147 import FSC147Density
 
 root = sys.argv[1] if len(sys.argv) > 1 else "/data/dataset/FSC147"
