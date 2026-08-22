@@ -1,4 +1,4 @@
-"""数据集与加载器健全性检查：python scripts/check_data.py [root]"""
+"""Dataset & loader sanity check: python scripts/check_data.py [root]"""
 import os
 import sys
 
@@ -12,6 +12,6 @@ for split in ("train", "val", "test"):
     assert s["imgs"].shape == (3, 384, 384), s["imgs"].shape
     assert s["density"].shape == (1, 384, 384), s["density"].shape
     diff = abs(float(s["counts"]) - float(s["density"].sum()))
-    assert diff < 0.01, f"计数守恒失败 {diff}"
-    print(f"{split}: n={len(ds)} 首样本count={float(s['counts']):.1f} imgs{tuple(s['imgs'].shape)} OK")
-print("数据集检查全部通过")
+    assert diff < 0.01, f"count conservation violated: {diff}"
+    print(f"{split}: n={len(ds)} first-sample count={float(s['counts']):.1f} imgs{tuple(s['imgs'].shape)} OK")
+print("dataset check: all passed")

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 本地侧：把服务器上的实验产物回传到节点目录。用法: bash scripts/collect_node.sh <NODE_ID> [REMOTE_HOST]
+# Local side: pull experiment artifacts from the server into the node directory. Usage: bash scripts/collect_node.sh <NODE_ID> [HOST]
 set -euo pipefail
 NODE=${1:?usage: collect_node.sh <NODE_ID> [HOST]}
 HOST=${2:-cac-server}

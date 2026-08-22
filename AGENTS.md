@@ -1,104 +1,104 @@
-# AGENTS.md — 多智能体协作协议
+# AGENTS.md — Multi-Agent Collaboration Protocol
 
-**使命**：≤32M 参数、FSC147 test MAE < 16 的轻量创新 CAC 模型。通过 HypoExplore 式假设探索循环逼近，不靠单次英雄式设计。
+**Mission**: a lightweight, innovative CAC model with ≤32M parameters and MAE < 16 on FSC147 test. Approach it through HypoExplore-style hypothesis exploration, not single-shot heroic design.
 
 ---
 
-## 0. 启动顺序（每个 agent / 新会话必做）
+## 0. Startup Sequence (mandatory for every agent / new session)
 
-1. 读本文档
+1. Read this document
 2. `git pull --ff-only`
-3. 读 `STATE.md`（阶段、已验证事实、活跃任务、下一步）
-4. 需要细节再读：`docs/PROTOCOL.md`（文件契约）、`journal/events.jsonl` 尾部（最近事件）、`memory/failure_modes.md`（避坑）
+3. Read `STATE.md` (stage, verified facts, active tasks, next steps)
+4. Read on demand: `docs/PROTOCOL.md` (file contracts), tail of `journal/events.jsonl` (recent events), `memory/failure_modes.md` (pitfalls)
 
 ---
 
-## 1. 你的工作循环（按角色对号入座）
+## 1. Your Work Loop (find your role)
 
 ### Idea Agent
-1. 读 `memory/index.json` + `memory/failure_modes.md` + 父节点的 `synthesis.md`
-2. 按 `docs/PROTOCOL.md §4` 选父节点、选假设
-3. 写 `tree/nodes/<ID>/idea.md`（固定小节，含可证伪条件；对照已有 idea 声明新颖性）
-4. 建 `tasks/T####_pending_coding_<ID>.md` 任务卡 → 提交推送
+1. Read `memory/index.json`, `memory/failure_modes.md`, and the parent node's `synthesis.md`
+2. Select parent node and hypothesis set per `docs/PROTOCOL.md §4`
+3. Write `tree/nodes/<ID>/idea.md` (fixed sections, falsifiable claims; declare novelty against existing ideas)
+4. Create task card `tasks/T####_pending_coding_<ID>.md`; commit & push
 
 ### Coding Agent
-1. 认领任务卡（改名），读该节点 `idea.md` + **必读** `memory/failure_modes.md`
-2. 写 `model.py`（暴露 `build_model(cfg)`）+ `config.py`（cfg 必含键见 PROTOCOL §2）
-3. 冒烟自检（无需数据集）：
+1. Claim the task card (rename it), read the node's `idea.md` plus **mandatory** `memory/failure_modes.md`
+2. Write `model.py` (must expose `build_model(cfg)`) and `config.py` (see PROTOCOL §2 for cfg keys)
+3. Smoke self-check (no dataset needed):
    ```bash
    python code/engine/train.py --node_dir tree/nodes/<ID> --smoke --epochs 2
    ```
-   本地无 torch 则在服务器跑同样命令。**契约不过不许 push**
-4. 任务卡改名 `_done_`，推送；建 executor 任务卡
+   If torch is unavailable locally, run the same command on the server. **Do not push until the contract passes**
+4. Rename task card to `_done_`, push; create the executor task card
 
-### Executor（服务器侧，由 Lead 触发）
-1. 本地：`git push` 后在服务器拉取并启动：
+### Executor (server side, triggered by Lead)
+1. Locally: push, then launch on the server:
    ```bash
    ssh cac-server 'cd /data/repo && git pull && bash scripts/run_node.sh <ID>'
    ```
-2. 盯进度：`ssh cac-server 'tmux capture-pane -t node_<ID> -p | tail -30'`
-3. 完成后本地回传入库：
+2. Watch progress: `ssh cac-server 'tmux capture-pane -t node_<ID> -p | tail -30'`
+3. When finished, collect results locally and commit:
    ```bash
    bash scripts/collect_node.sh <ID>
    git add -A && git commit -m "result: <ID> status=..." && git push
    ```
 
-### 反馈 Agent ×4（quantitative / qualitative / causal / diagnostic）
-1. 认领对应任务卡；读节点 `idea.md` + `model.py` + `config.py` + `result.json` + `train.log`
-2. 写 `tree/nodes/<ID>/feedback/<维度>.md`（固定结构见 PROTOCOL §2，含 hypothesis_updates 列表）
+### Feedback Agents ×4 (quantitative / qualitative / causal / diagnostic)
+1. Claim your task card; read the node's `idea.md`, `model.py`, `config.py`, `result.json`, `train.log`
+2. Write `tree/nodes/<ID>/feedback/<dimension>.md` (fixed structure in PROTOCOL §2, including hypothesis_updates list)
 
 ### Synthesis Agent
-1. 四份反馈齐后合并去重、消解矛盾、质量门判定
-2. 写 `synthesis.md`；按 η=0.20 规则更新每条相关假设置信度
-3. 落账：追加 `memory/hypotheses.jsonl` → `python scripts/rebuild_index.py`
-4. 更新 `tree/tree.json` 节点状态与评分 → 更新 `STATE.md` → journal 追加 → 提交推送
+1. Once all four feedback files exist: merge & deduplicate updates, resolve contradictions, run the quality gate
+2. Write `synthesis.md`; update confidence for each affected hypothesis using η=0.20 rules
+3. Bookkeeping: append to `memory/hypotheses.jsonl` → run `python scripts/rebuild_index.py`
+4. Update `tree/tree.json` (node status & scores) → update `STATE.md` → append journal → commit & push
 
-### 每个角色收尾三件事（不可省）
-1. 更新 `STATE.md`　2. journal 追加一行　3. `git add -A && git commit && git push`
+### Closing Trio for EVERY role (non-negotiable)
+1. Update `STATE.md`  2. Append one journal line  3. `git add -A && git commit && git push`
 
 ---
 
-## 2. 硬性规则
+## 2. Hard Rules
 
-1. **只有本地机器 push**；服务器只 pull。实验产物经 `scripts/collect_node.sh` 回传后随本地提交入库
-2. **大文件永不进 git**：数据集、checkpoint、完整日志只存服务器 `/data/dataset`、`/data/runs`
-3. 任务认领原子化：改任务卡文件名即占有；互斥资源用 `mkdir locks/<name>` 抢锁，用完删除
-4. `memory/hypotheses.jsonl` **只追加、永不改写**
-5. 远程一切 >1 分钟的任务必须在 tmux 会话里，禁止裸 SSH 挂前台
-6. 新代码必须先过 `--smoke` 再上真数据
-7. 写代码前先读 `memory/failure_modes.md`；新踩坑后必须追加进去
+1. **Only the local machine pushes**; the server only pulls. Experiment artifacts come back via `scripts/collect_node.sh` and are committed locally
+2. **Large files never enter git**: datasets, checkpoints, full logs stay on the server under `/data/dataset`, `/data/runs`
+3. Task claiming is atomic via file rename; mutually exclusive resources use `mkdir locks/<name>`, delete when done
+4. `memory/hypotheses.jsonl` is **append-only; history lines are never rewritten**
+5. Any remote task longer than ~1 minute must run inside tmux; no bare SSH foreground hangs
+6. New code must pass `--smoke` before touching real data
+7. Read `memory/failure_modes.md` before writing code; append new pitfalls after any incident
 
-## 3. 服务器速查
+## 3. Server Cheat-Sheet
 
-| 项 | 值 |
+| Item | Value |
 |---|---|
-| 连接 | `ssh cac-server`（别名映射在本地 `~/.ssh/config`，轮换后自动更新） |
-| 持久化 | 仅 `/data`：`repo/`(仓库)、`dataset/FSC147/`(VarV2 全套)、`runs/<ID>/`、`asset/`(杂物) |
-| Python | `/data/miniconda/envs/cac/bin/python`（torch 2.10.0+cu128，CUDA 可用，RTX 3060 12GB） |
-| 网络 | GitHub 直连可用；pip 必带 `-i https://pypi.tuna.tsinghua.edu.cn/simple` |
-| 数据验证 | `/data/miniconda/envs/cac/bin/python scripts/check_data.py` 应全过 |
+| Connection | `ssh cac-server` (alias mapped in local `~/.ssh/config`, auto-updated on rotation) |
+| Persistence | only `/data`: `repo/` (clone), `dataset/FSC147/` (VarV2 full set), `runs/<ID>/`, `asset/` (scratch) |
+| Python | `/data/miniconda/envs/cac/bin/python` (torch 2.10.0+cu128, CUDA OK, RTX 3060 12GB) |
+| Network | GitHub reachable directly; pip MUST use `-i https://pypi.tuna.tsinghua.edu.cn/simple` |
+| Data check | `/data/miniconda/envs/cac/bin/python scripts/check_data.py` must fully pass |
 
-## 4. 服务器轮换演练（每次租到新实例时照此执行）
+## 4. Server Rotation Drill (run every time a new instance is rented)
 
-**你只需要做一件事**：把 DeepLn 给的两行原样粘到 `local/address_and_password.md`——
+**The only thing you need to do**: paste DeepLn's two lines verbatim into `local/address_and_password.md` —
 ```
-ssh -p <端口> root@<主机>
-<密码>
+ssh -p <port> root@<host>
+<password>
 ```
-然后本地跑一条命令完成全部恢复：
+Then one command locally restores everything:
 ```bash
 bash scripts/onboard.sh
 ```
-（自动：读凭据→装公钥→写 ssh 别名→clone 仓库(若缺)→初始化环境→验证数据集。幂等，可重复跑。）
+(Automatically: parse creds → install pubkey → write ssh alias → clone repo if missing → init env → verify dataset. Idempotent, safe to re-run.)
 
-数据集丢失时额外一步：上传 FSC147.zip 到 `/data/dataset/`，在 `FSC147/` 目录内解压后重跑 onboard.sh。
+Extra step if the dataset was lost: upload FSC147.zip to `/data/dataset/`, unzip inside the `FSC147/` directory, re-run onboard.sh.
 
-**仓库外固定依赖（已配置，勿动）**：push 凭据 `~/.git-credentials`（token 备份在 `local/github_token.txt`）；SSH 私钥 `~/.ssh/id_ed25519`；提交邮箱必须 `qkun-zh@users.noreply.github.com`。
+**Out-of-repo fixed dependencies (already configured, do not touch)**: push credentials in `~/.git-credentials` (token backup in `local/github_token.txt`); SSH key at `~/.ssh/id_ed25519`; commit email must be `qkun-zh@users.noreply.github.com`.
 
-## 5. 假设记录格式
+## 5. Hypothesis Record Format
 
 ```
-IF [架构选择] IN [作用域], THEN [预测效果], BECAUSE [机制]. DISPROVED IF [证伪条件].
+IF [architectural choice] IN [scope], THEN [predicted effect], BECAUSE [mechanism]. DISPROVED IF [falsification criterion].
 ```
 
-置信度更新（η=0.20，c∈[0.01,0.99]，初始 0.5）：支持 `c←c+0.20·w·(1−c)`；反驳 `c←c−0.20·w·c`。判定：confirmed >0.75 ／ refuted <0.25 ／ uncertain 其间。
+Confidence update (η=0.20, c∈[0.01,0.99], initial 0.5): supports `c←c+0.20·w·(1−c)`; contradicts `c←c−0.20·w·c`. Verdicts: confirmed >0.75 / refuted <0.25 / uncertain otherwise.

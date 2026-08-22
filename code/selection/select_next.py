@@ -1,8 +1,8 @@
-"""code/selection/select_next.py — HypoExplore 双重选择。
+"""code/selection/select_next.py — HypoExplore dual selection.
 
-用法:
-  python code/selection/select_next.py parent                 # 选下一个要扩展的父节点
-  python code/selection/select_next.py hypo --parent N0001_x  # 为该父节点选假设组 Q_t
+Usage:
+  python code/selection/select_next.py parent                 # pick the next parent node to expand
+  python code/selection/select_next.py hypo --parent N0001_x  # pick hypothesis set Q_t for that parent
 """
 import argparse
 import json
@@ -36,7 +36,7 @@ def select_parent(tree):
     idx = load(MEM)["hypotheses"]
     nodes = {k: v for k, v in tree["nodes"].items() if v.get("status") in ("synthesized", "done")}
     if not nodes:
-        print("无可扩展节点（需要 status ∈ synthesized|done）")
+        print("no expandable nodes (need status in synthesized|done)")
         return None
     accs = [v.get("best_metric", 0.0) or 0.0 for v in nodes.values()]
     lo, hi = min(accs), max(accs)
@@ -48,7 +48,7 @@ def select_parent(tree):
         tested = set()
         for a in ancestors(tree, nid):
             tested.update(a.get("tested_hypotheses", []))
-        # 论文定义：H_active = 全部 uncertain 假设；H_tested = 其中已在本支线祖先链测过的
+        # per paper: H_active = all uncertain hypotheses; H_tested = those already tested on this ancestor chain
         active = [h for h, m in idx.items() if m.get("status", "uncertain") == "uncertain"]
         n_tested = len([h for h in active if h in tested])
         avail = 0.0 if not active else 1 - n_tested / len(active)
@@ -73,7 +73,7 @@ def select_hypo(parent, seed=None):
     cand = [(h, m) for h, m in idx.items()
             if m.get("status", "uncertain") == "uncertain" and h not in tested]
     if not cand:
-        print(f"{parent} 无可用假设（全部已测或已定论）。建议 Idea Agent 提出新假设。")
+        print(f"{parent} has no available hypotheses (all tested or settled). Idea Agent should propose new ones.")
         return []
     scored = []
     for h, m in cand:
@@ -104,5 +104,5 @@ if __name__ == "__main__":
     if a.mode == "parent":
         select_parent(load(TREE))
     else:
-        assert a.parent, "--parent 必填"
+        assert a.parent, "--parent is required"
         select_hypo(a.parent)

@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "description": "假设记忆库快照。由 Synthesis 步骤从 hypotheses.jsonl 物化；可用 scripts/rebuild_index.py 重建",
+    "description": "Snapshot of the hypothesis memory bank. Materialized from hypotheses.jsonl by Synthesis; rebuildable via scripts/rebuild_index.py",
     "eta": 0.2,
     "bounds": [
       0.01,

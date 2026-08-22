@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 在服务器上启动某节点的训练（tmux 会话 node_<ID>）。用法: bash scripts/run_node.sh <NODE_ID> [EPOCHS]
+# Launch training for a node on the server (tmux session node_<ID>). Usage: bash scripts/run_node.sh <NODE_ID> [EPOCHS]
 set -euo pipefail
 NODE=${1:?usage: run_node.sh <NODE_ID> [EPOCHS]}
 REPO=/data/repo

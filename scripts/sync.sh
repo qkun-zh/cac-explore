@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 本地侧同步：拉取远程变更并推送本地提交。任何智能体收尾时可调用。
+# Local sync: pull remote changes and push local commits. Any agent may call this when closing out.
 set -euo pipefail
 cd "$(cd "$(dirname "$0")/.." && pwd)"
 git pull --ff-only --autostash

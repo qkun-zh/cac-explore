@@ -1,21 +1,27 @@
-# failure_modes — 实现失败模式与实践建议（l_t(h)）
+# failure_modes — implementation pitfalls & practices (l_t(h))
 
-> Coding Agent / 运维操作前必读。每次事故后由 Diagnostic 步骤追加。
-> 格式：`- <失败模式>: <建议>（来源）`
+> Mandatory reading before Coding/ops work. The Diagnostic step appends after every incident.
+> Format: `- <failure mode>: <practice> (source)`
 
-## 环境与依赖
+## Environment & Dependencies
 
-- conda 环境改名用 mv+sed 扫 bin 目录: 含路径字符串的 ELF 二进制被 sed 改短字节错位直接段错误。改名=新建环境重装。（setup）
-- pip 装 torch 不锁版本: 本机驱动 CUDA 12.4，PyPI 最新 torch(2.13/cu130) 大版本不兼容。锁 `torch==2.10.0`（PyPI 默认即 cu128 构建，元数据 requires_dist 可验证），全走清华源。（setup）
-- pip 命令漏 `-i 清华源`: nvidia 依赖会回落 pypi.org 直连，75KB/s 卡死。凡 pip 必带 `-i https://pypi.tuna.tsinghua.edu.cn/simple`。（setup）
-- 旧版 pip + pysocks 走代理报 urllib3 PoolKey TypeError: 别修 pip，改用 curl --socks5-hostname 直接下 wheel。（setup）
+- Renaming a conda env via mv+sed over bin/: ELF binaries with embedded path strings get byte-misaligned by sed and segfault. Renaming = create a new env and reinstall. (setup)
+- Installing torch without pinning: local driver is CUDA 12.4; latest PyPI torch (2.13/cu130) is major-incompatible. Pin `torch==2.10.0` (PyPI default wheel IS the cu128 build — verifiable in metadata requires_dist). (setup)
+- pip without `-i` Tsinghua mirror: nvidia deps fall back to direct pypi.org at 75KB/s and stall. Always add `-i https://pypi.tuna.tsinghua.edu.cn/simple`. (setup)
+- Old pip + pysocks proxy raises urllib3 PoolKey TypeError: don't fix pip; download wheels directly with `curl --socks5-hostname`. (setup)
 
-## 文件操作
+## File Operations
 
-- pkill/pgrep -f 模式匹配到自身命令行: 远程 shell 自杀、整条命令静默消失（两次"无输出"事故根源）。用 `[u]nzip` 方括号转义模式。（setup）
-- 删除/移动前不检查占用: rm 掉了 pip 正在写入的 /tmp/pip-unpack-* 导致安装中断；mv 与后台解压竞争产生错乱布局。任何清理前先 pgrep 确认无活跃写入者。（setup）
-- 长内联 SSH 命令中途断连则静默半执行: >30s 的远程操作一律 tmux + 完成标记文件（如 .EXTRACT_OK），验证以标记+计数为准，不以"没报错"为准。（setup）
+- pkill/pgrep -f pattern matches its own command line: the remote shell kills itself and the whole command silently vanishes (root cause of two "no output" incidents). Use `[u]nzip`-style bracket patterns or exact process names. (setup)
+- Deleting/moving while a writer is active: rm'd pip's in-flight /tmp/pip-unpack-* wheels (killed an install); mv raced a running unzip producing a mangled layout. Always pgrep for active writers before any cleanup. (setup)
+- Long inline SSH commands that drop mid-flight half-execute silently: anything >30s goes in tmux with a completion marker file (e.g. `.EXTRACT_OK`); verify by marker + counts, never by "no error seen". (setup)
+- Multi-line Python nested inside ssh single quotes hangs on quoting: put such scripts in the repo (`scripts/*.py`) instead of inline. (setup)
 
-## Git/账号
+## Git / Accounts
 
-- GitHub push 被拒 email privacy: 提交邮箱必须用 `qkun-zh@users.noreply.github.com`。（setup）
+- GitHub push rejected on email privacy: commits must use `qkun-zh@users.noreply.github.com`. (setup)
+
+## Engine / Contracts
+
+- Model density resolution vs GT mismatch: models may emit low-res density (standard for counting); the engine upsamples to GT size with sum conservation, so node code must NOT assume shapes match. Evaluation always uses density sums. (S0001)
+- FSC147 JSON ids carry `.jpg`; exemplar boxes are in original-image coordinates scaled by annotation W/H — not by the on-disk image size. (S0001)

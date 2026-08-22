@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "description": "轨迹树。节点状态: proposed|coded|running|done|failed|timeout|synthesized",
+    "description": "Trajectory tree. Node status: proposed|coded|running|done|failed|timeout|synthesized",
     "lambda_acc": 0.85,
     "lambda_parent": 0.60,
     "tau_max_min": 30

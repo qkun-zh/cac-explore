@@ -1,9 +1,9 @@
-{"ts":"2026-08-22T21:40:00+08:00","agent":"setup","event":"repo_init","refs":["AGENTS.md","docs/PROTOCOL.md","STATE.md"],"note":"框架骨架建立：轨迹树/记忆库/任务队列/训练引擎/脚本"}
-{"ts":"2026-08-22T22:20:00+08:00","agent":"setup","event":"ssh_key_install","refs":["scripts/install_key.py"],"note":"免密SSH+轮换一键重接；公钥含/data持久副本"}
-{"ts":"2026-08-22T22:30:00+08:00","agent":"setup","event":"env_incident","refs":["memory/failure_modes.md"],"note":"torch环境mv改名致ELF损坏，删除重建env cac(py3.12)；教训入库"}
-{"ts":"2026-08-22T22:40:00+08:00","agent":"setup","event":"node_create","refs":["tree/nodes/S0001_smoke"],"note":"冒烟节点创建并推送（契约验证用）"}
-{"ts":"2026-08-22T22:55:00+08:00","agent":"setup","event":"torch_fix_running","refs":["STATE.md"],"note":"torch 2.13+cu130与驱动12.4不兼容，回装2.10.0+cu128（阿里源，tmux会话fixtorch）"}
-{"ts":"2026-08-22T23:30:00+08:00","agent":"setup","event":"dataset_upload","refs":["/data/dataset/FSC147.zip"],"note":"用户本地1.5G官方FSC147经scp上传(10MB/s)；弃用5.19GB镜像与代理慢速方案"}
-{"ts":"2026-08-22T23:32:00+08:00","agent":"setup","event":"torch_resolution","refs":["memory/failure_modes.md"],"note":"PyPI默认torch==2.10.0即cu128构建(元数据验证)，清华源直装，无需手动下载"}
+{"ts":"2026-08-22T21:40:00+08:00","agent":"setup","event":"repo_init","refs":["AGENTS.md","docs/PROTOCOL.md","STATE.md"],"note":"framework skeleton: trajectory tree / memory bank / task queue / training engine / scripts"}
+{"ts":"2026-08-22T22:20:00+08:00","agent":"setup","event":"ssh_key_install","refs":["scripts/install_key.py"],"note":"passwordless SSH + one-shot re-onboard after rotation; pubkey persisted in /data/.ssh as well"}
+{"ts":"2026-08-22T22:30:00+08:00","agent":"setup","event":"env_incident","refs":["memory/failure_modes.md"],"note":"mv-rename of torch env corrupted ELFs; deleted and rebuilt env cac (py3.12); lesson recorded"}
+{"ts":"2026-08-22T22:40:00+08:00","agent":"setup","event":"node_create","refs":["tree/nodes/S0001_smoke"],"note":"smoke node created and pushed (contract validation)"}
+{"ts":"2026-08-22T22:55:00+08:00","agent":"setup","event":"torch_fix_running","refs":["STATE.md"],"note":"torch 2.13+cu130 incompatible with driver 12.4; reinstalling 2.10.0+cu128"}
+{"ts":"2026-08-22T23:30:00+08:00","agent":"setup","event":"dataset_upload","refs":["/data/dataset/FSC147.zip"],"note":"user uploaded official 1.5GB FSC147 via scp (~10MB/s); abandoned 5.19GB mirror and slow proxy routes"}
+{"ts":"2026-08-22T23:32:00+08:00","agent":"setup","event":"torch_resolution","refs":["memory/failure_modes.md"],"note":"PyPI default torch==2.10.0 IS the cu128 build (metadata verified); installed directly from Tsinghua mirror, no manual download needed"}
 {"ts": "2026-08-22T23:54:21+08:00", "agent": "lead", "event": "S0001_smoke success on real FSC147 (2ep/27s, val MAE 46.69, 0.01M params); engine upsample fix; dataset VarV2 verified 6146 imgs", "refs": ["tree/nodes/S0001_smoke/result.json", "code/engine/train.py", "code/data/fsc147.py"]}
 {"ts": "2026-08-23T00:04:00+08:00", "agent": "lead", "event": "README/AGENTS rewritten with mission (<=32M params, FSC147 test MAE<16), full file map, and role work-loops for agent onboarding", "refs": ["README.md", "AGENTS.md"]}

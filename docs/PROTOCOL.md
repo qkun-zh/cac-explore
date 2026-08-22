@@ -1,50 +1,54 @@
-# PROTOCOL — 文件契约与节点生命周期
+# PROTOCOL — File Contracts & Node Lifecycle
 
-## 1. 同步拓扑
+## 1. Sync Topology
 
 ```
-本地 ~/cac_explore ──push/pull──> GitHub <──pull── 服务器 /data/repo
- （主控+子智能体编辑）                          （执行训练）
+Local ~/cac_explore ──push/pull──> GitHub <──pull── Server /data/repo
+ (Lead + subagents edit)                          (runs training)
         ▲                                              │
-        └──────── scripts/collect_node.sh (SSH/SFTP) ──┘
+        └──────── scripts/collect_node.sh (SSH/SCP) ───┘
 ```
 
-**单一写入者规则**：只有本地 push。服务器对仓库只读，实验产物写 `/data/runs/` 后由采集脚本回传。
+**Single-writer rule**: only the local machine pushes. The server's clone is read-only; experiment artifacts are written under `/data/runs/` and collected back by the script above.
 
-## 2. 节点目录契约 `tree/nodes/<ID>/`
+## 2. Node Directory Contract `tree/nodes/<ID>/`
 
-ID 格式：`N####_<短名>`（正式节点）/ `S0001_smoke`（冒烟）。
+ID format: `N####_<short-name>` for production nodes (`S0001_smoke` is the smoke test).
 
-| 文件 | 作者 | 内容 |
+| File | Author | Content |
 |---|---|---|
-| `idea.md` | Idea Agent | 固定小节：`## 标题`、`## 动机与直觉`、`## 架构规格`（core_ideas/core_blocks/network_structure/tunable_aspects/invariants）、`## 提出的假设`（每条含 falsification）、`## 与父节点的差异`、`## 新颖性声明` |
-| `model.py` | Coding Agent | 必须暴露 `build_model(cfg) -> nn.Module`；输入 `[B,3,H,W]`+bbox，输出 dict 含 `density`；**density 可为任意低分辨率**（如 S/8），engine 训练时会自动双线性上采样到 GT 尺寸并做总和守恒缩放；评估按密度和计数（分辨率无关） |
-| `config.py` | Coding Agent | 必须 `cfg = dict(...)`，必含键：`exp_name, epochs, batch_size, lr, input_size, num_classes, smoke(默认False)`。可自由增键 |
-| `result.json` | Executor 回传 | `{node, status: success\|failed\|timeout, metrics:{mae,rmse,...}, timing:{train_seconds, epochs_done}, diagnostics:{oom,instability,notes}, run_dir}` |
-| `feedback/quantitative.md` 等 ×4 | 反馈 Agent | 每份固定结构：`## reasoning` / `## actionable_feedback` / `## hypothesis_updates`（列表：hypothesis_id, evidence_type∈supports/contradicts/neutral, strength∈[0,1], reasoning）；diagnostic 仅失败/超时时存在 |
-| `synthesis.md` | Synthesis | 合并去重后的更新、质量门判定（7 维度）、落账清单 |
-| `train.log` | 采集脚本 | 服务器完整日志的截尾副本（≤500 行） |
+| `idea.md` | Idea Agent | Fixed sections: `## Title`, `## Motivation & Intuition`, `## Architecture Spec` (core_ideas / core_blocks / network_structure / tunable_aspects / invariants), `## Proposed Hypotheses` (each with falsification), `## Delta vs Parent`, `## Novelty Statement` |
+| `model.py` | Coding Agent | Must expose `build_model(cfg) -> nn.Module`; inputs `[B,3,H,W]` + bboxes `[B,4]`; output dict containing `density`. **density may be low-resolution** (e.g. S/8): the engine bilinearly upsamples it to GT size with sum conservation during training; evaluation counts via density sums, which are resolution-independent |
+| `config.py` | Coding Agent | Must define `cfg = dict(...)`. **Only required key: `input_size`.** Commonly used optional keys: `epochs, batch_size, lr, weight_decay, eta_min, amp, smoke(default False), max_params_M(default 32), loss_count_weight(default 0.3), data_root(default /data/dataset/FSC147), num_workers(default 4)`. Free to add more |
+| `result.json` | Collected from Executor | `{node, status: running\|success\|failed\|timeout, metrics:{mae,rmse,best_mae,...}, timing:{train_seconds,epochs_done}, diagnostics:{oom,instability,smoke,params_M,...}, run_dir, ts}` — rewritten after every epoch while training |
+| `feedback/quantitative.md` etc. ×4 | Feedback Agents | Each has fixed structure: `## reasoning` / `## actionable_feedback` / `## hypothesis_updates` (list items: hypothesis_id, evidence_type∈supports/contradicts/neutral, strength∈[0,1], reasoning); diagnostic exists only for failures/timeouts |
+| `synthesis.md` | Synthesis Agent | Deduplicated merged updates, quality-gate verdict (7 dimensions), booking list |
+| `train.log` | collect script | Tail copy (≤500 lines) of the full server log |
 
-## 3. 全局状态文件
+## 3. Global State Files
 
-- `tree/tree.json`：`nodes: {<ID>: {parent, children[], status(proposed|coded|running|done|failed|timeout|synthesized), best_metric, train_seconds, quality, avail, score}}`。由 Synthesis 步骤维护。
-- `memory/hypotheses.jsonl`：每行一条事件：`{ts, type(create\|evidence\|revise), hyp_id, text?, evidence_type?, strength?, source_node?}`。
-- `memory/index.json`：`{<hyp_id>: {text, confidence, n_tested, status(confirmed|refuted|uncertain), tags[], log[]}}`——jsonl 的物化快照，可用 `scripts/rebuild_index.py` 重建。
-- `journal/events.jsonl`：审计流水，只追加。
+- `tree/tree.json`: `nodes: {<ID>: {parent, children[], status(proposed|coded|running|done|failed|timeout|synthesized), best_metric, train_seconds, quality, avail, score}}`, maintained by Synthesis.
+- `memory/hypotheses.jsonl`: one event per line: `{ts, type(create|evidence|revise), hyp_id, text?, evidence_type?, strength?, source_node?}`.
+- `memory/index.json`: `{_meta, hypotheses: {<hyp_id>: {text, confidence, n_tested, status(confirmed|refuted|uncertain), tags[], log[]}}}` — a materialized snapshot of the jsonl, rebuildable via `scripts/rebuild_index.py`.
+- `journal/events.jsonl`: audit stream, append-only.
 
-## 4. 研究循环（每个节点的标准流程）
+## 4. Research Cycle (standard flow per node)
 
-1. **选父**：`python code/selection/select_next.py parent`
-   `score = λ_parent·quality + (1−λ_parent)·avail`，其中
-   `quality = λ_acc·Acc_norm + (1−λ_acc)·(1 − min(τ,τ_max)/τ_max)`，λ_acc=0.85，λ_parent=0.60，τ_max=30min
-2. **选假设**：`select_next.py hypo --parent <ID>`
-   开发组 = Thompson 采样 Beta(α,β)（先验(1,1)，w=1）取 top-2；探索组 = 认知价值 `1−|2c−1|` 取 top-2；并集 ≤4
-3. Idea → Coding → 冗余检查（对照既有 idea.md 判机制重复）
-4. Executor：服务器 `bash scripts/run_node.sh <ID>`（tmux 会话 `node_<ID>`，墙钟超时 30min，前 5 epoch sanity-check）
-5. 本地 `bash scripts/collect_node.sh <ID>` 回传
-6. 反馈 ×4（可并行认领 tasks 卡）→ Synthesis（去重、矛盾消解、质量门、η=0.20 更新置信度）
-7. 更新 tree.json / index.json / STATE.md / journal，提交推送
+1. **Pick parent**: `python code/selection/select_next.py parent`
+   `score = λ_parent·quality + (1−λ_parent)·avail`, where
+   `quality = λ_acc·Acc_norm + (1−λ_acc)·(1 − min(τ,τ_max)/τ_max)` with λ_acc=0.85, λ_parent=0.60, τ_max=30min
+2. **Pick hypotheses**: `select_next.py hypo --parent <ID>`
+   Exploitation set = Thompson sampling Beta(α,β) (prior (1,1), w=1), top-2; exploration set = epistemic value `1−|2c−1|`, top-2; deduped union ≤4
+3. Idea → Coding → redundancy check (compare against existing idea.md for mechanism duplication)
+4. Executor on server: `bash scripts/run_node.sh <ID>` (tmux session `node_<ID>`; wall-clock timeout 30min enforced by engine)
+5. Local: `bash scripts/collect_node.sh <ID>`
+6. Feedback ×4 (parallel claimable task cards) → Synthesis (dedup, contradiction resolution, quality gate, η=0.20 confidence updates)
+7. Update tree.json / index.json / STATE.md / journal; commit & push
 
-## 5. 冒烟模式
+## 5. Smoke Mode
 
-任何新代码先过 `--smoke`：合成随机数据、2 epoch、CPU 可跑，验证 model/config 契约后再上真数据。
+All new code passes `--smoke` first: synthetic random data, 2 epochs, CPU-capable. Verifies the model/config contract before any real-data run:
+
+```bash
+python code/engine/train.py --node_dir tree/nodes/<ID> --smoke --epochs 2
+```

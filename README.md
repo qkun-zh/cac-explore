@@ -1,68 +1,71 @@
-# cac-explore — 轻量 CAC 计数模型的多智能体发现系统
+# cac-explore — Multi-Agent Discovery System for Lightweight CAC Counting
 
-## 使命（Mission）
+## Mission
 
-> **构造一个 ≤32M 参数、在 FSC147 test 集上 MAE < 16 的轻量创新型类无关计数（Class-Agnostic Counting）模型。**
+> **Build a lightweight, innovative Class-Agnostic Counting (CAC) model with ≤32M parameters that achieves MAE < 16 on the FSC147 test split.**
 
-这是超越现有公开方法的硬目标。主控（Lead）不亲自写模型——模型由本仓库定义的**多智能体假设探索循环**自动产出。任何新接手的 agent，读完本文件 + `AGENTS.md` + `STATE.md` 三份文件即可无损接管。
+This is a hard target beyond current public methods. The Lead does not write models directly — models are produced by the **multi-agent hypothesis-exploration loop** defined in this repository. Any agent taking over can losslessly resume after reading only three files: this README, `AGENTS.md`, and `STATE.md`.
 
-参考基线：`tree/nodes/S0001_smoke/`（0.01M 参数玩具网络，2 epoch val MAE 46.7）——仅证明全链路可用，与目标不可比。
+Reference baseline: `tree/nodes/S0001_smoke/` (0.01M-param toy network, val MAE 46.7 @ 2 epochs) — proves the pipeline works end-to-end; not comparable to the target.
 
-## 系统架构
+## System Architecture
 
-复刻 [HypoExplore](https://arxiv.org/abs/2604.12999)：**一个 Git 仓库 = 所有智能体共享的文件系统**。所有状态都在文件里，不在任何 agent 的上下文里。
+Replicates [HypoExplore](https://arxiv.org/abs/2604.12999): **one Git repository = the shared file system of all agents**. All state lives in files, never in any agent's context window.
 
 ```
-┌─────────────────────────────┐
-│ 本地 WSL Debian              │  Lead + Idea/Coding/反馈/Synthesis agents
-│ ~/cac_explore               │  ★ 唯一有 push 权限的机器
-└──────────┬──────────────────┘
+┌───────────────────────────────────┐
+│ Local WSL Debian                  │  Lead + Idea/Coding/Feedback/Synthesis agents
+│ ~/cac_explore                     │  ★ the ONLY machine with push rights
+└──────────┬────────────────────────┘
            │ git push / pull
-┌──────────▼──────────────────┐
-│ GitHub: qkun-zh/cac-explore │  共享总线（公共仓库）
-└──────────┬──────────────────┘
-           │ git pull（服务器只读）
-┌──────────▼──────────────────┐
-│ DeepLn 租用服务器            │  唯一有 GPU 的地方（RTX 3060 12GB）
-│ /data/repo + /data/runs     │  tmux 训练；产物经 SSH 回传本地入库
-└─────────────────────────────┘
+┌──────────▼────────────────────────┐
+│ GitHub: qkun-zh/cac-explore       │  shared bus (public repo)
+└──────────┬────────────────────────┘
+           │ git pull (server is read-only)
+┌───────────────────────────────────┐
+│ DeepLn rented GPU server          │  the only place with a GPU (RTX 3060 12GB)
+│ /data/repo + /data/runs           │  tmux training; artifacts collected back via SSH
+└───────────────────────────────────┘
 ```
 
-## 目录地图（每个文件的作用）
+## Directory Map (what every file is for)
 
-| 路径 | 作用 |
+| Path | Purpose |
 |---|---|
-| `AGENTS.md` | **协议**：启动顺序、各角色的标准工作循环、硬性规则、服务器速查、轮换演练 |
-| `STATE.md` | **当前现场快照**：阶段、已验证事实、活跃任务、下一步。第二个必读 |
-| `docs/PROTOCOL.md` | 文件契约细节：节点目录里每个文件的必填结构、研究循环公式、状态机 |
-| `docs/research_direction.md` | 研究方向备忘：CAC 领域现状、FSC147 数据协议、候选技术路线 |
-| `code/engine/train.py` | **唯一训练入口**，所有节点共用。契约：读节点的 model/config，输出 result.json |
-| `code/data/fsc147.py` | FSC147 VarV2 数据加载器（预计算密度图、总和守恒缩放、exemplar box 解析） |
-| `code/selection/select_next.py` | 轨迹树扩展策略：选父节点（quality×avail 加权）、选假设（Thompson 采样 + 认知价值） |
-| `scripts/run_node.sh` | 【服务器】tmux 启动某节点训练（会话名 `node_<ID>`，墙钟 30min 超时） |
-| `scripts/collect_node.sh` | 【本地】SSH 回传某节点的 result.json + train.log 尾部并放入节点目录 |
-| `scripts/check_data.py` | 数据集健全性检查（划分数量、形状、计数守恒） |
-| `scripts/bootstrap_remote.sh` | 【服务器】新实例一键初始化环境（幂等） |
-| `scripts/install_key.py` | 【本地】实例轮换后重装 SSH 公钥并更新连接别名（读 `local/address_and_password.md`） |
-| `scripts/rebuild_index.py` | 从 hypotheses.jsonl 重建 index.json（快照损坏时自救） |
-| `scripts/revproxy.py` | 备用：本地起 socks 代理供服务器借道（默认用不上，GitHub 直连可用） |
-| `local/` | **本机敏感资料（gitignore，永不入库）**：`address_and_password.md` 服务器凭据、`github_token.txt` token 备份 |
-| `tasks/_template.md` | 任务卡模板；`T####_pending_*.md` 待领，**改名 `*_claimed_*` 即占有** |
-| `journal/events.jsonl` | 全局审计流水（append-only）：谁在何时做了什么 |
-| `memory/hypotheses.jsonl` | **假设记忆库**（append-only，永不改写历史行） |
-| `memory/index.json` | 假设库的可重建快照：每条假设的置信度/状态/证据日志 |
-| `memory/failure_modes.md` | **已踩坑清单**：Coding agent 动手前必读，事故后必须追加 |
-| `tree/tree.json` | 轨迹树 T：节点父子关系 + status/best_metric/score，由 Synthesis 维护 |
-| `tree/nodes/<ID>/` | 每个实验节点一个自包含目录：idea → code → result → feedback ×4 → synthesis |
+| `AGENTS.md` | **Protocol**: startup sequence, per-role work loops, hard rules, server cheat-sheet, rotation drill |
+| `STATE.md` | **Current situation snapshot**: stage, verified facts, active tasks, next steps. Read second |
+| `docs/PROTOCOL.md` | File contract details: required structure of every file in a node dir, research-cycle formulas, state machine |
+| `docs/research_direction.md` | Research direction memo: CAC landscape, FSC147 data protocol, candidate technical routes |
+| `docs/arXiv-2604.12999_HypoExplore_summary.txt` | Distilled paper summary — the framework we replicate |
+| `code/engine/train.py` | **The single training entry point**, shared by all nodes. Contract: reads node's model/config, writes result.json |
+| `code/data/fsc147.py` | FSC147 VarV2 dataset loader (precomputed density maps, sum-preserving resize, exemplar-box parsing) |
+| `code/selection/select_next.py` | Trajectory-tree expansion policy: parent choice (quality×avail), hypothesis choice (Thompson sampling + epistemic value) |
+| `scripts/run_node.sh` | [Server] launch training for a node in tmux (session `node_<ID>`, 30-min wall clock via engine flag) |
+| `scripts/collect_node.sh` | [Local] pull result.json + train.log tail from server into the node directory |
+| `scripts/check_data.py` | Dataset sanity check (split sizes, shapes, count conservation) |
+| `scripts/bootstrap_remote.sh` | [Server] idempotent one-shot environment init |
+| `scripts/install_key.py` | [Local] after instance rotation: install SSH pubkey & rewrite connection alias (reads `local/address_and_password.md`) |
+| `scripts/onboard.sh` | [Local] **one-command server onboarding**: creds → key → repo → env → data verification |
+| `scripts/rebuild_index.py` | Rebuild index.json from hypotheses.jsonl (self-repair if snapshot corrupts) |
+| `scripts/sync.sh` | Local convenience: pull --autostash, commit pending changes, push |
+| `scripts/revproxy.py` | Spare: local socks proxy for the server (unused by default; GitHub is reachable directly) |
+| `local/` | **Machine-local secrets (gitignored, NEVER committed)**: `address_and_password.md` server credentials, `github_token.txt` token backup |
+| `tasks/_template.md` | Task-card template; `T####_pending_*.md` unclaimed, **rename to `*_claimed_*` to claim** |
+| `journal/events.jsonl` | Global audit stream (append-only): who did what when |
+| `memory/hypotheses.jsonl` | **Hypothesis memory bank** (append-only; history lines are never rewritten) |
+| `memory/index.json` | Rebuildable snapshot of the bank: per-hypothesis confidence/status/evidence log |
+| `memory/failure_modes.md` | **Pitfall list**: Coding agents must read before writing code; must append after any incident |
+| `tree/tree.json` | Trajectory tree T: parent/child links + status/best_metric/score, maintained by Synthesis |
+| `tree/nodes/<ID>/` | One self-contained directory per experiment: idea → code → result → feedback ×4 → synthesis |
 
-节点 ID 约定：`S0001_smoke` 为冒烟节点；正式节点 `N0002_<短名>` 起。
+Node ID convention: `S0001_smoke` is the smoke-test node; production nodes start from `N0002_<short-name>`.
 
-## 新 agent 快速上手
+## Quick Start for a New Agent
 
 ```bash
-git pull --ff-only          # 1. 同步到最新
-cat AGENTS.md STATE.md      # 2. 协议 + 现场（按需再读 docs/PROTOCOL.md）
-tail -5 journal/events.jsonl # 3. 最近发生了什么
+git pull --ff-only             # 1. sync to latest
+cat AGENTS.md STATE.md         # 2. protocol + situation (then docs/PROTOCOL.md if needed)
+tail -5 journal/events.jsonl   # 3. what happened recently
 ```
 
-然后按 `AGENTS.md` 中你的角色循环行事。
+Then follow your role's work loop in `AGENTS.md`.

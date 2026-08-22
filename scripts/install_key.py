@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""服务器轮换后的一键重接：读凭据文件 -> 装公钥(含/data持久副本) -> 重写本地 ssh config。
+"""One-shot server re-onboarding after rotation: read creds file -> install pubkey (with /data persistent copy) -> rewrite local ssh config.
 
-用法: python3 scripts/install_key.py [凭据文件路径]
-凭据文件格式（默认 <仓库>/local/address_and_password.md）:
-  第1行: ssh -p <端口> <用户>@<主机>
-  第2行: <密码>
+Usage: python3 scripts/install_key.py [creds_file_path]
+Creds file format (default <repo>/local/address_and_password.md):
+  line 1: ssh -p <port> <user>@<host>
+  line 2: <password>
 """
 import os
 import re
@@ -19,21 +19,21 @@ DEFAULT_CREDS = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__f
 
 
 def parse_creds(path):
-    """容忍任意粘贴格式：连接串和密码各占一行，可有标题/注释/『密码：』前缀。"""
+    """Tolerant to any paste format: one connection line + one password line; titles/comments/label prefixes OK."""
     lines = open(path).read().splitlines()
     m = re.search(r"ssh\s+\S*\s*-p\s+(\d+)\s+(\S+)@([\w.-]+)", "\n".join(lines))
     if not m:
-        sys.exit(f"[install_key] 无法从 {path} 解析连接串（应为: ssh -p <端口> <用户>@<主机>）")
+        sys.exit(f"[install_key] cannot parse connection string from {path} (expected: ssh -p <port> <user>@<host>)")
     port, user, host = int(m.group(1)), m.group(2), m.group(3)
     pw = None
-    for l in lines:  # 连接串之后的第一个非空、非注释行 = 密码
+    for l in lines:  # first non-empty non-comment line after the connection string = password
         s = l.strip()
         if not s or s.startswith("#") or "ssh" in s.split()[0:1]:
             continue
         pw = s.split("：")[-1].split(":")[-1].strip()
         break
     if not pw or len(pw) < 6:
-        sys.exit("[install_key] 未找到密码行：连接串下一行非空行应为密码")
+        sys.exit("[install_key] password line not found: the next non-empty line after the ssh string should be the password")
     return host, port, user, pw
 
 
@@ -57,7 +57,7 @@ def main():
     err = e.read().decode().strip()
     c.close()
     if "KEY_INSTALLED" not in out:
-        sys.exit(f"[install_key] 远程安装失败: {out} {err}")
+        sys.exit(f"[install_key] remote install failed: {out} {err}")
 
     block = (
         f"Host {ALIAS}\n"
@@ -76,8 +76,8 @@ def main():
     open(CONF_PATH, "w").write(existing)
     os.chmod(CONF_PATH, stat.S_IRUSR | stat.S_IWUSR)
 
-    print(f"[install_key] 公钥已装入 {user}@{host}:{port}（含 /data/.ssh 持久副本）")
-    print(f'[install_key] 本地别名已更新: ssh {ALIAS}')
+    print(f"[install_key] pubkey installed on {user}@{host}:{port} (with /data/.ssh persistent copy)")
+    print(f'[install_key] local alias updated: ssh {ALIAS}')
 
 
 if __name__ == "__main__":

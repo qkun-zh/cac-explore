@@ -1,13 +1,13 @@
-"""FSC147 (VarV2 协议) 类无关计数数据集。
+"""FSC147 (VarV2 protocol) class-agnostic counting dataset.
 
-服务器布局 /data/dataset/FSC147/：
-  images_384_VarV2/<id>.jpg                 # 已缩放至长边~384的可变尺寸图
-  gt_density_map_adaptive_384_VarV2/<id>.npy  # 预计算自适应密度图（与图像同尺寸）
-  annotation_FSC147_384.json                # {"<id>.jpg": {"W","H","box_examples_coordinates"(原图坐标), ...}}
-  Train_Test_Val_FSC_147.json               # {"train": [...], "val": [...], "test": [...]}
+Server layout /data/dataset/FSC147/:
+  images_384_VarV2/<id>.jpg                    # variable-aspect images, long side ~384
+  gt_density_map_adaptive_384_VarV2/<id>.npy   # precomputed adaptive density maps (image-sized)
+  annotation_FSC147_384.json                   # {"<id>.jpg": {"W","H","box_examples_coordinates"(original coords), ...}}
+  Train_Test_Val_FSC_147.json                  # {"train": [...], "val": [...], "test": [...]}
 
-输出契约：imgs [3,S,S] / bboxes [4](S坐标系) / density [1,S,S] / counts 标量。
-密度重采样后按总和守恒缩放，保证计数严格不变。
+Output contract: imgs [3,S,S] / bboxes [4] in S-space / density [1,S,S] / counts scalar.
+Density resizing is sum-preserving so the count is strictly unchanged.
 """
 import json
 import os
@@ -45,7 +45,7 @@ class FSC147Density(torch.utils.data.Dataset):
         S = self.size
         img = img.resize((S, S), Image.BILINEAR)
         dens = F.interpolate(dens[None, None], size=(S, S), mode="bilinear", align_corners=False)[0, 0]
-        dens = dens * (count0 / dens.sum().clamp_min(1e-8))  # 总和守恒 → 计数不变
+        dens = dens * (count0 / dens.sum().clamp_min(1e-8))  # sum-conserving → count unchanged
 
         ann = self.anno[im_id]
         corners = ann["box_examples_coordinates"][0]

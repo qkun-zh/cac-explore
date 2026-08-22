@@ -3,7 +3,7 @@ import torch.nn.functional as F
 
 
 class TinyDensityNet(torch.nn.Module):
-    """最小密度网络：验证契约用。forward(imgs[B,3,S,S], bboxes[B,4]) -> {'density':[B,1,S/8,S/8]}"""
+    """Minimal density network for contract validation. forward(imgs[B,3,S,S], bboxes[B,4]) -> {'density':[B,1,S/8,S/8]}"""
 
     def __init__(self, width=16):
         super().__init__()
@@ -14,7 +14,7 @@ class TinyDensityNet(torch.nn.Module):
             torch.nn.Conv2d(width, 1, 3, 1, 1),
         )
 
-    def forward(self, imgs, bboxes):  # noqa: ARG002 bboxes 为契约占位
+    def forward(self, imgs, bboxes):  # noqa: ARG002 bboxes kept as contract placeholder
         return {"density": F.softplus(self.features(imgs))}
 
 

@@ -1,35 +1,38 @@
-# 研究方向（人类指定）
+# Research Direction (human-specified)
 
-## 方向声明
+## Direction Statement
 
-在 FSC147 类无关计数基准上，通过假设驱动的多智能体进化搜索，发现轻量、准确、可迁移的 CAC 计数架构。
+On the FSC147 class-agnostic counting benchmark, discover lightweight, accurate, transferable CAC architectures via hypothesis-driven multi-agent evolutionary search.
 
-## 任务定义
+**Target**: ≤32M parameters, MAE < 16 on FSC147 **test**.
 
-- 输入：RGB 图像 + 示例框（exemplar box）标注目标类别
-- 输出：密度图，其积分即预测计数
-- 指标：MAE（主）、RMSE（次）；训练/验证/测试划分沿用 FSC147 官方 pkl
+## Task Definition
 
-## 数据集布局（服务器 `/data/dataset/FSC147`，VarV2 协议）
+- Input: RGB image + exemplar box(es) indicating the target category
+- Output: density map whose integral is the predicted count
+- Metrics: MAE (primary), RMSE (secondary); official FSC147 train/val/test splits
+
+## Dataset Layout (server `/data/dataset/FSC147`, VarV2 protocol)
 
 ```
 FSC147/
-├── images_384_VarV2/<im_id>.jpg            # 长边~384 可变宽高比图像
-├── gt_density_map_adaptive_384_VarV2/<im_id>.npy  # 预计算自适应密度图（与图同尺寸）
-├── annotation_FSC147_384.json              # exemplar boxes: {"<id>": {"box":[x1,y1,x2,y2]}}
-└── Train_Test_Val_FSC_147.json             # {"train":[...],"val":[...],"test":[...]} 6135 图/147 类
+├── images_384_VarV2/<id>.jpg             # variable-aspect images, long side ~384
+├── gt_density_map_adaptive_384_VarV2/<id>.npy  # precomputed adaptive density maps (same size as image)
+├── annotation_FSC147_384.json            # {"<id>.jpg": {"W","H" (original size), "box_examples_coordinates": [[[x,y]×4]×3], ...}}
+└── Train_Test_Val_FSC_147.json           # {"train":[...], "val":[...], "test":[...]} — 6146 images / 147 categories
 ```
 
-加载器 `code/data/fsc147.py` 已按此布局实现；密度重采样采用总和守恒（计数严格不变）。
-来源：用户本地官方打包上传（scp），内容同 HF 镜像 isentropic/FSC147。
+Loader `code/data/fsc147.py` implements this layout; density resampling is sum-preserving (counts strictly unchanged). Exemplar boxes are given in ORIGINAL image coordinates and are scaled by `S/W`, `S/H` from the annotation's W/H. JSON ids carry a `.jpg` suffix; the loader strips it.
+Source: official package uploaded by the user via scp; same content as the HF mirror `isentropic/FSC147`.
 
-## 约束
+## Constraints
 
-- 参数量预算与训练时长上限写入各节点 `config.py`；默认墙钟 ≤30 分钟
-- 单卡 RTX 3060 12GB，AMP 混合精度
-- 架构必须暴露 `build_model(cfg)`，输入 `[B,3,H,W]` + exemplar
+- Parameter budget and training-time cap live in each node's `config.py`; default wall clock ≤30 minutes
+- Single RTX 3060 12GB, AMP mixed precision
+- Architecture must expose `build_model(cfg)` taking `[B,3,H,W]` + exemplar bboxes; engine enforces `max_params_M` (default 32 = mission budget)
 
-## 基线参考（来自前期 cv_study 工作）
+## Baseline Reference (from earlier cv_study work)
 
-DViT-Light：392×392 输入、grid 48 密度图、MSE+0.3·L1 计数损失、AdamW 1e-3、cosine 150ep。
-根节点可从类似配置出发，也可完全另起炉灶——由 Idea Agent 自主判断。
+DViT-Light: 392×392 input, 48-cell grid density head, MSE + 0.3·L1 count loss, AdamW 1e-3, cosine schedule, 150 epochs. The root lineage may start from a similar recipe or from scratch — the Idea Agent decides.
+
+Note: S0001_smoke (0.01M params, 27s for 2 epochs) gives a throughput reference: full-budget nodes can afford roughly 50–100× more compute per run within τ_max=30min.

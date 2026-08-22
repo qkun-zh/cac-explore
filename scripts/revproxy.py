@@ -1,7 +1,8 @@
+"""Spare utility: local socks proxy reachable from the server via ssh -R (unused by default; GitHub is directly reachable)."""
 import paramiko, socket, select, threading, re, os, urllib.parse
 
 REMOTE_LISTEN = 1081
-conf = open("address_and_password.md").read().splitlines()
+conf = open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "local", "address_and_password.md")).read().splitlines()
 m = re.search(r"-p (\d+)\s+\w+@([\w.-]+)", conf[0])
 PORT, HOST, USER = int(m.group(1)), m.group(2), "root"
 PW = conf[1].strip()

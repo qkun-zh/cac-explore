@@ -1,11 +1,14 @@
-"""code/engine/train.py — 所有节点共用的训练框架。
+"""code/engine/train.py — shared training engine for all nodes.
 
-契约：节点目录下必须有 model.py(build_model(cfg)) 与 config.py(cfg=dict(...))。
-用法：
+Contract: a node directory must contain model.py (build_model(cfg)) and config.py (cfg = dict(...)).
+Usage:
   python code/engine/train.py --node_dir tree/nodes/N0001_x [--run_dir /data/runs/N0001_x]
-  python code/engine/train.py --node_dir ... --smoke          # 合成数据冒烟，无需数据集
+  python code/engine/train.py --node_dir ... --smoke          # synthetic-data smoke, no dataset needed
 """
 import argparse, importlib.util, json, math, os, sys, time, traceback
+
+import torch
+import torch.nn.functional as F
 
 
 def load_module(path, name):
@@ -21,7 +24,7 @@ def make_loaders(cfg, smoke):
         from torch.utils.data import DataLoader, Dataset
 
         class Synth(Dataset):
-            """低分辨率网格(g=size/8)上生成多斑点密度图，形状与典型密度头输出一致 [B,1,g,g]。"""
+            """Multi-blob density maps on a low-res grid (g=size/8), matching typical density-head outputs [B,1,g,g]."""
             def __init__(self, n, size):
                 self.n, self.size = n, size
             def __len__(self):
@@ -34,11 +37,11 @@ def make_loaders(cfg, smoke):
                 gs = self.size // 8
                 yy, xx = torch.meshgrid(torch.arange(gs), torch.arange(gs), indexing="ij")
                 dens = torch.zeros(gs, gs)
-                for _ in range(1 + int(torch.randint(0, 5, (1,), generator=g))):  # 1~5 个目标
+                for _ in range(1 + int(torch.randint(0, 5, (1,), generator=g))):  # 1-5 objects
                     cy, cx = int(torch.randint(0, gs, (1,), generator=g)), int(torch.randint(0, gs, (1,), generator=g))
                     s = 1.0 + 2.0 * float(torch.rand(1, generator=g))
                     blob = torch.exp(-((yy - cy) ** 2 + (xx - cx) ** 2) / (2 * s * s))
-                    dens = dens + blob / blob.sum().clamp_min(1e-6)   # 每个斑点归一，计数≈目标数
+                    dens = dens + blob / blob.sum().clamp_min(1e-6)   # each blob normalized, count ≈ number of objects
                 return {"imgs": img, "bboxes": torch.tensor([x0, y0, x1, y1], dtype=torch.float32),
                         "density": dens[None], "counts": dens.sum()}
         s = cfg["input_size"]
@@ -115,7 +118,7 @@ def main():
         raise SystemExit(1)
     total_p = sum(q.numel() for q in model.parameters()) / 1e6
     print(f"[engine] node={run_name} device={device} params={total_p:.2f}M smoke={cfg['smoke']}", flush=True)
-    assert total_p < float(cfg.get("max_params_M", 64)), f"params {total_p:.2f}M over budget"
+    assert total_p < float(cfg.get("max_params_M", 32)), f"params {total_p:.2f}M over budget"  # mission budget: 32M
 
     train_loader, val_loader, _ = make_loaders(cfg, cfg["smoke"])
     optim = torch.optim.AdamW(filter(lambda q: q.requires_grad, model.parameters()),
@@ -137,10 +140,10 @@ def main():
                 with torch.cuda.amp.autocast(enabled=use_amp):
                     out = model(imgs, bbox)
                     dens = out["density"] if isinstance(out, dict) else out
-                    if dens.shape[-2:] != gt_d.shape[-2:]:  # 模型可输出低分辨率密度，统一上采样到 GT 尺寸
+                    if dens.shape[-2:] != gt_d.shape[-2:]:  # models may emit low-res density; upsample to GT size
                         oh, ow = int(dens.shape[-2]), int(dens.shape[-1])
                         dens = F.interpolate(dens.float(), size=gt_d.shape[-2:], mode="bilinear", align_corners=False)
-                        dens = dens * (oh * ow) / float(dens.shape[-2] * dens.shape[-1])  # 总和守恒
+                        dens = dens * (oh * ow) / float(dens.shape[-2] * dens.shape[-1])  # sum-conserving
                     loss = F.mse_loss(dens.float(), gt_d) + w_cnt * F.l1_loss(dens.float().flatten(1).sum(1), gt_c)
                 scaler.scale(loss).backward()
                 scaler.unscale_(optim)
@@ -168,9 +171,6 @@ def main():
                  {"oom": oom, "instability": not math.isfinite(best), "smoke": cfg["smoke"], "params_M": round(total_p, 2)})
     print(f"[engine] done status={status} best={best:.3f}", flush=True)
 
-
-import torch
-import torch.nn.functional as F
 
 if __name__ == "__main__":
     main()

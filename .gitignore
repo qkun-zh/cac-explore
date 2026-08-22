@@ -10,5 +10,5 @@ data_local/
 runs_full/
 .DS_Store
 
-# 本机敏感资料（永不入库）
+# machine-local secrets (never committed)
 local/

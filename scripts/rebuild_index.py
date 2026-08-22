@@ -1,4 +1,4 @@
-"""重放 memory/hypotheses.jsonl 重建 memory/index.json 快照。"""
+"""Replay memory/hypotheses.jsonl to rebuild the memory/index.json snapshot."""
 import json
 import os
 
