@@ -1,1 +1,5 @@
 {"ts":"2026-08-22T21:40:00+08:00","agent":"setup","event":"repo_init","refs":["AGENTS.md","docs/PROTOCOL.md","STATE.md"],"note":"框架骨架建立：轨迹树/记忆库/任务队列/训练引擎/脚本"}
+{"ts":"2026-08-22T22:20:00+08:00","agent":"setup","event":"ssh_key_install","refs":["scripts/install_key.py"],"note":"免密SSH+轮换一键重接；公钥含/data持久副本"}
+{"ts":"2026-08-22T22:30:00+08:00","agent":"setup","event":"env_incident","refs":["memory/failure_modes.md"],"note":"torch环境mv改名致ELF损坏，删除重建env cac(py3.12)；教训入库"}
+{"ts":"2026-08-22T22:40:00+08:00","agent":"setup","event":"node_create","refs":["tree/nodes/S0001_smoke"],"note":"冒烟节点创建并推送（契约验证用）"}
+{"ts":"2026-08-22T22:55:00+08:00","agent":"setup","event":"torch_fix_running","refs":["STATE.md"],"note":"torch 2.13+cu130与驱动12.4不兼容，回装2.10.0+cu128（阿里源，tmux会话fixtorch）"}
