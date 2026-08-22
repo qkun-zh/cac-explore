@@ -6,3 +6,4 @@
 {"ts":"2026-08-22T23:30:00+08:00","agent":"setup","event":"dataset_upload","refs":["/data/dataset/FSC147.zip"],"note":"用户本地1.5G官方FSC147经scp上传(10MB/s)；弃用5.19GB镜像与代理慢速方案"}
 {"ts":"2026-08-22T23:32:00+08:00","agent":"setup","event":"torch_resolution","refs":["memory/failure_modes.md"],"note":"PyPI默认torch==2.10.0即cu128构建(元数据验证)，清华源直装，无需手动下载"}
 {"ts": "2026-08-22T23:54:21+08:00", "agent": "lead", "event": "S0001_smoke success on real FSC147 (2ep/27s, val MAE 46.69, 0.01M params); engine upsample fix; dataset VarV2 verified 6146 imgs", "refs": ["tree/nodes/S0001_smoke/result.json", "code/engine/train.py", "code/data/fsc147.py"]}
+{"ts": "2026-08-23T00:04:00+08:00", "agent": "lead", "event": "README/AGENTS rewritten with mission (<=32M params, FSC147 test MAE<16), full file map, and role work-loops for agent onboarding", "refs": ["README.md", "AGENTS.md"]}
