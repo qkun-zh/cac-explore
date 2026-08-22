@@ -10,19 +10,18 @@
 - 输出：密度图，其积分即预测计数
 - 指标：MAE（主）、RMSE（次）；训练/验证/测试划分沿用 FSC147 官方 pkl
 
-## 数据集布局（服务器 `/data/dataset/FSC147`）
+## 数据集布局（服务器 `/data/dataset/FSC147`，VarV2 协议）
 
 ```
 FSC147/
-├── images_384var/          # 384 可变长宽比图像
-│   └── <im_id>.jpg
-├── ground_truth/
-│   └── <im_id>.npy         # 点标注 [N,2]
-├── FSC147_anno.json        # exemplar boxes
-└── Train_Test_Val_FSC147.pkl
+├── images_384_VarV2/<im_id>.jpg            # 长边~384 可变宽高比图像
+├── gt_density_map_adaptive_384_VarV2/<im_id>.npy  # 预计算自适应密度图（与图同尺寸）
+├── annotation_FSC147_384.json              # exemplar boxes: {"<id>": {"box":[x1,y1,x2,y2]}}
+└── Train_Test_Val_FSC_147.json             # {"train":[...],"val":[...],"test":[...]} 6135 图/147 类
 ```
 
-数据未就位时一切开发用 `--smoke` 合成模式进行。
+加载器 `code/data/fsc147.py` 已按此布局实现；密度重采样采用总和守恒（计数严格不变）。
+来源：用户本地官方打包上传（scp），内容同 HF 镜像 isentropic/FSC147。
 
 ## 约束
 
