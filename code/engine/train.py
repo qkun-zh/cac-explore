@@ -21,6 +21,7 @@ def make_loaders(cfg, smoke):
         from torch.utils.data import DataLoader, Dataset
 
         class Synth(Dataset):
+            """低分辨率网格(g=size/8)上生成多斑点密度图，形状与典型密度头输出一致 [B,1,g,g]。"""
             def __init__(self, n, size):
                 self.n, self.size = n, size
             def __len__(self):
@@ -30,14 +31,16 @@ def make_loaders(cfg, smoke):
                 img = torch.rand(3, self.size, self.size, generator=g)
                 x0, y0 = int(torch.randint(0, self.size // 2, (1,), generator=g)), int(torch.randint(0, self.size // 2, (1,), generator=g))
                 x1, y1 = x0 + self.size // 3, y0 + self.size // 3
-                blob = torch.zeros(self.size // 8, self.size // 8)
-                cy, cx = int(torch.randint(0, self.size // 8, (1,), generator=g)), int(torch.randint(0, self.size // 8, (1,), generator=g))
-                blob[cy, cx] = 1.0
-                yy, xx = torch.meshgrid(torch.arange(self.size // 8), torch.arange(self.size // 8), indexing="ij")
-                blob = torch.exp(-((yy - cy) ** 2 + (xx - cx) ** 2) / 2.0)
-                dens = torch.nn.functional.interpolate(blob[None, None], size=(self.size, self.size), mode="bilinear")[0]
+                gs = self.size // 8
+                yy, xx = torch.meshgrid(torch.arange(gs), torch.arange(gs), indexing="ij")
+                dens = torch.zeros(gs, gs)
+                for _ in range(1 + int(torch.randint(0, 5, (1,), generator=g))):  # 1~5 个目标
+                    cy, cx = int(torch.randint(0, gs, (1,), generator=g)), int(torch.randint(0, gs, (1,), generator=g))
+                    s = 1.0 + 2.0 * float(torch.rand(1, generator=g))
+                    blob = torch.exp(-((yy - cy) ** 2 + (xx - cx) ** 2) / (2 * s * s))
+                    dens = dens + blob / blob.sum().clamp_min(1e-6)   # 每个斑点归一，计数≈目标数
                 return {"imgs": img, "bboxes": torch.tensor([x0, y0, x1, y1], dtype=torch.float32),
-                        "density": dens, "counts": dens.sum()}
+                        "density": dens[None], "counts": dens.sum()}
         s = cfg["input_size"]
         bs = max(2, min(int(cfg.get("batch_size", 8)), 4))
         tr = Synth(16, s); va = Synth(8, s)
