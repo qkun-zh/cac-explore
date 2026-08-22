@@ -137,6 +137,10 @@ def main():
                 with torch.cuda.amp.autocast(enabled=use_amp):
                     out = model(imgs, bbox)
                     dens = out["density"] if isinstance(out, dict) else out
+                    if dens.shape[-2:] != gt_d.shape[-2:]:  # 模型可输出低分辨率密度，统一上采样到 GT 尺寸
+                        oh, ow = int(dens.shape[-2]), int(dens.shape[-1])
+                        dens = F.interpolate(dens.float(), size=gt_d.shape[-2:], mode="bilinear", align_corners=False)
+                        dens = dens * (oh * ow) / float(dens.shape[-2] * dens.shape[-1])  # 总和守恒
                     loss = F.mse_loss(dens.float(), gt_d) + w_cnt * F.l1_loss(dens.float().flatten(1).sum(1), gt_c)
                 scaler.scale(loss).backward()
                 scaler.unscale_(optim)
