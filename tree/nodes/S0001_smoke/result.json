@@ -1,0 +1,21 @@
+{
+  "node": "S0001_smoke",
+  "status": "success",
+  "metrics": {
+    "mae": 46.68867962097121,
+    "rmse": 123.01780447121217,
+    "best_mae": 46.68867962097121
+  },
+  "timing": {
+    "train_seconds": 27.2,
+    "epochs_done": 2
+  },
+  "diagnostics": {
+    "oom": false,
+    "instability": false,
+    "smoke": false,
+    "params_M": 0.01
+  },
+  "run_dir": "/data/runs/S0001_smoke",
+  "ts": "2026-08-22T23:53:37+0800"
+}

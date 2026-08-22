@@ -1,34 +1,19 @@
-# STATE — 实时交接文档
+# STATE — 当前现场
 
-> 任何智能体启动后第一件事（除本协议外）就是读这里。每完成一个原子步骤必须更新。
+**阶段**: M2 首个真实节点完成 → 进入 M3 批量假设生成
+**阻塞**: 无。服务器约 2 小时后回收，优先跑短任务。
 
-- 最后更新：2026-08-22T22:55+08:00
-- 更新者：setup（主控）
+## 已验证事实（勿再踩坑）
+- torch==2.10.0+cu128 / torchvision 0.25.0 已装于 `cac` env，CUDA 可用（RTX 3060）
+- FSC147 VarV2 就位于 `/data/dataset/FSC147`，check_data 全过（3659/1286/1190）
+- 引擎契约：模型可输出低分辨率 density，engine 自动上采样+总和守恒；评估按密度和
+- S0001_smoke: status=success, val MAE 46.69 @2ep/27s（真数据端到端验证通过）
 
-## 当前阶段
+## 下一步（按序）
+1. Idea Agent 批量产出 S0002–S0005 假设节点（写 tree/nodes/*/idea.md + tasks/T*_pending_*.md）
+2. Coding Agent 实现 model/config → 本地 --smoke 自检 → push
+3. Executor tmux 跑真实 epoch（τ_max=30min 内）→ collect 回传 → 反馈四件套
+4. Synthesis 落账 hypotheses.jsonl + 置信度更新
 
-**阶段 0 — 框架搭建**（收尾中）：服务器环境重建 + torch cu128 修复进行中；冒烟节点 S0001_smoke 已推送待执行。
-
-## 活跃节点
-
-`S0001_smoke` — 已创建并推送，等待服务器 torch 就绪后 `run_node.sh` 执行。
-
-## 下一步行动（按优先级）
-
-1. 确认 `/data/asset/torch_fix.log` 出现 TORCH_OK 且 `cuda.is_available()=True`
-2. 服务器：`cd /data/repo && bash scripts/run_node.sh S0001_smoke`（tmux 会话 node_S0001_smoke）
-3. 本地：`bash scripts/collect_node.sh S0001_smoke` 回传 result.json → 提交
-4. 上传 FSC147 数据集到 `/data/dataset/FSC147`（布局见 docs/research_direction.md）
-5. 创建正式根节点 N0001，启动第一个完整研究循环
-
-## 阻塞项
-
-- FSC147 数据集未上传（不影响 --smoke 冒烟）。
-- torch 修复中：阿里源下载 916MB wheel（会话 fixtorch）。
-
-## 关键事实
-
-- 仓库：<https://github.com/qkun-zh/cac-explore>（公开）
-- 服务器：`ssh cac-server`；仅 /data 持久化；轮换恢复流程见 AGENTS.md「服务器轮换演练」
-- conda 环境：`cac`（Python 3.12.14）；**torch 必须锁 2.10.x+cu128**（驱动 12.4，最新版 cu130 不兼容——教训见 memory/failure_modes.md）
-- 反向代理：本地 revproxy.py 常驻后服务器可用 socks5://127.0.0.1:1081（已验证 200）
+## 活跃任务
+- T0001 S0001_smoke → **done**（result.json 已回传入库）
