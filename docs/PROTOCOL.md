@@ -13,7 +13,7 @@ Local ~/cac_explore ──push/pull──> GitHub <──pull── Server /data
 
 ## 2. Node Directory Contract `tree/nodes/<ID>/`
 
-ID format: `N####_<short-name>` for production nodes (`S0001_smoke` is the smoke test).
+ID format: `N####_<short-name>` for production nodes; S-prefixed IDs are smoke tests, excluded from tree.json scoring. Next free ID = max existing + 1 (same rule for task cards T#### and hypotheses H####).
 
 | File | Author | Content |
 |---|---|---|
@@ -21,19 +21,22 @@ ID format: `N####_<short-name>` for production nodes (`S0001_smoke` is the smoke
 | `model.py` | Coding Agent | Must expose `build_model(cfg) -> nn.Module`; inputs `[B,3,H,W]` + bboxes `[B,4]`; output dict containing `density`. **density may be low-resolution** (e.g. S/8): the engine bilinearly upsamples it to GT size with sum conservation during training; evaluation counts via density sums, which are resolution-independent |
 | `config.py` | Coding Agent | Must define `cfg = dict(...)`. **Only required key: `input_size`.** Commonly used optional keys: `epochs, batch_size, lr, weight_decay, eta_min, amp, smoke(default False), max_params_M(default 32), loss_count_weight(default 0.3), data_root(default /data/dataset/FSC147), num_workers(default 4)`. Free to add more |
 | `result.json` | Collected from Executor | `{node, status: running\|success\|failed\|timeout, metrics:{mae,rmse,best_mae,...}, timing:{train_seconds,epochs_done}, diagnostics:{oom,instability,smoke,params_M,...}, run_dir, ts}` — rewritten after every epoch while training |
-| `feedback/quantitative.md` etc. ×4 | Feedback Agents | Each has fixed structure: `## reasoning` / `## actionable_feedback` / `## hypothesis_updates` (list items: hypothesis_id, evidence_type∈supports/contradicts/neutral, strength∈[0,1], reasoning); diagnostic exists only for failures/timeouts |
+| `feedback/quantitative.md` etc. ×4 | Feedback Agents | Each has fixed structure: `## reasoning` / `## actionable_feedback` / `## hypothesis_updates` (list items: hypothesis_id, evidence_type∈supports/contradicts/neutral, strength∈[0,1], reasoning); diagnostic exists only for failures/timeouts. Scope: engine saves no images — qualitative works from train.log metrics + code reading |
 | `synthesis.md` | Synthesis Agent | Deduplicated merged updates, quality-gate verdict (7 dimensions), booking list |
 | `train.log` | collect script | Tail copy (≤500 lines) of the full server log |
 
 ## 3. Global State Files
 
-- `tree/tree.json`: `nodes: {<ID>: {parent, children[], status(proposed|coded|running|done|failed|timeout|synthesized), best_metric, train_seconds, quality, avail, score}}`, maintained by Synthesis.
+- `tree/tree.json`: `nodes: {<ID>: {parent, children[], status(proposed|coded|running|done|failed|timeout|synthesized), best_metric, train_seconds, quality, avail, score, tested_hypotheses[]}}`.
+
+**Status ownership** (who flips what): Idea→`proposed` (registers the entry) · Coding→`coded` · Executor→`running`, then `done/failed/timeout` from result.json · Synthesis→`synthesized` + scores + `tested_hypotheses[]` (H-ids actually exercised by this node; select_next.py reads this field).
 - `memory/hypotheses.jsonl`: one event per line: `{ts, type(create|evidence|revise), hyp_id, text?, evidence_type?, strength?, source_node?}`.
 - `memory/index.json`: `{_meta, hypotheses: {<hyp_id>: {text, confidence, n_tested, status(confirmed|refuted|uncertain), tags[], log[]}}}` — a materialized snapshot of the jsonl, rebuildable via `scripts/rebuild_index.py`.
 - `journal/events.jsonl`: audit stream, append-only.
 
 ## 4. Research Cycle (standard flow per node)
 
+0. **Root bootstrap**: if no expandable node exists (tree.json empty or none `synthesized|done`), skip selection; generate K=4 root nodes directly from `docs/research_direction.md` with parent=null (paper's generation-0)
 1. **Pick parent**: `python code/selection/select_next.py parent`
    `score = λ_parent·quality + (1−λ_parent)·avail`, where
    `quality = λ_acc·Acc_norm + (1−λ_acc)·(1 − min(τ,τ_max)/τ_max)` with λ_acc=0.85, λ_parent=0.60, τ_max=30min
@@ -42,7 +45,7 @@ ID format: `N####_<short-name>` for production nodes (`S0001_smoke` is the smoke
 3. Idea → Coding → redundancy check (compare against existing idea.md for mechanism duplication)
 4. Executor on server: `bash scripts/run_node.sh <ID>` (tmux session `node_<ID>`; wall-clock timeout 30min enforced by engine)
 5. Local: `bash scripts/collect_node.sh <ID>`
-6. Feedback ×4 (parallel claimable task cards) → Synthesis (dedup, contradiction resolution, quality gate, η=0.20 confidence updates)
+6. Feedback ×4 (parallel claimable task cards) → Synthesis (dedup, contradiction resolution, quality gate: mechanistic/scoped/predictive/falsifiable/novel/transferable/actionable, η=0.20 updates)
 7. Update tree.json / index.json / STATE.md / journal; commit & push
 
 ## 5. Smoke Mode

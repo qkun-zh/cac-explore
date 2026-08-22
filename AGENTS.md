@@ -1,104 +1,96 @@
 # AGENTS.md — Multi-Agent Collaboration Protocol
 
-**Mission**: a lightweight, innovative CAC model with ≤32M parameters and MAE < 16 on FSC147 test. Approach it through HypoExplore-style hypothesis exploration, not single-shot heroic design.
+**Mission**: a lightweight, innovative CAC model with ≤32M parameters and MAE < 16 on FSC147 test, discovered through HypoExplore-style hypothesis exploration.
 
 ---
 
 ## 0. Startup Sequence (mandatory for every agent / new session)
 
-1. Read this document
-2. `git pull --ff-only`
-3. Read `STATE.md` (stage, verified facts, active tasks, next steps)
-4. Read on demand: `docs/PROTOCOL.md` (file contracts), tail of `journal/events.jsonl` (recent events), `memory/failure_modes.md` (pitfalls)
+1. `cd ~/cac_explore && git pull --ff-only` (repo lives at `~/cac_explore`; if absent, clone from GitHub)
+2. Read this document, then `STATE.md`
+3. Read on demand only: `docs/PROTOCOL.md`, tail of `journal/events.jsonl`, `memory/failure_modes.md`
 
----
+**Who are you?** You are the **Lead**. Unless told otherwise, you play every role below yourself, sequentially — roles are hats, not separate processes. One session can take an idea all the way to synthesis.
 
-## 1. Your Work Loop (find your role)
+## 1. Work Loops (find your current hat)
 
 ### Idea Agent
-1. Read `memory/index.json`, `memory/failure_modes.md`, and the parent node's `synthesis.md`
-2. Select parent node and hypothesis set per `docs/PROTOCOL.md §4`
-3. Write `tree/nodes/<ID>/idea.md` (fixed sections, falsifiable claims; declare novelty against existing ideas)
-4. Create task card `tasks/T####_pending_coding_<ID>.md`; commit & push
+1. Read `memory/index.json` + parent's `synthesis.md`
+2. Pick parent + hypotheses per PROTOCOL §4. If selection finds no expandable node (fresh tree), run **root bootstrap**: create K=4 root nodes directly from `docs/research_direction.md`, register them in `tree/tree.json` with `parent: null, status: "proposed"`
+3. Write `tree/nodes/<ID>/idea.md` (fixed sections per PROTOCOL §2; falsifiable claims)
+4. Register node in `tree.json` (`status: "proposed"`); do NOT write hypotheses.jsonl — Synthesis books events after quality gate
+5. Create task card `tasks/T####_pending_coding_<ID>.md`
 
 ### Coding Agent
-1. Claim the task card (rename it), read the node's `idea.md` plus **mandatory** `memory/failure_modes.md`
-2. Write `model.py` (must expose `build_model(cfg)`) and `config.py` (see PROTOCOL §2 for cfg keys)
-3. Smoke self-check (no dataset needed):
-   ```bash
-   python code/engine/train.py --node_dir tree/nodes/<ID> --smoke --epochs 2
-   ```
-   If torch is unavailable locally, run the same command on the server. **Do not push until the contract passes**
-4. Rename task card to `_done_`, push; create the executor task card
+1. Claim card by rename → read node's `idea.md` + `memory/failure_modes.md`
+2. Write `model.py` (`build_model(cfg)`) + `config.py`; flip tree.json status to `"coded"`
+3. Smoke self-check:
+   - Local torch? test: `python -c "import torch"` 
+   - If yes: `python code/engine/train.py --node_dir tree/nodes/<ID> --smoke --epochs 2`
+   - If no: commit & push a draft first, then run the same command on the server via ssh
+4. Only after green smoke: rename card `_done_`, push, create executor card
 
-### Executor (server side, triggered by Lead)
-1. Locally: push, then launch on the server:
-   ```bash
-   ssh cac-server 'cd /data/repo && git pull && bash scripts/run_node.sh <ID>'
-   ```
-2. Watch progress: `ssh cac-server 'tmux capture-pane -t node_<ID> -p | tail -30'`
-3. When finished, collect results locally and commit:
-   ```bash
-   bash scripts/collect_node.sh <ID>
-   git add -A && git commit -m "result: <ID> status=..." && git push
-   ```
+### Executor (server side)
+1. Push, then: `ssh cac-server 'cd /data/repo && git pull && bash scripts/run_node.sh <ID>'`; flip tree.json status to `"running"`
+2. Watch: `ssh cac-server 'tmux capture-pane -t node_<ID> -p | tail -30'`
+3. **Done signal**: log prints `[engine] done status=...` or result.json status ≠ "running". Then collect locally: `bash scripts/collect_node.sh <ID>`, set tree.json status to done/failed/timeout accordingly, commit
 
 ### Feedback Agents ×4 (quantitative / qualitative / causal / diagnostic)
-1. Claim your task card; read the node's `idea.md`, `model.py`, `config.py`, `result.json`, `train.log`
-2. Write `tree/nodes/<ID>/feedback/<dimension>.md` (fixed structure in PROTOCOL §2, including hypothesis_updates list)
+1. Claim cards; read node's `idea.md`, `model.py`, `config.py`, `result.json`, `train.log`
+2. Write `feedback/<dimension>.md` per PROTOCOL §2. Scope note: engine saves no images/heatmaps — qualitative feedback works from train.log metrics and code reading
 
 ### Synthesis Agent
-1. Once all four feedback files exist: merge & deduplicate updates, resolve contradictions, run the quality gate
-2. Write `synthesis.md`; update confidence for each affected hypothesis using η=0.20 rules
-3. Bookkeeping: append to `memory/hypotheses.jsonl` → run `python scripts/rebuild_index.py`
-4. Update `tree/tree.json` (node status & scores) → update `STATE.md` → append journal → commit & push
+1. When 4 feedback files exist: dedupe updates, resolve contradictions, apply quality gate (7 dimensions: mechanistic, scoped, predictive, falsifiable, novel, transferable, actionable)
+2. Write `synthesis.md`; book ALL memory events: `create` for new hypotheses, `evidence`/`revise` for existing ones → append to `memory/hypotheses.jsonl` → `python scripts/rebuild_index.py`
+3. Update `tree.json`: status `"synthesized"` + scores/best_metric/tested_hypotheses
+4. Update `STATE.md` next-steps; commit & push
 
-### Closing Trio for EVERY role (non-negotiable)
-1. Update `STATE.md`  2. Append one journal line  3. `git add -A && git commit && git push`
+### Closing Trio for EVERY role
+1. Update STATE.md (if stage changed) 2. Append one journal line 3. Commit & push
 
----
+## 2. Numbering Conventions
 
-## 2. Hard Rules
+Next free ID = max existing + 1, zero-padded 4 digits: nodes `N####_<slug>` (S-prefixed = smoke, excluded from scoring), task cards `T####_*`, hypotheses `H####`.
 
-1. **Only the local machine pushes**; the server only pulls. Experiment artifacts come back via `scripts/collect_node.sh` and are committed locally
-2. **Large files never enter git**: datasets, checkpoints, full logs stay on the server under `/data/dataset`, `/data/runs`
-3. Task claiming is atomic via file rename; mutually exclusive resources use `mkdir locks/<name>`, delete when done
-4. `memory/hypotheses.jsonl` is **append-only; history lines are never rewritten**
-5. Any remote task longer than ~1 minute must run inside tmux; no bare SSH foreground hangs
-6. New code must pass `--smoke` before touching real data
-7. Read `memory/failure_modes.md` before writing code; append new pitfalls after any incident
+## 3. Hard Rules
 
-## 3. Server Cheat-Sheet
+1. **Only local pushes**; server pulls. Artifacts return via collect script
+2. **Large files never enter git** (datasets/checkpoints/logs stay under `/data/`)
+3. Task claiming = atomic file rename; mutual exclusion via `mkdir locks/<name>`
+4. `memory/hypotheses.jsonl` is **append-only**
+5. Remote tasks >1 min must run in tmux; no bare SSH foreground hangs
+6. New code passes `--smoke` before real data
+7. Read `memory/failure_modes.md` before coding; append new pitfalls after incidents
+
+## 4. Documentation Budget (anti-entropy)
+
+Docs exist so any agent can resume fast — not as an archive. Violations compound into context-window exhaustion.
+
+- **Line budgets**: README ≤120 · AGENTS ≤180 · PROTOCOL ≤160 · STATE.md ≤60 · idea.md ≤80 · feedback ≤60 each · synthesis.md ≤100
+- **Single-home rule**: every fact lives in exactly one document; others link to it, never copy it
+- **Rolling vs append-only**: STATE.md is rewritten in place (a snapshot, not a diary). History belongs ONLY in journal/hypotheses (append-only *data*, never read whole — always `tail`)
+- **Pruning duty**: whoever's edit pushes a doc over budget must compress it in the same commit (merge superseded sections, delete resolved items). Outdated content is deleted, never annotated "(deprecated)"
+- **No changelogs**: docs describe the present protocol; git history is the changelog
+- **Node isolation**: agents read one node directory at a time; never bulk-read tree/nodes/
+
+## 5. Server Cheat-Sheet
 
 | Item | Value |
 |---|---|
-| Connection | `ssh cac-server` (alias mapped in local `~/.ssh/config`, auto-updated on rotation) |
-| Persistence | only `/data`: `repo/` (clone), `dataset/FSC147/` (VarV2 full set), `runs/<ID>/`, `asset/` (scratch) |
+| Connection | `ssh cac-server` (alias auto-updated on rotation) |
+| Persistence | only `/data`: repo/, dataset/FSC147/, runs/<ID>/, asset/ |
 | Python | `/data/miniconda/envs/cac/bin/python` (torch 2.10.0+cu128, CUDA OK, RTX 3060 12GB) |
-| Network | GitHub reachable directly; pip MUST use `-i https://pypi.tuna.tsinghua.edu.cn/simple` |
-| Data check | `/data/miniconda/envs/cac/bin/python scripts/check_data.py` must fully pass |
+| Network | GitHub direct OK; pip needs `-i https://pypi.tuna.tsinghua.edu.cn/simple` |
 
-## 4. Server Rotation Drill (run every time a new instance is rented)
+## 6. Server Rotation Drill
 
-**The only thing you need to do**: paste DeepLn's two lines verbatim into `local/address_and_password.md` —
-```
-ssh -p <port> root@<host>
-<password>
-```
-Then one command locally restores everything:
-```bash
-bash scripts/onboard.sh
-```
-(Automatically: parse creds → install pubkey → write ssh alias → clone repo if missing → init env → verify dataset. Idempotent, safe to re-run.)
+Paste DeepLn's two lines verbatim into `local/address_and_password.md` (`ssh -p <port> root@<host>` then `<password>`), then run `bash scripts/onboard.sh`. Idempotent. If dataset lost: upload zip to `/data/dataset/`, unzip inside `FSC147/`, re-run.
 
-Extra step if the dataset was lost: upload FSC147.zip to `/data/dataset/`, unzip inside the `FSC147/` directory, re-run onboard.sh.
+Out-of-repo fixed deps (configured, don't touch): `~/.git-credentials`, `~/.ssh/id_ed25519`, commit email `qkun-zh@users.noreply.github.com`.
 
-**Out-of-repo fixed dependencies (already configured, do not touch)**: push credentials in `~/.git-credentials` (token backup in `local/github_token.txt`); SSH key at `~/.ssh/id_ed25519`; commit email must be `qkun-zh@users.noreply.github.com`.
-
-## 5. Hypothesis Record Format
+## 7. Hypothesis Format
 
 ```
-IF [architectural choice] IN [scope], THEN [predicted effect], BECAUSE [mechanism]. DISPROVED IF [falsification criterion].
+IF [choice] IN [scope], THEN [effect], BECAUSE [mechanism]. DISPROVED IF [criterion].
 ```
-
-Confidence update (η=0.20, c∈[0.01,0.99], initial 0.5): supports `c←c+0.20·w·(1−c)`; contradicts `c←c−0.20·w·c`. Verdicts: confirmed >0.75 / refuted <0.25 / uncertain otherwise.
+Confidence: η=0.20, c∈[0.01,0.99], init 0.5; supports `c←c+η·w·(1−c)`, contradicts `c←c−η·w·c`; confirmed >0.75 / refuted <0.25.
