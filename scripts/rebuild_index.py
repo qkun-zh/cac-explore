@@ -2,7 +2,7 @@
 import json
 import os
 
-ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 J = os.path.join(ROOT, "memory", "hypotheses.jsonl")
 IDX = os.path.join(ROOT, "memory", "index.json")
 

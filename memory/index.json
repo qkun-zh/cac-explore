@@ -1,10 +1,16 @@
 {
   "_meta": {
     "description": "假设记忆库快照。由 Synthesis 步骤从 hypotheses.jsonl 物化；可用 scripts/rebuild_index.py 重建",
-    "eta": 0.20,
-    "bounds": [0.01, 0.99],
+    "eta": 0.2,
+    "bounds": [
+      0.01,
+      0.99
+    ],
     "init_confidence": 0.5,
-    "thresholds": {"confirmed_gt": 0.75, "refuted_lt": 0.25}
+    "thresholds": {
+      "confirmed_gt": 0.75,
+      "refuted_lt": 0.25
+    }
   },
   "hypotheses": {}
 }
