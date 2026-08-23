@@ -287,6 +287,64 @@
           "reasoning": "30.67 stable > 27.65 parent -> transfer refuted; strong features make decoder context redundant"
         }
       ]
+    },
+    "H0017": {
+      "text": "",
+      "confidence": 0.59,
+      "n_tested": 1,
+      "status": "uncertain",
+      "tags": [],
+      "log": [
+        {
+          "source_node": "N0010_dino_multilayer_long",
+          "evidence_type": "supports",
+          "strength": 0.9,
+          "reasoning": "MAE 21.531 << 26.0 bar; compound multi-tap+40ep+count-w=1.0 recipe works; confounded but effect is real"
+        }
+      ]
+    },
+    "H0018": {
+      "text": "IF count-w=1.0 (vs 0.3) is used IN multi-tap DINOv2 architectures, THEN RMSE/MAE ratio improves (drops), BECAUSE stronger L1 count penalty directly penalizes absolute count error more, reducing catastrophic outliers. DISPROVED IF RMSE/MAE ratio does not improve or worsens.",
+      "confidence": 0.5,
+      "n_tested": 0,
+      "status": "uncertain",
+      "tags": [
+        "count-weight",
+        "outlier",
+        "N0010"
+      ],
+      "log": [
+        {
+          "source_node": "N0010_dino_multilayer_long",
+          "evidence_type": "neutral",
+          "strength": 0.3,
+          "reasoning": "RMSE/MAE 3.63x vs parent ~3.4x; no ablation with count-w=0.1 on same arch exists; unisolated confound — did not help outlier tail but did not hurt"
+        }
+      ]
+    },
+    "H0019": {
+      "text": "IF per-token layer-gating replaces scalar gating IN multi-layer DINOv2 tap architectures, THEN val MAE further decreases by >=1.0, BECAUSE different spatial regions (small objects vs background vs crowd patches) benefit from different feature depths, and a scalar gate forces a global compromise. DISPROVED IF MAE increase or no change.",
+      "confidence": 0.5,
+      "n_tested": 0,
+      "status": "uncertain",
+      "tags": [
+        "per-token-gate",
+        "spatial",
+        "N0010"
+      ],
+      "log": []
+    },
+    "H0020": {
+      "text": "IF Huber loss (delta=5.0) replaces MSE in the counting head loss IN multi-tap DINOv2 architectures, THEN RMSE/MAE ratio drops below 3.0, BECAUSE Huber loss caps gradient magnitude for large errors, reducing catastrophic outlier failures without sacrificing median-case accuracy. DISPROVED IF RMSE/MAE > 3.5.",
+      "confidence": 0.5,
+      "n_tested": 0,
+      "status": "uncertain",
+      "tags": [
+        "huber-loss",
+        "outlier-robustness",
+        "N0010"
+      ],
+      "log": []
     }
   }
 }
