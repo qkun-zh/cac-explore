@@ -2,20 +2,20 @@
   "node": "N0010_dino_multilayer_long",
   "status": "success",
   "metrics": {
-    "mae": 22.607334715396767,
-    "rmse": 81.97424057062398,
-    "best_mae": 21.531387326876818
+    "mae": 38.56784629821777,
+    "rmse": 38.60984292512889,
+    "best_mae": 38.56784629821777
   },
   "timing": {
-    "train_seconds": 1275.1,
-    "epochs_done": 40
+    "train_seconds": 10.7,
+    "epochs_done": 1
   },
   "diagnostics": {
     "oom": false,
     "instability": false,
-    "smoke": false,
+    "smoke": true,
     "params_M": 23.11
   },
   "run_dir": "/data/runs/N0010_dino_multilayer_long",
-  "ts": "2026-08-23T12:04:41+0800"
+  "ts": "2026-08-23T16:15:39+0800"
 }

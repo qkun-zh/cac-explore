@@ -252,9 +252,9 @@
     "N0020_dino_scaleaware": {
       "parent": "N0010_dino_multilayer_long",
       "children": [],
-      "status": "running",
-      "best_metric": null,
-      "train_seconds": null,
+      "status": "done",
+      "best_metric": 25.276,
+      "train_seconds": 964,
       "quality": null,
       "avail": null,
       "score": null,

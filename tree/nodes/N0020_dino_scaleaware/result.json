@@ -1,0 +1,18 @@
+{
+  "node": "N0020_dino_scaleaware",
+  "status": "stopped",
+  "metrics": {
+    "mae": 25.3221151454267,
+    "rmse": 86.1938386490967,
+    "best_mae": 25.276189256048127
+  },
+  "timing": {
+    "train_seconds": 1034.2,
+    "epochs_done": 29
+  },
+  "diagnostics": {
+    "oom": false
+  },
+  "run_dir": "/data/runs/N0020_dino_scaleaware",
+  "ts": "2026-08-23T17:45:26+0800"
+}
