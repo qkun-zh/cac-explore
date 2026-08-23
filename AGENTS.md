@@ -1,6 +1,6 @@
 # AGENTS.md — Hypothesis-Driven Discovery Protocol
 
-**Mission**: MAE ≤ 4 on FSC147 test. No architecture restrictions. Full fine-tuning allowed. Must be innovative.
+**Mission**: ≤32M total params, same-parameter-class SOTA MAE on FSC147 test. Full fine-tuning allowed. Any architecture. Must be innovative.
 
 ---
 

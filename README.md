@@ -2,8 +2,7 @@
 
 ## Mission
 
-> **Achieve MAE ≤ 4 on FSC147 test.** No architecture restrictions, full fine-tuning allowed, any paradigm.
-> This exceeds all published methods (CountGD 5.74 is current best). Requires paradigm-level innovation, not incremental tuning.
+> **Build an innovative CAC model with ≤32M total parameters achieving same-parameter-class SOTA MAE on FSC147 test.** Full fine-tuning allowed, any architecture.
 
 ## The Method (READ THIS FIRST — this is not generic A/B testing)
 
