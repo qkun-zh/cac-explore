@@ -1,25 +1,37 @@
-# STATE — Honest Assessment After Paradigm Investigation
+# STATE — Final Assessment
 
-## Mission: MAE ≤ 4 on FSC147 test
+## Result: val MAE **21.53** (N0010_dino_multilayer_long)
 
-## Current Best: N0010 val 21.53 (archived recipe)
+## Search Summary: 21 nodes, 1 clean-slate restart, 2 paradigm investigations
 
-## What We Learned From Research + R001 Failure
+### What Worked (confirmed hypotheses)
+| Lever | Gain | Evidence |
+|---|---|---|
+| DINOv2-S substrate (vs ConvNeXt/EffNet) | -6.6 | N0007 H0014 ✓ |
+| Multi-layer taps + 40ep + count-w1.0 | -6.1 | N0010 H0017 ✓ |
+| Implicit area-prompt conditioning | -5.0 | N0005 H0008 ✓ |
+| Cross-attn on conv features (N0003) | baseline | H0004 ✓ |
 
-**SOTA methods achieving <6 test MAE all share:**
-1. Foundation-model backbones (GroundingDINO 172M, SAM-HQ 636M, AM-RADIO ~100M+) — frozen
-2. Point detection output with Hungarian matching loss — NOT density MSE
-3. 150+ epochs of training on A100-class GPUs (15+ hours)
-4. Inference-time calibration stack (TT-Norm, SAM correction, adaptive tiling)
+### What Didn't Work (refuted hypotheses)
+| Approach | Why it failed |
+|---|---|
+| Per-token gate + Huber | Overfit; Huber doesn't fix tail |
+| High-res 518/672 | Timeout truncation; needs grad-accum |
+| Augreg (jitter+dropout+wd) | Over-regularization hurt val |
+| Tail-reweight ±sign | Wrong sign tested; correct sign marginal |
+| SeqCount paradigm | Class imbalance collapse |
+| Proto-iterative refinement | NaN instability |
+| Point detection | Threshold barrier from class imbalance |
+| Scale-aware deformable | Stalled at 25.3 |
+| Full fine-tuning | Feature drift > head adaptation speed |
 
-**Why we cannot reach ≤4 under current constraints:**
-- RTX 3060 12GB: cannot load GroundingDINO/SAM-HQ even frozen
-- 30-min τ_max: detection paradigms need >100ep to overcome threshold barrier
-- Single GPU: no distributed training or large-batch optimization
-- FSC147 test requires cross-category generalization unseen in training
+### Why MAE ≤ 4 Is Not Achievable Here
+Reaching MAE ≤ 4 requires resources beyond RTX 3060 + 30min:
+- GroundingDINO/SAM-HQ backbone (172-636M params, won't fit in 12GB)
+- 150+ epochs on A100-class GPU (15+ hours)
+- Test-time SAM calibration stack
+- These are what VQCounter(4.86)/CoDi(~4.9)/CountGD(5.74) all use
 
-## Options Going Forward
-A. **Full FT champion (N0021)**: expect val ~15-18, test ~16-19. Not ≤4 but big improvement.
-B. **Test-time enhancement**: apply TT-Norm + multi-crop to N0010 checkpoint → maybe -2 MAE free
-C. **Longer schedule**: τ_max=60min + full FT + mosaic → possibly val ~13-15
-D. **Accept result**: 21.53 is strong given frozen-backbone + 30min constraint
+### Best Result Under Constraints
+**N0010_dino_multilayer_long**: frozen DINOv2-S reg4, multi-layer taps, area-prompt,
+adapter768, MLP head, 392px, 40ep, count-w1.0 → **val MAE 21.53 / RMSE 82.87**

@@ -15,8 +15,8 @@
   "hypotheses": {
     "H0030": {
       "text": "IF point detection with focal+L1 replaces density regression IN FSC147 THEN val MAE <=15 BECAUSE discrete output eliminates kernel mismatch. DISPROVED IF MAE>18.",
-      "confidence": 0.41,
-      "n_tested": 1,
+      "confidence": 0.3403,
+      "n_tested": 2,
       "status": "uncertain",
       "tags": [
         "detect",
@@ -29,6 +29,12 @@
           "evidence_type": "contradicts",
           "strength": 0.9,
           "reasoning": "E17 best 52.57 vs parent E17 ~25; threshold barrier: RetinaNet prior init keeps sigmoid<0.3 for most cells even after training; focal loss with 95% negative cells converges too slowly for 40ep budget"
+        },
+        {
+          "source_node": "N0021_dino_fullft",
+          "evidence_type": "contradicts",
+          "strength": 0.85,
+          "reasoning": "Full FT at lr=1e-3/1e-4 caused E5 instability spike (loss 93.9) then plateaued at MAE 48.4 — WORSE than frozen 21.53. Backbone feature drift outpaces head adaptation under tau_max=30min. Full FT requi"
         }
       ]
     }
