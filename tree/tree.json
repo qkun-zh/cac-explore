@@ -68,9 +68,9 @@
     "N0022_dino_ebc_fullft": {
       "parent": null,
       "children": [],
-      "status": "running",
-      "best_metric": null,
-      "train_seconds": null,
+      "status": "done",
+      "best_metric": 21.708,
+      "train_seconds": 1449,
       "quality": null,
       "avail": null,
       "score": null,

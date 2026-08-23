@@ -1,0 +1,18 @@
+{
+  "node": "N0022_dino_ebc_fullft",
+  "status": "stopped_early",
+  "metrics": {
+    "mae": 27.401534630759137,
+    "rmse": 73.37950439133039,
+    "best_mae": 21.707936386298243
+  },
+  "timing": {
+    "train_seconds": 1510.9,
+    "epochs_done": 24
+  },
+  "diagnostics": {
+    "oom": false
+  },
+  "run_dir": "/data/runs/N0022_dino_ebc_fullft",
+  "ts": "2026-08-23T21:50:55+0800"
+}
