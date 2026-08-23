@@ -49,7 +49,7 @@
     "N0005_swin_promptseg": {
       "parent": null,
       "children": [],
-      "status": "coded",
+      "status": "running",
       "best_metric": null,
       "train_seconds": null,
       "quality": null,
