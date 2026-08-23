@@ -1,0 +1,21 @@
+{
+  "node": "N0008_dino_xattn",
+  "status": "success",
+  "metrics": {
+    "mae": 46.62575250391271,
+    "rmse": 109.00686409579248,
+    "best_mae": 46.56253016755147
+  },
+  "timing": {
+    "train_seconds": 1076.5,
+    "epochs_done": 30
+  },
+  "diagnostics": {
+    "oom": false,
+    "instability": false,
+    "smoke": false,
+    "params_M": 24.15
+  },
+  "run_dir": "/data/runs/N0008_dino_xattn",
+  "ts": "2026-08-23T11:11:06+0800"
+}
