@@ -241,9 +241,9 @@
     "N0019_dino_tailup": {
       "parent": "N0010_dino_multilayer_long",
       "children": [],
-      "status": "running",
-      "best_metric": null,
-      "train_seconds": null,
+      "status": "done",
+      "best_metric": 23.361,
+      "train_seconds": 1266,
       "quality": null,
       "avail": null,
       "score": null,

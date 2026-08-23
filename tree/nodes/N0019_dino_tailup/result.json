@@ -1,0 +1,21 @@
+{
+  "node": "N0019_dino_tailup",
+  "status": "success",
+  "metrics": {
+    "mae": 23.477871006421317,
+    "rmse": 84.3813986905375,
+    "best_mae": 23.361202205135886
+  },
+  "timing": {
+    "train_seconds": 1279.7,
+    "epochs_done": 40
+  },
+  "diagnostics": {
+    "oom": false,
+    "instability": false,
+    "smoke": false,
+    "params_M": 23.11
+  },
+  "run_dir": "/data/runs/N0019_dino_tailup",
+  "ts": "2026-08-23T17:07:57+0800"
+}
