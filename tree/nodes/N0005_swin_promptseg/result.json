@@ -1,0 +1,21 @@
+{
+  "node": "N0005_swin_promptseg",
+  "status": "success",
+  "metrics": {
+    "mae": 33.1212572628751,
+    "rmse": 102.96036545840936,
+    "best_mae": 32.65527108816856
+  },
+  "timing": {
+    "train_seconds": 274.9,
+    "epochs_done": 20
+  },
+  "diagnostics": {
+    "oom": false,
+    "instability": false,
+    "smoke": false,
+    "params_M": 28.22
+  },
+  "run_dir": "/data/runs/N0005_swin_promptseg",
+  "ts": "2026-08-23T10:14:04+0800"
+}

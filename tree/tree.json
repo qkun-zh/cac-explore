@@ -49,9 +49,9 @@
     "N0005_swin_promptseg": {
       "parent": null,
       "children": [],
-      "status": "running",
-      "best_metric": null,
-      "train_seconds": null,
+      "status": "done",
+      "best_metric": 32.65527108816856,
+      "train_seconds": 274.9,
       "quality": null,
       "avail": null,
       "score": null,

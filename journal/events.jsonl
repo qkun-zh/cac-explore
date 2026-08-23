@@ -24,3 +24,4 @@
 {"ts": "2026-08-23T10:05:00+08:00", "agent": "lead", "event": "N0004 done: best val MAE 40.37 / RMSE 119.68 @20ep/535s/3.65M; plateaued ~E14; H0007 (<35 for <=12M) disproved signal", "refs": ["tree/nodes/N0004_effnet_pyrmatch/result.json"]}
 {"ts": "2026-08-23T10:12:00+08:00", "agent": "lead", "event": "N0004 synthesized: H0006 0.53 (weak support 0.30, confound-noted), H0007 0.42 (contradicts 0.80); quality 0.41 avail 0.70 score 0.53", "refs": ["tree/nodes/N0004_effnet_pyrmatch/synthesis.md", "memory/index.json"]}
 {"ts": "2026-08-23T10:10:30+08:00", "agent": "lead", "event": "N0005 smoke GREEN (28.22M); fixes: token layout + channels-last BHWC permute; T0005 done, T0012 claimed", "refs": ["tree/nodes/N0005_swin_promptseg/model.py"]}
+{"ts": "2026-08-23T10:16:00+08:00", "agent": "lead", "event": "N0005 done: BEST val MAE 32.66 / RMSE 102.13 @20ep/271s/28.22M; implicit prompt beats all explicit-matching roots", "refs": ["tree/nodes/N0005_swin_promptseg/result.json"]}
