@@ -14,6 +14,7 @@
    - prints SERVER_OK → normal operation below
    - times out → instance reclaimed. Enter **degraded mode** immediately and tell the user what you need (rent instance → paste creds into `local/address_and_password.md` → `bash scripts/onboard.sh`). Do NOT burn effort on server-dependent steps first — check STATE.md blockers too
 4. Read on demand only: `docs/PROTOCOL.md`, tail of `journal/events.jsonl`, `memory/failure_modes.md`
+5. `git pull` may bring updates to `docs/inspiration_from_GOD.txt` — read it at startup if changed (check: `git log -1 --format=%ci -- docs/inspiration_from_GOD.txt`)
 
 **Who are you?** You are the **Lead** — an orchestrator, not a solo worker (user mandate, no exceptions): roles Idea / Coding / Feedback×4 / Synthesis MUST each run as an INDEPENDENT subagent via the Task tool — one claimed card = one fresh context; launch independent cards in parallel (e.g. Feedback×4 in one batch). Self-playing any of these roles is FORBIDDEN — the code author reviewing their own work defeats the redundancy check. Exception: **Executor stays Lead-only** — server training, tmux watching, collecting are stateful sequential work you do yourself. Division of labor: subagents read files, write ONLY their own outputs (`idea.md`, `model.py`/`config.py`, `feedback/*.md`, `synthesis.md`, own-card renames) and RETURN a report; the Lead exclusively owns tree.json, STATE.md, journal, hypotheses.jsonl bookings, and ALL git operations. Each subagent prompt must say: "Read `~/cac_explore/AGENTS.md` + `STATE.md`, then execute the `<Role>` loop for `<card path>`; do NOT commit/push; report back what you wrote and found."
 
@@ -61,6 +62,7 @@ Next free ID = max existing + 1, zero-padded 4 digits: nodes `N####_<slug>` (S-p
 
 ## 3. Hard Rules
 
+0. **Inspiration check (user-specified, recurring)**: before EACH Idea Agent dispatch and each Synthesis round, run `git pull --ff-only` and re-read `docs/inspiration_from_GOD.txt`. The user updates it at any time with new direction hints — treat it as a live input, not a one-time read; fold new hints into hypothesis selection and STATE.md next-steps
 1. **Only local pushes**; server pulls. Artifacts return via collect script
 2. **Large files never enter git** (datasets/checkpoints/logs stay under `/data/`)
 3. Task claiming = atomic file rename; mutual exclusion via `mkdir locks/<name>`

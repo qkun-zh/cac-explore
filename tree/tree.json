@@ -123,9 +123,9 @@
     "N0010_dino_multilayer_long": {
       "parent": "N0007_dino_promptv2",
       "children": [],
-      "status": "running",
-      "best_metric": null,
-      "train_seconds": null,
+      "status": "done",
+      "best_metric": 21.531,
+      "train_seconds": 1275,
       "quality": null,
       "avail": null,
       "score": null,

@@ -44,3 +44,5 @@
 {"ts": "2026-08-23T11:38:00+08:00", "agent": "lead", "event": "N0009 synthesized: H0016 0.375 / H0015 further refuted; MLP-head champion confirmed on DINOv2-S", "refs": ["tree/nodes/N0009_dino_xattn_stable/synthesis.md"]}
 {"ts": "2026-08-23T11:43:00+08:00", "agent": "lead", "event": "N0010_dino_multilayer_long coded (layer-gated t6/t11 taps, 40ep, count-w 1.0); H0017 registered", "refs": ["tree/nodes/N0010_dino_multilayer_long/"]}
 {"ts": "2026-08-23T11:45:30+08:00", "agent": "lead", "event": "N0010 smoke GREEN after 3 fix rounds @61a8c95 (23.11M); T0022 claimed, node running", "refs": ["tree/nodes/N0010_dino_multilayer_long/model.py"]}
+{"ts": "2026-08-23T12:13:00+08:00", "agent": "lead", "event": "N0010 done: val MAE 21.531, 23.11M, 1275s, 40ep. Dispatching feedback×3 subagents.", "refs": ["tree/nodes/N0010_dino_multilayer_long/"]}
+{"ts": "2026-08-23T12:13:00+08:00", "agent": "lead", "event": "N0010 done: val MAE 21.531, 23.11M, 1275s, 40ep. Dispatching feedback×3 subagents.", "refs": ["tree/nodes/N0010_dino_multilayer_long/"]}
