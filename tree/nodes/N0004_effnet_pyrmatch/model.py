@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-BACKBONE = "efficientnet_b0.ra4_in1k"
+BACKBONE = "efficientnet_b0.ra_in1k"
 
 
 class ScaleGateHead(nn.Module):
