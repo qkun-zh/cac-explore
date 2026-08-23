@@ -75,3 +75,4 @@
 {"ts":"2026-08-23T21:21:00+08:00","agent":"lead","event":"R001 FAILED early-stop ep17 best52.57; H0030 refuted w=0.90 - threshold barrier from extreme class imbalance; density regression superior for short-budget training","refs":["tree/nodes/R001_point_detect/"]}
 {"ts":"2026-08-23T21:30:00+08:00","agent":"lead","event":"TARGET MAE<=18; N0021 fullft RUNNING","refs":["tree/nodes/N0021_dino_fullft/"]}
 {"ts":"2026-08-23T16:10:00+08:00","agent":"lead","event":"N0021 fullft FAILED: instability spike E5 + stuck at 48.4; full FT needs lower lr + longer schedule than tau_max allows","refs":["tree/nodes/N0021_dino_xattn"]}
+{"ts":"2026-08-23T21:27:00+08:00","agent":"lead","event":"N0022 EBC+fullft RUNNING — PARADIGM SHIFT: classification not regression + full backbone FT","refs":["tree/nodes/N0022_dino_ebc_fullft/"]}
