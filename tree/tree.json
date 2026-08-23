@@ -151,13 +151,16 @@
     "N0012_dino_highres518": {
       "parent": "N0010_dino_multilayer_long",
       "children": [],
-      "status": "done",
+      "status": "synthesized",
       "best_metric": 26.0326,
       "train_seconds": 1129,
-      "quality": null,
-      "avail": null,
-      "score": null,
-      "tested_hypotheses": []
+      "quality": 0.35,
+      "avail": 0.8,
+      "score": 0.53,
+      "tested_hypotheses": [
+        "H0023",
+        "H0017"
+      ]
     },
     "N0013_dino_mosaic": {
       "parent": "N0010_dino_multilayer_long",

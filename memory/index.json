@@ -290,8 +290,8 @@
     },
     "H0017": {
       "text": "",
-      "confidence": 0.59,
-      "n_tested": 1,
+      "confidence": 0.6454,
+      "n_tested": 3,
       "status": "uncertain",
       "tags": [],
       "log": [
@@ -300,6 +300,18 @@
           "evidence_type": "supports",
           "strength": 0.9,
           "reasoning": "MAE 21.531 << 26.0 bar; compound multi-tap+40ep+count-w=1.0 recipe works; confounded but effect is real"
+        },
+        {
+          "source_node": "N0012_dino_highres518",
+          "evidence_type": "supports",
+          "strength": 0.35,
+          "reasoning": "multi-tap gated DINOv2 stack trains stably at native 518px/1369 tokens through E18 — monotone MAE improvement, no OOM/divergence, gate+prompt machinery intact; substrate transfers across resolutions d"
+        },
+        {
+          "source_node": "N0012_dino_highres518",
+          "evidence_type": "supports",
+          "strength": 0.35,
+          "reasoning": "champion stack trains stably at 1369 tokens/bs4: monotone descent, no OOM, gate/prompt machinery intact"
         }
       ]
     },
@@ -368,15 +380,22 @@
     },
     "H0021": {
       "text": "IF count-w=1.0 is isolated (scalar gate+MSE held fixed) IN multi-tap DINOv2-S 392px architecture, THEN val MAE drops >=3.0 vs w0.3 variant, BECAUSE stronger L1 count supervision reinforces density calibration on high-count images. DISPROVED IF MAE delta <1.0 or w0.3 wins.",
-      "confidence": 0.5,
-      "n_tested": 0,
+      "confidence": 0.455,
+      "n_tested": 1,
       "status": "uncertain",
       "tags": [
         "count-weight",
         "isolation",
         "N0011"
       ],
-      "log": []
+      "log": [
+        {
+          "source_node": "N0012_dino_highres518",
+          "evidence_type": "contradicts",
+          "strength": 0.45,
+          "reasoning": "best MAE 26.03 @E18 > parent N0010 21.53 and RMSE/MAE 3.66 >= 3.63 disproof bar; BUT run truncated by timeout at E18/40 with MAE still falling (27.65->26.03) and lr at ~56% of peak — resolution-vs-sch"
+        }
+      ]
     },
     "H0022": {
       "text": "IF tail-aware reweighting (log-count or count-stratified sampling) replaces Huber capping IN multi-tap DINOv2 architectures, THEN RMSE/MAE drops below 3.2 without MAE loss vs MSE, BECAUSE reweighting preserves outlier gradients while balancing head-heavy count distribution. DISPROVED IF ratio >=3.5 or MAE worsens >1.0.",
@@ -389,6 +408,26 @@
         "N0011"
       ],
       "log": []
+    },
+    "H0023": {
+      "text": "IF input_size 392→518 (native DINOv2 res, 1369 tokens) IN FSC147 on champion recipe, THEN MAE ≤19.0 AND RMSE/MAE<3.4, BECAUSE finer grid reduces small-object miss rate. DISPROVED IF MAE>21.53 OR RMSE/MAE≥3.63.",
+      "confidence": 0.455,
+      "n_tested": 1,
+      "status": "uncertain",
+      "tags": [
+        "highres",
+        "518",
+        "resolution",
+        "N0012"
+      ],
+      "log": [
+        {
+          "source_node": "N0012_dino_highres518",
+          "evidence_type": "contradicts",
+          "strength": 0.45,
+          "reasoning": "early-stopped E18 best 26.03 vs parent same-epoch ~25.5; RMSE/MAE 3.66 no tail gain; confounded by 30min timeout (~45% schedule), bs8→4, lr at 56% peak when killed — retry with full schedule+grad-accu"
+        }
+      ]
     }
   }
 }

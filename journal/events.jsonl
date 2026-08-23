@@ -51,3 +51,4 @@
 {"ts":"2026-08-23T13:59:00+08:00","agent":"lead","event":"N0012 highres518 launching (23.11M, 518px); dispatching N0011 feedback×3 + N0013 coding in parallel","refs":["tree/nodes/N0012_dino_highres518/"]}
 {"ts":"2026-08-23T14:00:00+08:00","agent":"lead","event":"N0011 synthesized REFUTED 26.68; H0019 0.415 H0020 0.42; N0012 running ep5","refs":["tree/nodes/N0011_dino_pertok_gate_huber/synthesis.md"]}
 {"ts":"2026-08-23T14:20:00+08:00","agent":"lead","event":"N0012 EARLY-STOPPED ep18/40 best 26.03 > champion 21.53; H0021 contradicted; launching N0013","refs":["tree/nodes/N0012_dino_highres518/result.json"]}
+{"ts":"2026-08-23T14:26:00+08:00","agent":"lead","event":"N0012 synthesized: H0023 created+contradicts 0.455 (truncated confound); H0017 0.619; tree synthesized","refs":["tree/nodes/N0012_dino_highres518/synthesis.md"]}
