@@ -35,13 +35,16 @@
     "N0004_effnet_pyrmatch": {
       "parent": null,
       "children": [],
-      "status": "done",
+      "status": "synthesized",
       "best_metric": 40.366784865526164,
-      "train_seconds": 539.9,
-      "quality": null,
-      "avail": null,
-      "score": null,
-      "tested_hypotheses": []
+      "train_seconds": 535.0,
+      "quality": 0.41,
+      "avail": 0.7,
+      "score": 0.53,
+      "tested_hypotheses": [
+        "H0006",
+        "H0007"
+      ]
     },
     "N0005_swin_promptseg": {
       "parent": null,
