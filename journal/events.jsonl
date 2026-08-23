@@ -53,3 +53,4 @@
 {"ts":"2026-08-23T14:20:00+08:00","agent":"lead","event":"N0012 EARLY-STOPPED ep18/40 best 26.03 > champion 21.53; H0021 contradicted; launching N0013","refs":["tree/nodes/N0012_dino_highres518/result.json"]}
 {"ts":"2026-08-23T14:26:00+08:00","agent":"lead","event":"N0012 synthesized: H0023 created+contradicts 0.455 (truncated confound); H0017 0.619; tree synthesized","refs":["tree/nodes/N0012_dino_highres518/synthesis.md"]}
 {"ts":"2026-08-23T14:30:00+08:00","agent":"lead","event":"N0011 done 26.68 (worse than champion 21.53; H0019/H0020 likely refuted); collected. User directive: SeqCount paradigm first in gen-5 queue.","refs":["tree/nodes/N0011_dino_pertok_gate_huber/result.json"]}
+{"ts":"2026-08-23T14:40:00+08:00","agent":"lead","event":"ID-collision scare resolved: multiscale N0016 commits never existed (subagent hallucinated); seqcount legitimately holds N0016/T0033; pitfall logged","refs":["memory/failure_modes.md"]}

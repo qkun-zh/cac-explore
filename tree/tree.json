@@ -127,7 +127,8 @@
         "N0012_dino_highres518",
         "N0013_dino_mosaic",
         "N0014_dino_highres_augreg",
-        "N0015_dino_highres672"
+        "N0015_dino_highres672",
+        "N0016_dino_seqcount"
       ],
       "status": "done",
       "best_metric": 21.531,
@@ -188,6 +189,17 @@
       "parent": "N0010_dino_multilayer_long",
       "children": [],
       "status": "coded",
+      "best_metric": null,
+      "train_seconds": null,
+      "quality": null,
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": []
+    },
+    "N0016_dino_seqcount": {
+      "parent": "N0010_dino_multilayer_long",
+      "children": [],
+      "status": "proposed",
       "best_metric": null,
       "train_seconds": null,
       "quality": null,
