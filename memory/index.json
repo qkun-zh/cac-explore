@@ -227,6 +227,26 @@
           "reasoning": "RMSE/MAE ratio 3.18 >= 3.0; gate did not shrink high-count tail on swin substrate"
         }
       ]
+    },
+    "H0014": {
+      "text": "IF the proven prompt-conditioning stack runs on a frozen DINOv2-S reg4 substrate IN FSC147, THEN val MAE <= 29.0 (>=10% better than current best 32.10), BECAUSE self-supervised category-agnostic features supply instance separability that supervised-hierarchical features lack. DISPROVED IF MAE > 29.0.",
+      "confidence": 0.585,
+      "n_tested": 1,
+      "status": "uncertain",
+      "tags": [
+        "dinov2",
+        "substrate",
+        "prompt",
+        "N0007"
+      ],
+      "log": [
+        {
+          "source_node": "N0007_dino_promptv2",
+          "evidence_type": "supports",
+          "strength": 0.85,
+          "reasoning": "27.65 << 29.0 bar (passed at E8 already); largest single-lever gain of search (-15.3%); validates features>mechanism>schedule"
+        }
+      ]
     }
   }
 }
