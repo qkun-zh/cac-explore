@@ -250,8 +250,8 @@
     },
     "H0015": {
       "text": "",
-      "confidence": 0.45,
-      "n_tested": 1,
+      "confidence": 0.4005,
+      "n_tested": 2,
       "status": "uncertain",
       "tags": [],
       "log": [
@@ -260,6 +260,31 @@
           "evidence_type": "contradicts",
           "strength": 0.5,
           "reasoning": "46.56 >> 25.5 bar BUT decoder diverged E1-E12 at lr=1e-3 (no warmup) then recovered steadily; optimization confound - adjudication deferred to stabilized N0009"
+        },
+        {
+          "source_node": "N0009_dino_xattn_stable",
+          "evidence_type": "contradicts",
+          "strength": 0.55,
+          "reasoning": "stabilized retry also failed -> H0015 refuted at mechanism level"
+        }
+      ]
+    },
+    "H0016": {
+      "text": "IF the cross-attn basis merge is trained stably on DINOv2-S IN FSC147 (lr 2.5e-4, 1 layer, K=4), THEN val MAE <= 25.5, BECAUSE contextual basis mixing adds adjacent-instance modeling on top of N0007's substrate gain once optimization noise is removed. DISPROVED IF MAE > 27.65.",
+      "confidence": 0.425,
+      "n_tested": 1,
+      "status": "uncertain",
+      "tags": [
+        "cross-attn",
+        "stability",
+        "N0009"
+      ],
+      "log": [
+        {
+          "source_node": "N0009_dino_xattn_stable",
+          "evidence_type": "contradicts",
+          "strength": 0.75,
+          "reasoning": "30.67 stable > 27.65 parent -> transfer refuted; strong features make decoder context redundant"
         }
       ]
     }
