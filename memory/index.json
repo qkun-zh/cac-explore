@@ -12,5 +12,25 @@
       "refuted_lt": 0.25
     }
   },
-  "hypotheses": {}
+  "hypotheses": {
+    "H0030": {
+      "text": "IF point detection with focal+L1 replaces density regression IN FSC147 THEN val MAE <=15 BECAUSE discrete output eliminates kernel mismatch. DISPROVED IF MAE>18.",
+      "confidence": 0.41,
+      "n_tested": 1,
+      "status": "uncertain",
+      "tags": [
+        "detect",
+        "paradigm",
+        "R001"
+      ],
+      "log": [
+        {
+          "source_node": "R001_point_detect",
+          "evidence_type": "contradicts",
+          "strength": 0.9,
+          "reasoning": "E17 best 52.57 vs parent E17 ~25; threshold barrier: RetinaNet prior init keeps sigmoid<0.3 for most cells even after training; focal loss with 95% negative cells converges too slowly for 40ep budget"
+        }
+      ]
+    }
+  }
 }

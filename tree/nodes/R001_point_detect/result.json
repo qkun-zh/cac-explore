@@ -1,0 +1,18 @@
+{
+  "node": "R001_point_detect",
+  "status": "running",
+  "metrics": {
+    "mae": 53.8740286107753,
+    "rmse": 121.1342461697385,
+    "best_mae": 52.56842983121264
+  },
+  "timing": {
+    "train_seconds": 640.5,
+    "epochs_done": 17
+  },
+  "diagnostics": {
+    "oom": false
+  },
+  "run_dir": "/data/runs/R001_point_detect",
+  "ts": "2026-08-23T20:49:04+0800"
+}
