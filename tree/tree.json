@@ -81,7 +81,8 @@
       "parent": "N0005_swin_promptseg",
       "children": [
         "N0008_dino_xattn",
-        "N0009_dino_xattn_stable"
+        "N0009_dino_xattn_stable",
+        "N0010_dino_multilayer_long"
       ],
       "status": "synthesized",
       "best_metric": 27.65213204320074,
@@ -118,6 +119,17 @@
       "tested_hypotheses": [
         "H0016"
       ]
+    },
+    "N0010_dino_multilayer_long": {
+      "parent": "N0007_dino_promptv2",
+      "children": [],
+      "status": "coded",
+      "best_metric": null,
+      "train_seconds": null,
+      "quality": null,
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": []
     }
   }
 }
