@@ -12,7 +12,7 @@ class ScaleGateHead(nn.Module):
         self.strides = strides
         self.proj = nn.ModuleList(
             nn.Sequential(nn.Conv2d(c, proj, 1), nn.BatchNorm2d(proj), nn.GELU()) for c in chans)
-        self.gate = nn.Conv2d(proj * len(chans), len(chans), 1)
+        self.gate = nn.Conv2d(len(chans), len(chans), 1)
         self.decoder = nn.Sequential(
             nn.Conv2d(1, dec_width, 3, padding=1), nn.GELU(),
             nn.Conv2d(dec_width, dec_width, 3, padding=1), nn.GELU(),
