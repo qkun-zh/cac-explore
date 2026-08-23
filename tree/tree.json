@@ -130,7 +130,8 @@
         "N0015_dino_highres672",
         "N0016_dino_seqcount",
         "N0017_dino_tailreweight",
-        "N0018_dino_protoiter"
+        "N0018_dino_protoiter",
+        "N0019_dino_tailup"
       ],
       "status": "done",
       "best_metric": 21.531,
@@ -223,6 +224,17 @@
       "tested_hypotheses": []
     },
     "N0018_dino_protoiter": {
+      "parent": "N0010_dino_multilayer_long",
+      "children": [],
+      "status": "coded",
+      "best_metric": null,
+      "train_seconds": null,
+      "quality": null,
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": []
+    },
+    "N0019_dino_tailup": {
       "parent": "N0010_dino_multilayer_long",
       "children": [],
       "status": "coded",
