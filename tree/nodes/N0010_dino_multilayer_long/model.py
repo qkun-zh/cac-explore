@@ -5,6 +5,7 @@ import torch
 import torch.nn as nn
 
 BACKBONE = "vit_small_patch14_reg4_dinov2.lvd142m"
+PATCH = 14
 
 
 class PromptEncoderV2(nn.Module):
@@ -37,7 +38,7 @@ class DinoPromptV2(nn.Module):
         for p in self.backbone.parameters():
             p.requires_grad_(False)
         self.backbone.eval()
-        self.patch = int(self.backbone.patch_embed.patch_size[0])
+        self.patch = PATCH
         self.t6_proj = nn.Linear(ch, ch)
         self.t11_proj = nn.Linear(ch, ch)
         self.layer_logits = nn.Parameter(torch.zeros(2))
