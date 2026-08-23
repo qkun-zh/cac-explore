@@ -33,3 +33,4 @@
 ## Training Dynamics
 
 - Frozen-backbone heads converge slowly at 10 epochs (N0002 MAE still descending at ep10, 317s of 1800s used): budget ≥20 epochs or accept under-converged baselines. (N0002)
+- select_next.py acc_norm inverted: best_metric is MAE (lower=better) but (val-lo)/(hi-lo) ranked the WORST node first. Fixed to (hi-val)/(hi-lo). Always sanity-check selection output against known best node. (gen-0)

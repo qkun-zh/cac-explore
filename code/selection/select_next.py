@@ -42,7 +42,8 @@ def select_parent(tree):
     lo, hi = min(accs), max(accs)
     rows = []
     for nid, n in nodes.items():
-        acc_norm = (n.get("best_metric", 0.0) - lo) / (hi - lo) if hi > lo else 1.0
+        # best_metric is MAE: LOWER is better, so accuracy normalizes inverted
+        acc_norm = (hi - float(n.get("best_metric", hi) or hi)) / (hi - lo) if hi > lo else 1.0
         tau = min(float(n.get("train_seconds", 0) or 0), tau_max)
         quality = lam_acc * acc_norm + (1 - lam_acc) * (1 - tau / tau_max)
         tested = set()
