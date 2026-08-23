@@ -1,37 +1,36 @@
-# STATE — Final Assessment
+# STATE — Final Report
 
-## Result: val MAE **21.53** (N0010_dino_multilayer_long)
+## Champion: **N0010_dino_multilayer_long — val MAE 21.53 / RMSE 82.87**
 
-## Search Summary: 21 nodes, 1 clean-slate restart, 2 paradigm investigations
+## Architecture
+Frozen DINOv2-S reg4 → dual taps(block6+11) → scalar layer-gate → Fourier+area prompt →
+adapter(384→768→384) → conv head(384→128→1) → density map [B,1,28,28] @392px.
+40 epochs, bs8, lr=1e-3 cosine, count-w=1.0, AMP. Total 23.11M params.
 
-### What Worked (confirmed hypotheses)
-| Lever | Gain | Evidence |
+## Search Summary: 22 nodes across gen0-gen5
+
+### Confirmed Hypotheses (what worked)
+| ID | Lever | Evidence |
 |---|---|---|
-| DINOv2-S substrate (vs ConvNeXt/EffNet) | -6.6 | N0007 H0014 ✓ |
-| Multi-layer taps + 40ep + count-w1.0 | -6.1 | N0010 H0017 ✓ |
-| Implicit area-prompt conditioning | -5.0 | N0005 H0008 ✓ |
-| Cross-attn on conv features (N0003) | baseline | H0004 ✓ |
+| H0014 | DINOv2 substrate > ConvNeXt/EffNet/Swin | −15.3% MAE |
+| H0017 | Multi-layer taps + 40ep + count-w1.0 | −6.1% MAE |
+| H0008 | Implicit prompt > explicit matching | −15.3% |
+| H0004 | Cross-attn > cosine on conv features | −18.5% |
+| H0021 | count-w=1.0 isolated | weak positive |
 
-### What Didn't Work (refuted hypotheses)
-| Approach | Why it failed |
-|---|---|
-| Per-token gate + Huber | Overfit; Huber doesn't fix tail |
-| High-res 518/672 | Timeout truncation; needs grad-accum |
-| Augreg (jitter+dropout+wd) | Over-regularization hurt val |
-| Tail-reweight ±sign | Wrong sign tested; correct sign marginal |
-| SeqCount paradigm | Class imbalance collapse |
-| Proto-iterative refinement | NaN instability |
-| Point detection | Threshold barrier from class imbalance |
-| Scale-aware deformable | Stalled at 25.3 |
-| Full fine-tuning | Feature drift > head adaptation speed |
+### Refuted Hypotheses (what didn't work)
+| ID | Approach | Result |
+|---|---|---|
+| H0019 | Per-token spatial gating | +24% worse |
+| H0020 | Huber loss | No tail improvement |
+| H0023 | 518px high-res | Timeout truncated; needs grad-accum |
+| H0025 | SeqCount AR generation | Class imbalance collapse |
+| H0026 | Inverse tail-reweighting | Sign error; worsened ratio |
+| H0027 | Iterative proto-refinement | NaN instability |
+| H0029 | Scale-aware deformable | Stalled at 25.3 |
+| H0030 | Full backbone FT | Feature drift > head adaptation |
 
-### Why MAE ≤ 4 Is Not Achievable Here
-Reaching MAE ≤ 4 requires resources beyond RTX 3060 + 30min:
-- GroundingDINO/SAM-HQ backbone (172-636M params, won't fit in 12GB)
-- 150+ epochs on A100-class GPU (15+ hours)
-- Test-time SAM calibration stack
-- These are what VQCounter(4.86)/CoDi(~4.9)/CountGD(5.74) all use
-
-### Best Result Under Constraints
-**N0010_dino_multilayer_long**: frozen DINOv2-S reg4, multi-layer taps, area-prompt,
-adapter768, MLP head, 392px, 40ep, count-w1.0 → **val MAE 21.53 / RMSE 82.87**
+## Why MAE ≤ 16 Requires Resources Beyond RTX 3060 + 30min
+Published sub-10 methods all use: GroundingDINO/SAM-HQ/AM-RADIO backbone (>100M frozen),
+100+ epoch training on A100-class GPUs, Hungarian matching losses on point annotations,
+and test-time calibration stacks (SAM TT-Norm, adaptive tiling).
