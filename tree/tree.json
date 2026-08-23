@@ -22,9 +22,9 @@
     "N0003_convnext_xattn": {
       "parent": null,
       "children": [],
-      "status": "running",
-      "best_metric": null,
-      "train_seconds": null,
+      "status": "done",
+      "best_metric": 34.26387781080896,
+      "train_seconds": 430.5,
       "quality": null,
       "avail": null,
       "score": null,

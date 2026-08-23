@@ -1,0 +1,21 @@
+{
+  "node": "N0003_convnext_xattn",
+  "status": "success",
+  "metrics": {
+    "mae": 34.26387781080896,
+    "rmse": 104.5238680152189,
+    "best_mae": 34.26387781080896
+  },
+  "timing": {
+    "train_seconds": 430.5,
+    "epochs_done": 14
+  },
+  "diagnostics": {
+    "oom": false,
+    "instability": false,
+    "smoke": false,
+    "params_M": 16.93
+  },
+  "run_dir": "/data/runs/N0003_convnext_xattn",
+  "ts": "2026-08-23T09:49:28+0800"
+}
