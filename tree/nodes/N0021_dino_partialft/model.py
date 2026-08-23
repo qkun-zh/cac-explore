@@ -26,7 +26,7 @@ class PromptEncoderV2(nn.Module):
         return self.mlp(torch.cat([fourier, log_area], dim=1))
 
 
-class DinoFullFT(nn.Module):
+class DinoPartialFT(nn.Module):
     def __init__(self, cfg):
         super().__init__()
         import timm
@@ -36,6 +36,11 @@ class DinoFullFT(nn.Module):
         self.backbone_lr_mult = float(cfg.get("backbone_lr_mult", 0.1))
         self.backbone = timm.create_model(cfg.get("backbone", BACKBONE), pretrained=True,
                                           dynamic_img_size=True, features_only=True, out_indices=(6, 11))
+        for name, p in self.backbone.named_parameters():
+            if "blocks.10." in name or "blocks.11." in name or "norm." in name:
+                p.requires_grad_(True)
+            else:
+                p.requires_grad_(False)
         self.patch = PATCH
         self.t6_proj = nn.Linear(ch, ch)
         self.t11_proj = nn.Linear(ch, ch)
@@ -79,4 +84,4 @@ class DinoFullFT(nn.Module):
 
 
 def build_model(cfg):
-    return DinoFullFT(cfg)
+    return DinoPartialFT(cfg)
