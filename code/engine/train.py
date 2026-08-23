@@ -127,8 +127,12 @@ def main():
     assert total_p < float(cfg.get("max_params_M", 32)), f"params {total_p:.2f}M over budget"  # mission budget: 32M
 
     train_loader, val_loader, _ = make_loaders(cfg, cfg["smoke"])
-    optim = torch.optim.AdamW(filter(lambda q: q.requires_grad, model.parameters()),
-                              lr=float(cfg.get("lr", 1e-3)), weight_decay=float(cfg.get("weight_decay", 1e-4)))
+    if hasattr(model, 'param_groups'):
+        optim = torch.optim.AdamW(model.param_groups(float(cfg.get("lr", 1e-3)),
+                                                    float(cfg.get("weight_decay", 1e-4))))
+    else:
+        optim = torch.optim.AdamW(filter(lambda q: q.requires_grad, model.parameters()),
+                                  lr=float(cfg.get("lr", 1e-3)), weight_decay=float(cfg.get("weight_decay", 1e-4)))
     sched = torch.optim.lr_scheduler.CosineAnnealingLR(optim, epochs, eta_min=float(cfg.get("eta_min", 1e-6)))
     scaler = torch.cuda.amp.GradScaler(enabled=use_amp)
     w_cnt = float(cfg.get("loss_count_weight", 0.3))
