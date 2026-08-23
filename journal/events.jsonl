@@ -32,3 +32,4 @@
 {"ts": "2026-08-23T10:38:00+08:00", "agent": "lead", "event": "N0006 synthesized: H0012 0.445 / H0013 0.45 (both contradicted, sub-bar gains); causal verdict features>mechanism>schedule; DINOv2-S substrate = top lever", "refs": ["tree/nodes/N0006_swin_promptv2/synthesis.md", "memory/index.json"]}
 {"ts": "2026-08-23T10:42:00+08:00", "agent": "lead", "event": "gen-1 child N0007_dino_promptv2 proposed (DINOv2-S substrate + area-prompt stack, H0014 <=29.0); T0015 created", "refs": ["tree/nodes/N0007_dino_promptv2/idea.md"]}
 {"ts": "2026-08-23T10:36:30+08:00", "agent": "lead", "event": "N0007 smoke GREEN (22.81M); T0015 done, T0016 claimed, node running", "refs": ["tree/nodes/N0007_dino_promptv2/model.py"]}
+{"ts": "2026-08-23T10:50:00+08:00", "agent": "lead", "event": "N0007 done: BEST val MAE 27.65 / RMSE 93.24 @25ep/768s/22.81M (-15.3% vs prev best); H0014 SUPPORTED", "refs": ["tree/nodes/N0007_dino_promptv2/result.json"]}

@@ -1,0 +1,21 @@
+{
+  "node": "N0007_dino_promptv2",
+  "status": "success",
+  "metrics": {
+    "mae": 27.886972855260918,
+    "rmse": 94.76158760765409,
+    "best_mae": 27.65213204320074
+  },
+  "timing": {
+    "train_seconds": 782.0,
+    "epochs_done": 25
+  },
+  "diagnostics": {
+    "oom": false,
+    "instability": false,
+    "smoke": false,
+    "params_M": 22.81
+  },
+  "run_dir": "/data/runs/N0007_dino_promptv2",
+  "ts": "2026-08-23T10:47:45+0800"
+}

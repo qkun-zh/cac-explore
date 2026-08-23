@@ -80,9 +80,9 @@
     "N0007_dino_promptv2": {
       "parent": "N0005_swin_promptseg",
       "children": [],
-      "status": "running",
-      "best_metric": null,
-      "train_seconds": null,
+      "status": "done",
+      "best_metric": 27.65213204320074,
+      "train_seconds": 782.0,
       "quality": null,
       "avail": null,
       "score": null,
