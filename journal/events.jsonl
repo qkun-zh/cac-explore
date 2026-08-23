@@ -73,3 +73,4 @@
 {"ts":"2026-08-23T20:00:00+08:00","agent":"lead","event":"CLEAN SLATE: archived gen0-5 (20 nodes) to tree/archive_gen0_5/; reset tree/memory/tasks; fresh start for MAE<=4 mission","refs":["tree/archive_gen0_5/"]}
 {"ts":"2026-08-23T21:00:00+08:00","agent":"lead","event":"R001 point-detect coded (24.53M) + RUNNING — paradigm shift from density to detection","refs":["tree/nodes/R001_point_detect/"]}
 {"ts":"2026-08-23T21:21:00+08:00","agent":"lead","event":"R001 FAILED early-stop ep17 best52.57; H0030 refuted w=0.90 - threshold barrier from extreme class imbalance; density regression superior for short-budget training","refs":["tree/nodes/R001_point_detect/"]}
+{"ts":"2026-08-23T21:30:00+08:00","agent":"lead","event":"TARGET MAE<=18; N0021 fullft RUNNING","refs":["tree/nodes/N0021_dino_fullft/"]}

@@ -51,6 +51,19 @@
       "avail": null,
       "score": null,
       "tested_hypotheses": []
+    },
+    "N0021_dino_fullft": {
+      "parent": null,
+      "children": [],
+      "status": "running",
+      "best_metric": null,
+      "train_seconds": null,
+      "quality": null,
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": [
+        "H0030"
+      ]
     }
   }
 }
