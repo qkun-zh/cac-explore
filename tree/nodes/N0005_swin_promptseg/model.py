@@ -44,9 +44,12 @@ class SwinPromptSeg(nn.Module):
 
     def forward(self, imgs, bboxes):
         B = imgs.shape[0]
+        ch = self.backbone.feature_info.channels()[0]
         with torch.no_grad():
             f = self.backbone(imgs)[-1].float()
         if f.ndim == 4:
+            if f.shape[1] != ch and f.shape[-1] == ch:
+                f = f.permute(0, 3, 1, 2).contiguous()
             tokens, hw = f.flatten(2).transpose(1, 2), f.shape[-2:]
         else:
             tokens = f
