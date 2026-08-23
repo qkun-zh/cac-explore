@@ -247,6 +247,21 @@
           "reasoning": "27.65 << 29.0 bar (passed at E8 already); largest single-lever gain of search (-15.3%); validates features>mechanism>schedule"
         }
       ]
+    },
+    "H0015": {
+      "text": "",
+      "confidence": 0.45,
+      "n_tested": 1,
+      "status": "uncertain",
+      "tags": [],
+      "log": [
+        {
+          "source_node": "N0008_dino_xattn",
+          "evidence_type": "contradicts",
+          "strength": 0.5,
+          "reasoning": "46.56 >> 25.5 bar BUT decoder diverged E1-E12 at lr=1e-3 (no warmup) then recovered steadily; optimization confound - adjudication deferred to stabilized N0009"
+        }
+      ]
     }
   }
 }

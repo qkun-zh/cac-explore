@@ -95,13 +95,15 @@
     "N0008_dino_xattn": {
       "parent": "N0007_dino_promptv2",
       "children": [],
-      "status": "done",
+      "status": "synthesized",
       "best_metric": 46.56253016755147,
-      "train_seconds": 1076.5,
-      "quality": null,
-      "avail": null,
-      "score": null,
-      "tested_hypotheses": []
+      "train_seconds": 1063.0,
+      "quality": 0.15,
+      "avail": 0.69,
+      "score": 0.37,
+      "tested_hypotheses": [
+        "H0015"
+      ]
     }
   }
 }

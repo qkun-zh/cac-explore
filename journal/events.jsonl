@@ -37,3 +37,4 @@
 {"ts": "2026-08-23T11:00:00+08:00", "agent": "lead", "event": "gen-2: N0008_dino_xattn proposed under N0007 (DINOv2 x cross-attn basis merge, H0015 <=25.5)", "refs": ["tree/nodes/N0008_dino_xattn/idea.md"]}
 {"ts": "2026-08-23T10:55:30+08:00", "agent": "lead", "event": "N0008 smoke GREEN (24.15M); T0017 done, T0018 claimed, node running", "refs": ["tree/nodes/N0008_dino_xattn/model.py"]}
 {"ts": "2026-08-23T11:14:00+08:00", "agent": "lead", "event": "N0008 done-but-poor: best val MAE 46.56 @30ep/1063s; decoder divergence E1-E12 (lr 1e-3 no warmup on DINOv2 tokens), late recovery trend; optimization confound flagged", "refs": ["tree/nodes/N0008_dino_xattn/train.log"]}
+{"ts": "2026-08-23T11:17:00+08:00", "agent": "lead", "event": "N0008 synthesized: H0015 contradicts 0.50 confound-noted; decision rule pre-registered for N0009 stable retry", "refs": ["tree/nodes/N0008_dino_xattn/synthesis.md"]}
