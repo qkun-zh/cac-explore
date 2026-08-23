@@ -142,7 +142,7 @@ def make_loaders(cfg, smoke):
             DataLoader(va, batch_size=bs, shuffle=False, num_workers=nw, collate_fn=collate, pin_memory=True), bs)
 
 
-def evaluate(model, loader, device, seq=False, detect=False, conf_thr=0.3, max_frac=1.0):
+def evaluate(model, loader, device, seq=False, ebc=False, detect=False, conf_thr=0.3, max_frac=1.0):
     model.eval(); mae = mse = n = 0
     if max_frac < 1.0:
         n_keep = max(1, int(len(loader) * max_frac))
