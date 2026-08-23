@@ -1,0 +1,21 @@
+{
+  "node": "N0004_effnet_pyrmatch",
+  "status": "success",
+  "metrics": {
+    "mae": 40.59265605546824,
+    "rmse": 120.54622082918962,
+    "best_mae": 40.366784865526164
+  },
+  "timing": {
+    "train_seconds": 539.9,
+    "epochs_done": 20
+  },
+  "diagnostics": {
+    "oom": false,
+    "instability": false,
+    "smoke": false,
+    "params_M": 3.65
+  },
+  "run_dir": "/data/runs/N0004_effnet_pyrmatch",
+  "ts": "2026-08-23T10:03:26+0800"
+}

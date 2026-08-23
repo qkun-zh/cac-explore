@@ -35,9 +35,9 @@
     "N0004_effnet_pyrmatch": {
       "parent": null,
       "children": [],
-      "status": "running",
-      "best_metric": null,
-      "train_seconds": null,
+      "status": "done",
+      "best_metric": 40.366784865526164,
+      "train_seconds": 539.9,
       "quality": null,
       "avail": null,
       "score": null,
