@@ -166,11 +166,12 @@ def main():
                             w = 1.0 / torch.clamp(gt_c.float(), min=1.0) ** float(cfg.get("tail_exp", 0.5))
                             w = w / w.mean().clamp_min(1e-8)
                             loss = (base_i * w).mean()
-                        elif loss_fn_name == "huber":
-                            dens_loss = F.huber_loss(dens.float(), gt_d, delta=huber_delta, reduction="mean")
                         else:
-                            dens_loss = F.mse_loss(dens.float(), gt_d)
-                        loss = dens_loss + w_cnt * F.l1_loss(dens.float().flatten(1).sum(1), gt_c)
+                            if loss_fn_name == "huber":
+                                dens_loss = F.huber_loss(dens.float(), gt_d, delta=huber_delta, reduction="mean")
+                            else:
+                                dens_loss = F.mse_loss(dens.float(), gt_d)
+                            loss = dens_loss + w_cnt * F.l1_loss(dens.float().flatten(1).sum(1), gt_c)
                 scaler.scale(loss).backward()
                 scaler.unscale_(optim)
                 torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
