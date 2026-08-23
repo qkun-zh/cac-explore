@@ -1,21 +1,23 @@
 # STATE — Current Situation
 
-**Stage**: gen-4 RUNNING — champion N0010 21.53 · N0013 augreg tracking ahead of champion trajectory · N0012/N0011 refuted
-**Blockers**: none — pipeline full (never-idle rule in AGENTS §3.0)
+**Stage**: gen-5 RUNNING — champion N0010 21.53; 7 refuted children since; N0020 scale-aware decoding = last structural lever
+**Blockers**: none
 
 ## Verified Facts (do not re-learn)
-- Champion recipe: frozen DINOv2-S reg4 dual taps(6,11) scalar gate + area-prompt + adapter768 + MLP head, 392px, 40ep, count-w1.0 → **21.53** @1275s/23.11M
-- N0011 per-token gate+Huber REFUTED 26.68 (+24%); H0019 0.415/H0020 0.42 — MLP head is enough on strong features
-- N0012 highres518 EARLY-STOPPED ep18 best 26.03; H0023 contradicts 0.455 w/ timeout+bs confound (retry needs grad-accum+full schedule before final refutation); H0017 0.645
-- N0013 augreg tracking AHEAD of champion: E13 best 24.38 vs parent E13 25.50 — photometric+bbox jitter works so far
-- Early-stop rule (user): if same-epoch trajectory ≥ +1.5 worse than parent at ep16+, kill to save GPU
-- Engine now supports loss_function=huber (unused going forward); 23 hypotheses in bank
+- Champion: frozen DINOv2-S reg4 taps(6,11) gate + area-prompt + adapter768 + MLP head, 392px, 40ep, count-w1.0 → **21.53**
+- ALL single-lever variants from champion have FAILED:
+  - N0011 per-token+Huber 26.68 · N0012 highres518 26.03 (truncated) · N0013 augreg 22.40
+  - N0014 highres+augreg 28.42 (stopped ep12) · N0016 seqcount 81.62 (collapse) · N0017 tail-down 22.19
+  - N0018 protoiter 23.40 (NaN) · N0019 tail-up 23.36
+- CAC decomposition: discrimination ✅ (DINOv2) · separation ❌ (frozen features can't split instances) · calibration ⚠️ (RMSE/MAE=3.6)
+- N0020 scale-aware deformable sampling = attacks separation directly via exemplar-size matched filtering
+- H0023 (highres) confounded by timeout — retry needs grad-accum + full schedule
+- Subagent git claims must be verified via `git log` (hallucination incident)
 
-## Next Steps (in order)
-1. Poll N0013 single-shot; collect when done; feedback×3+synthesis subagents
-2. Queue order when GPU frees: N0014 highres+augreg merge → N0016 4-tap multiscale → N0015 672 extreme-res
-3. If augreg confirms (<21), gen-5 merges it with longer schedule / count-calibration (H0022)
+## Next Steps
+1. Poll N0020 (~21min); collect; if ≤19.5 → gen-6 combines with multi-layer + higher res
+2. If N0020 fails too → the frozen-backbone ceiling is ~21.5 on this budget; report honestly
 
 ## Active Tasks
-- T0028 pending_executor N0013 (RUNNING) · T0030 N0014 queued · T0032 N0015 queued · T0034 N0016 queued
+- T0042 executor N0020 RUNNING
 EOF_MARKER_NOT_NEEDED
