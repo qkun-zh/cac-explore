@@ -1,21 +1,21 @@
 # STATE — Current Situation
 
-**Stage**: gen-0 COMPLETE — all 4 roots done+synthesized; best N0005 32.66 · Selection for gen-1 next
-**Blockers**: none — revproxy alive; all smokes green
+**Stage**: gen-3 COMPLETE — N0010 new champion val MAE 21.53 (Δ=-6.12 from parent N0007); gen-4 selection next
+**Blockers**: none — revproxy alive; server OK
 
 ## Verified Facts (do not re-learn the hard way)
-- Engine contract: single box [B,4] S-space; low-res density OK; <32M total; MSE+0.3·L1 count
-- Root results (val): N0005 swin-prompt 32.66 @271s/28.2M · N0003 convnext-xattn 34.26 @430s/16.9M
-  · N0004 effnet-gate 40.37 @535s/3.65M · N0002 dinov2-cosine 42.05 @318s/22.2M
-- Hypothesis bank: H0008 0.585 & H0004 0.58 (confirmed mechanisms: implicit prompt, cross-attn)
-  H0009 0.42 + H0007 0.42 (refuted: implicit-worse, small-backbone-ok) · H0011 0.50 untested top-lever
-- timm traps logged in memory/failure_modes.md (img_size, tags ra_in1k, channels-last BHWC, out_indices range)
-- Time budget: real nodes used only 15–30% of τ_max=1800s → children can run 25–40 epochs
+- Engine contract: single box [B,4] S-space; low-res density OK; <32M total; MSE+0.3·L1(count)
+- Trajectory: N0001 baseline 46.69 → N0005 32.66 → N0007 27.65 → **N0010 21.53** (best)
+- Architecture: frozen DINOv2-S reg4 + layer-gated dual taps (block6+11) + adapter(768) + MLP head
+- Training: 40ep, lr=1e-3, count-w=1.0, best MAE at epoch21, overfitting signal after
+- RMSE/MAE = 3.6× → catastrophic outlier failures persist; count ceiling = 3
+- Hypothesis bank: 20 hypotheses (H0001–H0020); top supported: H0014 0.585, H0017 0.59
+- timm traps logged in memory/failure_modes.md (img_size, features_only BCHW, patch_embed hidden, etc.)
+- SeqCount inspiration: CAC as sequence generation (patch-level discrete tokens + cross-entropy)
 
 ## Next Steps (in order)
-1. `select_next.py parent` + `hypo --parent` → pick gen-1 parent + hypotheses
-2. Idea hat: child node merging winners — DINOv2-S/Swin tokens + prompt/cross-attn + box-area channel (H0011) + ≥25ep
-3. Standard loop to synthesis; iterate toward MAE<16
+1. Idea hat: gen-4 child of N0010 — higher resolution 518/672 or SeqCount-inspired approach
+2. Standard loop to synthesis; iterate toward MAE<16
 
 ## Active Tasks
-- T0001–T0012 all done (gen-0 complete)
+- T0001–T0022 all done (gen-0 through gen-3 complete)
