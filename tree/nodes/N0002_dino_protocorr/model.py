@@ -43,7 +43,7 @@ class DinoProtoCorr(nn.Module):
     def __init__(self, cfg):
         super().__init__()
         import timm
-        self.backbone = timm.create_model(cfg.get("backbone", BACKBONE), pretrained=True, num_classes=0)
+        self.backbone = timm.create_model(cfg.get("backbone", BACKBONE), pretrained=True, num_classes=0, dynamic_img_size=True)
         for p in self.backbone.parameters():
             p.requires_grad_(False)
         self.backbone.eval()

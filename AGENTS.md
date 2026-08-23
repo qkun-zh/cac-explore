@@ -6,13 +6,18 @@
 
 ---
 
-## 0. Startup Sequence (mandatory for every agent / new session)
+## 0. Startup Sequence (mandatory, in this order)
 
 1. `cd ~/cac_explore && git pull --ff-only` (repo lives at `~/cac_explore`; if absent, clone from GitHub)
 2. Read this document, then `STATE.md`
-3. Read on demand only: `docs/PROTOCOL.md`, tail of `journal/events.jsonl`, `memory/failure_modes.md`
+3. **Preflight — BEFORE any role work**: `ssh -o ConnectTimeout=8 -o BatchMode=yes cac-server 'echo SERVER_OK'`
+   - prints SERVER_OK → normal operation below
+   - times out → instance reclaimed. Enter **degraded mode** immediately and tell the user what you need (rent instance → paste creds into `local/address_and_password.md` → `bash scripts/onboard.sh`). Do NOT burn effort on server-dependent steps first — check STATE.md blockers too
+4. Read on demand only: `docs/PROTOCOL.md`, tail of `journal/events.jsonl`, `memory/failure_modes.md`
 
 **Who are you?** You are the **Lead**. Unless told otherwise, you play every role below yourself, sequentially — roles are hats, not separate processes. One session can take an idea all the way to synthesis.
+
+**Degraded mode (no live server)** — allowed: Idea hat (bootstrap, selection, planning), Coding hat up to draft commit & push, doc/state repairs, web research. Blocked: `--smoke`, real training, collect, feedback-on-results, synthesis evidence booking. Surface the blocker to the user at session START, then do the allowed parts while waiting.
 
 ## 1. Work Loops (find your current hat)
 
