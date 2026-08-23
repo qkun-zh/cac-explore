@@ -1,19 +1,20 @@
 # STATE — Current Situation
 
-**Stage**: M2 done (first real node trained) → M3: batched hypothesis generation
+**Stage**: M3 root bootstrap done → 4 root nodes proposed (N0002–N0005); Coding hat next
 **Blockers**: none. The rented instance may be reclaimed at any time — prefer short tasks and collect results often.
 
 ## Verified Facts (do not re-learn the hard way)
-- torch==2.10.0+cu128 / torchvision 0.25.0 installed in env `cac`; CUDA works (RTX 3060)
-- FSC147 VarV2 lives at `/data/dataset/FSC147`; check_data fully passes (3659/1286/1190)
-- Engine contract: models may output low-resolution density; engine auto-upsamples with sum conservation; evaluation uses density sums
-- S0001_smoke: status=success, val MAE 46.69 @ 2ep/27s (end-to-end verified on real data)
+- torch==2.10.0+cu128 / torchvision 0.25.0 in env `cac`; CUDA works (RTX 3060 12GB)
+- FSC147 VarV2 at `/data/dataset/FSC147`; check_data passes (3659/1286/1190)
+- Engine: model(imgs[B,3,S,S], bboxes[B,4]) — SINGLE exemplar box per image, S-space; low-res density OK
+  (sum-conserving upsample); eval via density sums; asserts total params ≤ max_params_M (32)
+- S0001_smoke: success, val MAE 46.69 @ 2ep/27s; throughput ⇒ ~7–15 real epochs fit in τ_max=30min
 
 ## Next Steps (in order)
-1. Idea Agent produces root nodes N0002–N0005 under the frozen-backbone constraint (`tree/nodes/*/idea.md` + `tasks/T*_pending_*.md`)
-2. Coding Agent implements model/config → local `--smoke` self-check → push
-3. Executor runs real training in tmux (within τ_max=30min) → collect → four feedback reports
-4. Synthesis books evidence into hypotheses.jsonl + confidence updates
+1. Coding hat: N0002_dino_protocorr first (claim T0002) → smoke green → coded; then N0003–N0005
+2. Executor hat: server run in tmux ≤30min → collect → tree.json done
+3. Feedback ×4 → Synthesis books H0001–H0010 evidence into hypotheses.jsonl
 
 ## Active Tasks
-- T0001 S0001_smoke → **done** (result.json collected and committed)
+- T0002–T0005 pending_coding for N0002/N0003/N0004/N0005 (root bootstrap by Idea hat)
+- T0001 S0001_smoke done (collected)
