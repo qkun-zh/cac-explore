@@ -58,3 +58,4 @@
 {"ts":"2026-08-23T15:21:00+08:00","agent":"lead","event":"N0016 seqcount FAILED early-stop: CE collapse to constant (loss 0.0, MAE pinned 63.54) + 250s/ep wall-clock blowout; H0025 created+contradicts 0.40 pending diagnosis","refs":["tree/nodes/N0016_dino_xattn".replace("xattn","seqcount")+"/result.json"]}
 {"ts":"2026-08-23T15:23:00+08:00","agent":"lead","event":"N0014 highres+augreg launched (early-stop armed at ep16 if >=+1.5 worse than parent); seqcount diagnostic dispatched","refs":["tree/nodes/N0014_dino_highres_augreg/"]}
 {"ts":"2026-08-23T15:46:00+08:00","agent":"lead","event":"seqcount v2 smoke GREEN (CE init 3.33~ln64 non-degenerate); real run launched (20ep, eval_frac 0.25)","refs":["code/engine/train.py"]}
+{"ts":"2026-08-23T15:56:00+08:00","agent":"lead","event":"N0016 seqcount v2 EARLY-STOPPED ep3: degenerate all-zero predictions from class imbalance; H0025 contradicts 0.65","refs":["tree/nodes/N0016_dino_xattn"]}
