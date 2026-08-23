@@ -1,6 +1,6 @@
 # AGENTS.md — Multi-Agent Collaboration Protocol
 
-**Mission**: a lightweight, innovative CAC model with ≤32M total parameters (frozen backbone included) and MAE < 16 on FSC147 test, discovered through HypoExplore-style hypothesis exploration.
+**Mission**: an innovative CAC model achieving MAE ≤ 4 on FSC147 test. Full fine-tuning allowed. Any architecture. Must be disruptive.
 
 **Hard constraint**: every candidate must contain a frozen backbone with HF/timm pretrained weights; only the counting head (+ adapters) trains. The engine already optimizes `requires_grad` params exclusively.
 

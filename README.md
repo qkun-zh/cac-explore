@@ -2,9 +2,9 @@
 
 ## Mission
 
-> **Build a lightweight, innovative Class-Agnostic Counting (CAC) model with ≤32M total parameters (frozen backbone included) that achieves MAE < 16 on the FSC147 test split.**
+> **Build an innovative Class-Agnostic Counting (CAC) model that achieves MAE ≤ 4 on the FSC147 test split.**
 >
-> **Hard constraint: the architecture must contain a FROZEN backbone, preferably one with pretrained weights available on HuggingFace Hub or timm** (`timm.create_model(..., pretrained=True)` / `AutoModel`).
+> **No architecture restrictions** — full backbone fine-tuning allowed, any parameter budget, any paradigm. Must be innovative and hit the essence of the counting problem.
 
 This is a hard target beyond current public methods. The Lead does not write models directly — models are produced by the **multi-agent hypothesis-exploration loop** defined in this repository. Any agent taking over can losslessly resume after reading only three files: this README, `AGENTS.md`, and `STATE.md`.
 
