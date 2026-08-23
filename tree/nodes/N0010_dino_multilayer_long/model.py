@@ -63,8 +63,9 @@ class DinoPromptV2(nn.Module):
             f6 = f6.transpose(1, 2).reshape(f6.shape[0], f6.shape[2], ps, ps)
             f11 = f11.transpose(1, 2).reshape(f11.shape[0], f11.shape[2], ps, ps)
         gate = torch.softmax(self.layer_logits, dim=0)
-        feat = gate[0] * self.t6_proj(f6) + gate[1] * self.t11_proj(f11)
-        tokens = feat.flatten(2).transpose(1, 2)
+        z6 = self.t6_proj(f6.flatten(2).transpose(1, 2))
+        z11 = self.t11_proj(f11.flatten(2).transpose(1, 2))
+        tokens = gate[0] * z6 + gate[1] * z11
         prompt = self.prompt_enc(bboxes, S)
         adapted = self.adapter(torch.cat([prompt[:, None, :], tokens], dim=1))[:, 1:]
         mass = self.head(adapted.transpose(1, 2).reshape(B, adapted.shape[-1], ps, ps))
