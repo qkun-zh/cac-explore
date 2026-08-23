@@ -69,3 +69,4 @@
 {"ts":"2026-08-23T17:12:00+08:00","agent":"lead","event":"N0020 scale-aware RUNNING (H0029)","refs":["tasks/T0042_pending_executor_N0020.md"]}
 {"ts":"2026-08-23T17:29:00+08:00","agent":"lead","event":"N0020 smoke GREEN 24.44M; real run launching","refs":["tree/nodes/N0020_dino_scaleaware/"]}
 {"ts":"2026-08-23T17:55:00+08:00","agent":"lead","event":"N0020 EARLY-STOPPED ep29 best 25.28 (stalled 8ep, gap 3.75 to champion); H0029 refuted; scale-aware deformable does not resolve separation bottleneck on DINOv2 substrate","refs":["tree/nodes/N0020_dino_scaleaware/result.json"]}
+{"ts":"2026-08-23T19:34:00+08:00","agent":"lead","event":"N0021 fullft RUNNING — mission update: target MAE<=4, frozen removed","refs":["tree/nodes/N0021_dino_fullft/"]}

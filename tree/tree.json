@@ -131,7 +131,8 @@
         "N0016_dino_seqcount",
         "N0017_dino_tailreweight",
         "N0018_dino_protoiter",
-        "N0019_dino_tailup"
+        "N0019_dino_tailup",
+        "N0021_dino_fullft"
       ],
       "status": "done",
       "best_metric": 21.531,
@@ -255,6 +256,17 @@
       "status": "done",
       "best_metric": 25.276,
       "train_seconds": 964,
+      "quality": null,
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": []
+    },
+    "N0021_dino_fullft": {
+      "parent": "N0010_dino_multilayer_long",
+      "children": [],
+      "status": "running",
+      "best_metric": null,
+      "train_seconds": null,
       "quality": null,
       "avail": null,
       "score": null,
