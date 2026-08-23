@@ -126,6 +126,8 @@ def main():
     sched = torch.optim.lr_scheduler.CosineAnnealingLR(optim, epochs, eta_min=float(cfg.get("eta_min", 1e-6)))
     scaler = torch.cuda.amp.GradScaler(enabled=use_amp)
     w_cnt = float(cfg.get("loss_count_weight", 0.3))
+    loss_fn_name = cfg.get("loss_function", "mse")
+    huber_delta = float(cfg.get("huber_delta", 5.0))
 
     best = float("inf"); timed_out = False; oom = False
     ckpt = os.path.join(run_dir, "best.pth")
@@ -144,7 +146,11 @@ def main():
                         oh, ow = int(dens.shape[-2]), int(dens.shape[-1])
                         dens = F.interpolate(dens.float(), size=gt_d.shape[-2:], mode="bilinear", align_corners=False)
                         dens = dens * (oh * ow) / float(dens.shape[-2] * dens.shape[-1])  # sum-conserving
-                    loss = F.mse_loss(dens.float(), gt_d) + w_cnt * F.l1_loss(dens.float().flatten(1).sum(1), gt_c)
+                    if loss_fn_name == "huber":
+                        dens_loss = F.huber_loss(dens.float(), gt_d, delta=huber_delta, reduction="mean")
+                    else:
+                        dens_loss = F.mse_loss(dens.float(), gt_d)
+                    loss = dens_loss + w_cnt * F.l1_loss(dens.float().flatten(1).sum(1), gt_c)
                 scaler.scale(loss).backward()
                 scaler.unscale_(optim)
                 torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)

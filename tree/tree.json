@@ -122,10 +122,23 @@
     },
     "N0010_dino_multilayer_long": {
       "parent": "N0007_dino_promptv2",
-      "children": [],
+      "children": [
+        "N0011_dino_pertok_gate_huber"
+      ],
       "status": "done",
       "best_metric": 21.531,
       "train_seconds": 1275,
+      "quality": null,
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": []
+    },
+    "N0011_dino_pertok_gate_huber": {
+      "parent": "N0010_dino_multilayer_long",
+      "children": [],
+      "status": "coded",
+      "best_metric": null,
+      "train_seconds": null,
       "quality": null,
       "avail": null,
       "score": null,
