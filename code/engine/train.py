@@ -65,7 +65,8 @@ def make_loaders(cfg, smoke):
 def evaluate(model, loader, device, seq=False, max_frac=1.0):
     model.eval(); mae = mse = n = 0
     if max_frac < 1.0:
-        loader = [loader[i] for i in range(max(1, int(len(loader) * max_frac)))]
+        n_keep = max(1, int(len(loader) * max_frac))
+        loader = [b for i, b in zip(range(n_keep), loader)]
     with torch.no_grad():
         for b in loader:
             imgs, bbox, gt = b["imgs"].to(device), b["bboxes"].to(device), b["counts"]
