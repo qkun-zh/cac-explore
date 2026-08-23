@@ -59,7 +59,7 @@ class ConvNeXtXAttn(nn.Module):
         import timm
         ch = int(cfg.get("fpn_ch", 128))
         self.backbone = timm.create_model(BACKBONE, pretrained=True, features_only=True,
-                                          out_indices=(2, 3, 4))
+                                          out_indices=(1, 2, 3))
         for p in self.backbone.parameters():
             p.requires_grad_(False)
         self.backbone.eval()
