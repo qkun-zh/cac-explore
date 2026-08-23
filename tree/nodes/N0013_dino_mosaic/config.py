@@ -1,0 +1,21 @@
+cfg = dict(
+    input_size=392,
+    epochs=40,
+    batch_size=8,
+    lr=1e-3,
+    weight_decay=5e-4,
+    eta_min=1e-5,
+    amp=True,
+    max_params_M=32,
+    loss_count_weight=1.0,
+    num_workers=4,
+    adapter_dim=768,
+    dropout=0.2,
+    # mosaic-lite augmentation (in-model, training-gated)
+    jitter_prob=0.5,
+    jitter_brightness=0.2,
+    jitter_contrast=0.2,
+    jitter_saturation=0.15,
+    jitter_noise_std=0.02,
+    bbox_jitter=0.15,
+)
