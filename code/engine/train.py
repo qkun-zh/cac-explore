@@ -62,14 +62,17 @@ def make_loaders(cfg, smoke):
             DataLoader(va, batch_size=bs, shuffle=False, num_workers=nw, collate_fn=collate_density, pin_memory=True), bs)
 
 
-def evaluate(model, loader, device):
+def evaluate(model, loader, device, seq=False):
     model.eval(); mae = mse = n = 0
     with torch.no_grad():
         for b in loader:
             imgs, bbox, gt = b["imgs"].to(device), b["bboxes"].to(device), b["counts"]
             out = model(imgs, bbox)
-            dens = out["density"] if isinstance(out, dict) else out
-            pred = dens.flatten(1).sum(1).float().cpu()
+            if seq:
+                pred = out["logits"].argmax(-1).sum(1).float().cpu()
+            else:
+                dens = out["density"] if isinstance(out, dict) else out
+                pred = dens.flatten(1).sum(1).float().cpu()
             mae += (pred - gt).abs().sum().item()
             mse += ((pred - gt) ** 2).sum().item()
             n += gt.numel()
@@ -128,6 +131,7 @@ def main():
     w_cnt = float(cfg.get("loss_count_weight", 0.3))
     loss_fn_name = cfg.get("loss_function", "mse")
     huber_delta = float(cfg.get("huber_delta", 5.0))
+    seq_mode = str(cfg.get("paradigm", "reg")) == "seq"
 
     best = float("inf"); timed_out = False; oom = False
     ckpt = os.path.join(run_dir, "best.pth")
@@ -140,17 +144,23 @@ def main():
                 imgs, bbox, gt_d, gt_c = b["imgs"].to(device), b["bboxes"].to(device), b["density"].to(device), b["counts"].to(device)
                 optim.zero_grad()
                 with torch.cuda.amp.autocast(enabled=use_amp):
-                    out = model(imgs, bbox)
-                    dens = out["density"] if isinstance(out, dict) else out
-                    if dens.shape[-2:] != gt_d.shape[-2:]:  # models may emit low-res density; upsample to GT size
-                        oh, ow = int(dens.shape[-2]), int(dens.shape[-1])
-                        dens = F.interpolate(dens.float(), size=gt_d.shape[-2:], mode="bilinear", align_corners=False)
-                        dens = dens * (oh * ow) / float(dens.shape[-2] * dens.shape[-1])  # sum-conserving
-                    if loss_fn_name == "huber":
-                        dens_loss = F.huber_loss(dens.float(), gt_d, delta=huber_delta, reduction="mean")
+                    if seq_mode:
+                        Lg, K = int(cfg.get("seq_grid", 14)), int(cfg.get("seq_vocab", 64))
+                        targets = F.adaptive_avg_pool2d(gt_d.float(), (Lg, Lg)).flatten(1).round().clamp(0, K - 1).long()
+                        out = model(imgs, bbox, targets)
+                        loss = F.cross_entropy(out["logits"].reshape(-1, K), targets.view(-1))
                     else:
-                        dens_loss = F.mse_loss(dens.float(), gt_d)
-                    loss = dens_loss + w_cnt * F.l1_loss(dens.float().flatten(1).sum(1), gt_c)
+                        out = model(imgs, bbox)
+                        dens = out["density"] if isinstance(out, dict) else out
+                        if dens.shape[-2:] != gt_d.shape[-2:]:  # models may emit low-res density; upsample to GT size
+                            oh, ow = int(dens.shape[-2]), int(dens.shape[-1])
+                            dens = F.interpolate(dens.float(), size=gt_d.shape[-2:], mode="bilinear", align_corners=False)
+                            dens = dens * (oh * ow) / float(dens.shape[-2] * dens.shape[-1])  # sum-conserving
+                        if loss_fn_name == "huber":
+                            dens_loss = F.huber_loss(dens.float(), gt_d, delta=huber_delta, reduction="mean")
+                        else:
+                            dens_loss = F.mse_loss(dens.float(), gt_d)
+                        loss = dens_loss + w_cnt * F.l1_loss(dens.float().flatten(1).sum(1), gt_c)
                 scaler.scale(loss).backward()
                 scaler.unscale_(optim)
                 torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
@@ -159,7 +169,7 @@ def main():
         except torch.cuda.OutOfMemoryError:
             oom = True; break
         sched.step()
-        mae, rmse = evaluate(model, val_loader, device)
+        mae, rmse = evaluate(model, val_loader, device, seq=seq_mode)
         tag = ""
         if mae < best:
             best = mae; tag = " ***BEST"
@@ -171,7 +181,7 @@ def main():
               f"[{time.time()-t_start:.0f}s]{tag}", flush=True)
 
     status = "failed" if oom else ("timeout" if timed_out else "success")
-    mae, rmse = evaluate(model, val_loader, device)
+    mae, rmse = evaluate(model, val_loader, device, seq=seq_mode)
     write_result(status, {"mae": mae, "rmse": rmse, "best_mae": best},
                  {"train_seconds": round(time.time() - t_start, 1), "epochs_done": epochs if not (timed_out or oom) else "partial"},
                  {"oom": oom, "instability": not math.isfinite(best), "smoke": cfg["smoke"], "params_M": round(total_p, 2)})
