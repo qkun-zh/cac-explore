@@ -62,3 +62,4 @@
 {"ts":"2026-08-23T15:32:00+08:00","agent":"lead","event":"N0017 tail-reweight coded+smoke green @e047628; real run launching","refs":["tree/nodes/N0017_dino_tailreweight/"]}
 {"ts":"2026-08-23T15:45:00+08:00","agent":"lead","event":"N0018 protoiter coded smoke-green 23.26M @91f6510; queued behind N0017","refs":["tree/nodes/N0018_dino_protoiter/"]}
 {"ts":"2026-08-23T16:02:00+08:00","agent":"lead","event":"N0017 done 22.19 ratio3.80 - H0026 refuted (reweight worsened tail); launching N0018 protoiter","refs":["tree/nodes/N0017_dino_tailreweight/result.json"]}
+{"ts":"2026-08-23T16:18:00+08:00","agent":"lead","event":"N0017 synthesized H0026 0.435 (sign-error confound); N0019 tailup coded queued; N0018 protoiter running","refs":["tree/nodes/N0017_dino_tailreweight/synthesis.md"]}
