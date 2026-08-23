@@ -77,6 +77,19 @@
       "tested_hypotheses": [
         "H0029"
       ]
+    },
+    "N0023_dino_hires_out": {
+      "parent": "N0010_dino_multilayer_long",
+      "children": [],
+      "status": "done",
+      "best_metric": 45.487,
+      "train_seconds": 357,
+      "tested_hypotheses": [
+        "H0031"
+      ],
+      "quality": null,
+      "avail": null,
+      "score": null
     }
   }
 }

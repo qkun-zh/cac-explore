@@ -1,0 +1,18 @@
+{
+  "node": "N0023_dino_hires_out",
+  "status": "running",
+  "metrics": {
+    "mae": 39.876459427235844,
+    "rmse": 108.92358711699113,
+    "best_mae": 39.876459427235844
+  },
+  "timing": {
+    "train_seconds": 399.2,
+    "epochs_done": 9
+  },
+  "diagnostics": {
+    "oom": false
+  },
+  "run_dir": "/data/runs/N0023_dino_hires_out",
+  "ts": "2026-08-23T22:09:10+0800"
+}

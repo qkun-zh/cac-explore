@@ -37,6 +37,25 @@
           "reasoning": "Full FT at lr=1e-3/1e-4 caused E5 instability spike (loss 93.9) then plateaued at MAE 48.4 — WORSE than frozen 21.53. Backbone feature drift outpaces head adaptation under tau_max=30min. Full FT requi"
         }
       ]
+    },
+    "H0031": {
+      "text": "IF progressive upsampling decoder 28->56->112 IN FSC147 THEN MAE<=19 BECAUSE finer grid separates adjacent instances. DISPROVED IF MAE>25 @ ep16.",
+      "confidence": 0.405,
+      "n_tested": 1,
+      "status": "uncertain",
+      "tags": [
+        "upsampling",
+        "highres-output",
+        "N0023"
+      ],
+      "log": [
+        {
+          "source_node": "N0023_dino_hires_out",
+          "evidence_type": "contradicts",
+          "strength": 0.95,
+          "reasoning": "E8 best 45.5 vs parent E8 28.0; gap +17.5; 16x more output cells need more training than tau_max allows"
+        }
+      ]
     }
   }
 }
