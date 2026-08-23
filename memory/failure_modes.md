@@ -25,3 +25,11 @@
 
 - Model density resolution vs GT mismatch: models may emit low-res density (standard for counting); the engine upsamples to GT size with sum conservation, so node code must NOT assume shapes match. Evaluation always uses density sums. (S0001)
 - FSC147 JSON ids carry `.jpg`; exemplar boxes are in original-image coordinates scaled by annotation W/H — not by the on-disk image size. (S0001)
+- HF/timm ViTs are registered at a fixed img_size (DINOv2 = 518): other inputs assert-fail in patch_embed unless `timm.create_model(..., dynamic_img_size=True)`. (N0002)
+- Fresh server env lacks timm: install with `pip -i https://pypi.tuna.tsinghua.edu.cn/simple timm` before any pretrained node. (N0002)
+- Server→GitHub direct is flaky: run local `scripts/revproxy.py` (reverse SOCKS on remote :1081) and set `git -C /data/repo config http.proxy socks5h://127.0.0.1:1081`. Requires the local HTTP proxy (172.18.80.1:57777) alive; check PID first. (N0002)
+- Shell-launch trap: in `a && b; tmux ...` the tmux part still runs when `a` fails — a stale-repo smoke can launch without env exports. Chain everything with `&&`, put exports INSIDE the tmux command string. (N0002)
+
+## Training Dynamics
+
+- Frozen-backbone heads converge slowly at 10 epochs (N0002 MAE still descending at ep10, 317s of 1800s used): budget ≥20 epochs or accept under-converged baselines. (N0002)

@@ -7,7 +7,7 @@
   },
   "nodes": {
     "N0002_dino_protocorr": {"parent": null, "children": [], "status": "synthesized", "best_metric": 42.04888739519134, "train_seconds": 317.7, "quality": 0.38, "avail": 0.82, "score": 0.56, "tested_hypotheses": ["H0001"]},
-    "N0003_convnext_xattn": {"parent": null, "children": [], "status": "proposed", "best_metric": null, "train_seconds": null, "quality": null, "avail": null, "score": null, "tested_hypotheses": []},
+    "N0003_convnext_xattn": {"parent": null, "children": [], "status": "coded", "best_metric": null, "train_seconds": null, "quality": null, "avail": null, "score": null, "tested_hypotheses": []},
     "N0004_effnet_pyrmatch": {"parent": null, "children": [], "status": "proposed", "best_metric": null, "train_seconds": null, "quality": null, "avail": null, "score": null, "tested_hypotheses": []},
     "N0005_swin_promptseg": {"parent": null, "children": [], "status": "proposed", "best_metric": null, "train_seconds": null, "quality": null, "avail": null, "score": null, "tested_hypotheses": []}
   }

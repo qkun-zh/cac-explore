@@ -15,20 +15,20 @@
    - times out → instance reclaimed. Enter **degraded mode** immediately and tell the user what you need (rent instance → paste creds into `local/address_and_password.md` → `bash scripts/onboard.sh`). Do NOT burn effort on server-dependent steps first — check STATE.md blockers too
 4. Read on demand only: `docs/PROTOCOL.md`, tail of `journal/events.jsonl`, `memory/failure_modes.md`
 
-**Who are you?** You are the **Lead**. Unless told otherwise, you play every role below yourself, sequentially — roles are hats, not separate processes. One session can take an idea all the way to synthesis.
+**Who are you?** You are the **Lead** — an orchestrator, not a solo worker (user mandate, no exceptions): roles Idea / Coding / Feedback×4 / Synthesis MUST each run as an INDEPENDENT subagent via the Task tool — one claimed card = one fresh context; launch independent cards in parallel (e.g. Feedback×4 in one batch). Self-playing any of these roles is FORBIDDEN — the code author reviewing their own work defeats the redundancy check. Exception: **Executor stays Lead-only** — server training, tmux watching, collecting are stateful sequential work you do yourself. Division of labor: subagents read files, write ONLY their own outputs (`idea.md`, `model.py`/`config.py`, `feedback/*.md`, `synthesis.md`, own-card renames) and RETURN a report; the Lead exclusively owns tree.json, STATE.md, journal, hypotheses.jsonl bookings, and ALL git operations. Each subagent prompt must say: "Read `~/cac_explore/AGENTS.md` + `STATE.md`, then execute the `<Role>` loop for `<card path>`; do NOT commit/push; report back what you wrote and found."
 
 **Degraded mode (no live server)** — allowed: Idea hat (bootstrap, selection, planning), Coding hat up to draft commit & push, doc/state repairs, web research. Blocked: `--smoke`, real training, collect, feedback-on-results, synthesis evidence booking. Surface the blocker to the user at session START, then do the allowed parts while waiting.
 
 ## 1. Work Loops (find your current hat)
 
-### Idea Agent
+### Idea Agent (dispatch: subagent)
 1. Read `memory/index.json` + parent's `synthesis.md`
 2. Pick parent + hypotheses per PROTOCOL §4. If selection finds no expandable node (fresh tree), run **root bootstrap**: create K=4 root nodes directly from `docs/research_direction.md`, register them in `tree/tree.json` with `parent: null, status: "proposed"`
 3. Write `tree/nodes/<ID>/idea.md` (fixed sections per PROTOCOL §2; falsifiable claims)
 4. Register node in `tree.json` (`status: "proposed"`); do NOT write hypotheses.jsonl — Synthesis books events after quality gate
 5. Create task card `tasks/T####_pending_coding_<ID>.md`
 
-### Coding Agent
+### Coding Agent (dispatch: subagent)
 1. Claim card by rename → read node's `idea.md` + `memory/failure_modes.md`
 2. Write `model.py` (`build_model(cfg)`) + `config.py`; flip tree.json status to `"coded"`
 3. Smoke self-check:
@@ -37,22 +37,22 @@
    - If no: commit & push a draft first, then run the same command on the server via ssh
 4. Only after green smoke: rename card `_done_`, push, create executor card
 
-### Executor (server side)
+### Executor (Lead-only — server training, no subagent)
 1. Push, then: `ssh cac-server 'cd /data/repo && git pull && bash scripts/run_node.sh <ID>'`; flip tree.json status to `"running"`
 2. Watch: `ssh cac-server 'tmux capture-pane -t node_<ID> -p | tail -30'`
 3. **Done signal**: log prints `[engine] done status=...` or result.json status ≠ "running". Then collect locally: `bash scripts/collect_node.sh <ID>`, set tree.json status to done/failed/timeout accordingly, commit
 
-### Feedback Agents ×4 (quantitative / qualitative / causal / diagnostic)
+### Feedback Agents ×4 (dispatch: 4 subagents in parallel)
 1. Claim cards; read node's `idea.md`, `model.py`, `config.py`, `result.json`, `train.log`
 2. Write `feedback/<dimension>.md` per PROTOCOL §2. Scope note: engine saves no images/heatmaps — qualitative feedback works from train.log metrics and code reading
 
-### Synthesis Agent
+### Synthesis Agent (dispatch: subagent)
 1. When 4 feedback files exist: dedupe updates, resolve contradictions, apply quality gate (7 dimensions: mechanistic, scoped, predictive, falsifiable, novel, transferable, actionable)
 2. Write `synthesis.md`; book ALL memory events: `create` for new hypotheses, `evidence`/`revise` for existing ones → append to `memory/hypotheses.jsonl` → `python scripts/rebuild_index.py`
 3. Update `tree.json`: status `"synthesized"` + scores/best_metric/tested_hypotheses
 4. Update `STATE.md` next-steps; commit & push
 
-### Closing Trio for EVERY role
+### Closing Trio after EVERY dispatched role returns (Lead executes)
 1. Update STATE.md (if stage changed) 2. Append one journal line 3. Commit & push
 
 ## 2. Numbering Conventions
