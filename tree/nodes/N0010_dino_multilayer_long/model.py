@@ -58,10 +58,13 @@ class DinoPromptV2(nn.Module):
         with torch.no_grad():
             taps = self.backbone(imgs)
         ps = S // self.patch
-        t6 = taps[0][:, -ps * ps:, :].float()
-        t11 = taps[1][:, -ps * ps:, :].float()
+        f6, f11 = taps[0].float(), taps[1].float()
+        if f6.ndim == 3:
+            f6 = f6.transpose(1, 2).reshape(f6.shape[0], f6.shape[2], ps, ps)
+            f11 = f11.transpose(1, 2).reshape(f11.shape[0], f11.shape[2], ps, ps)
         gate = torch.softmax(self.layer_logits, dim=0)
-        tokens = gate[0] * self.t6_proj(t6) + gate[1] * self.t11_proj(t11)
+        feat = gate[0] * self.t6_proj(f6) + gate[1] * self.t11_proj(f11)
+        tokens = feat.flatten(2).transpose(1, 2)
         prompt = self.prompt_enc(bboxes, S)
         adapted = self.adapter(torch.cat([prompt[:, None, :], tokens], dim=1))[:, 1:]
         mass = self.head(adapted.transpose(1, 2).reshape(B, adapted.shape[-1], ps, ps))
