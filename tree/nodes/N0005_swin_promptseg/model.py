@@ -45,11 +45,16 @@ class SwinPromptSeg(nn.Module):
     def forward(self, imgs, bboxes):
         B = imgs.shape[0]
         with torch.no_grad():
-            feats = self.backbone(imgs)[-1].float()
-        tokens = feats.flatten(2).transpose(1, 2)
+            f = self.backbone(imgs)[-1].float()
+        if f.ndim == 4:
+            tokens, hw = f.flatten(2).transpose(1, 2), f.shape[-2:]
+        else:
+            tokens = f
+            g = int(round(f.shape[1] ** 0.5))
+            hw = (g, g)
         prompt = self.prompt_enc(bboxes, imgs.shape[-1])
         adapted = self.adapter(torch.cat([prompt[:, None, :], tokens], dim=1))
-        mass = self.head(adapted[:, 1:].transpose(1, 2).reshape(B, adapted.shape[-1], *feats.shape[-2:]))
+        mass = self.head(adapted[:, 1:].transpose(1, 2).reshape(B, adapted.shape[-1], *hw))
         return {"density": mass}
 
 
