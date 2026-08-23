@@ -63,6 +63,7 @@ Next free ID = max existing + 1, zero-padded 4 digits: nodes `N####_<slug>` (S-p
 ## 3. Hard Rules
 
 0. **Inspiration check (user-specified, recurring)**: before EACH Idea Agent dispatch and each Synthesis round, run `git pull --ff-only` and re-read `docs/inspiration_from_GOD.txt`. The user updates it at any time with new direction hints — treat it as a live input, not a one-time read; fold new hints into hypothesis selection and STATE.md next-steps
+0. **Never-idle principle (user-specified, permanent)**: the Lead MUST never block-wait on a GPU job. While any node is `running`, the Lead MUST keep the pipeline full in parallel: dispatch the next Idea/Coding subagent(s), run `websearch` grounding, prepare the next executor payload, or repair docs/state. Polling is `grep train.log | tail` in a single ssh — never a 20-minute `for i in seq` loop. A queued `coded` node must be ready to launch the instant the GPU frees. Idling with an empty pipeline is a protocol violation.
 1. **Only local pushes**; server pulls. Artifacts return via collect script
 2. **Large files never enter git** (datasets/checkpoints/logs stay under `/data/`)
 3. Task claiming = atomic file rename; mutual exclusion via `mkdir locks/<name>`

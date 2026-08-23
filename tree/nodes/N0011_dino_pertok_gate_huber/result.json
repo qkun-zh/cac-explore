@@ -1,0 +1,21 @@
+{
+  "node": "N0011_dino_pertok_gate_huber",
+  "status": "success",
+  "metrics": {
+    "mae": 26.89460180780936,
+    "rmse": 94.33703427998024,
+    "best_mae": 26.677713294793065
+  },
+  "timing": {
+    "train_seconds": 1299.2,
+    "epochs_done": 40
+  },
+  "diagnostics": {
+    "oom": false,
+    "instability": false,
+    "smoke": false,
+    "params_M": 23.16
+  },
+  "run_dir": "/data/runs/N0011_dino_pertok_gate_huber",
+  "ts": "2026-08-23T12:57:04+0800"
+}

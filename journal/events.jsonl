@@ -47,3 +47,4 @@
 {"ts": "2026-08-23T12:13:00+08:00", "agent": "lead", "event": "N0010 done: val MAE 21.531, 23.11M, 1275s, 40ep. Dispatching feedback×3 subagents.", "refs": ["tree/nodes/N0010_dino_multilayer_long/"]}
 {"ts": "2026-08-23T12:13:00+08:00", "agent": "lead", "event": "N0010 done: val MAE 21.531, 23.11M, 1275s, 40ep. Dispatching feedback×3 subagents.", "refs": ["tree/nodes/N0010_dino_multilayer_long/"]}
 {"ts": "2026-08-23T12:25:00+08:00", "agent": "lead", "event": "N0011 smoke green (23.16M). Launching real run.", "refs": ["tree/nodes/N0011_dino_pertok_gate_huber/"]}
+{"ts":"2026-08-23T13:58:00+08:00","agent":"lead","event":"N0011 done 26.68 worse than N0010 21.53; AGENTS never-idle rule added; N0012 queued","refs":["tree/nodes/N0011_dino_pertok_gate_huber/"]}

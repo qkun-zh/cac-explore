@@ -124,7 +124,8 @@
       "parent": "N0007_dino_promptv2",
       "children": [
         "N0011_dino_pertok_gate_huber",
-        "N0012_dino_highres518"
+        "N0012_dino_highres518",
+        "N0013_dino_mosaic"
       ],
       "status": "done",
       "best_metric": 21.531,
@@ -137,9 +138,9 @@
     "N0011_dino_pertok_gate_huber": {
       "parent": "N0010_dino_multilayer_long",
       "children": [],
-      "status": "running",
-      "best_metric": null,
-      "train_seconds": null,
+      "status": "done",
+      "best_metric": 26.678,
+      "train_seconds": 1285,
       "quality": null,
       "avail": null,
       "score": null,
@@ -149,6 +150,17 @@
       "parent": "N0010_dino_multilayer_long",
       "children": [],
       "status": "coded",
+      "best_metric": null,
+      "train_seconds": null,
+      "quality": null,
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": []
+    },
+    "N0013_dino_mosaic": {
+      "parent": "N0010_dino_multilayer_long",
+      "children": [],
+      "status": "proposed",
       "best_metric": null,
       "train_seconds": null,
       "quality": null,
