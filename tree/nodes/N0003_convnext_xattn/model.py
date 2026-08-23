@@ -31,6 +31,8 @@ class XAttnCountHead(nn.Module):
                                                batch_first=True, norm_first=True)
         self.decoder = nn.TransformerDecoder(dec_layer, num_layers=layers)
         self.basis = nn.Linear(dim, ch)
+        nn.init.normal_(self.basis.weight, std=0.01)
+        nn.init.zeros_(self.basis.bias)
         self.mix = nn.Linear(dim, 1)
 
     def forward(self, fmap, bboxes):
