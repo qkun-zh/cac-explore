@@ -79,7 +79,9 @@
     },
     "N0007_dino_promptv2": {
       "parent": "N0005_swin_promptseg",
-      "children": [],
+      "children": [
+        "N0008_dino_xattn"
+      ],
       "status": "synthesized",
       "best_metric": 27.65213204320074,
       "train_seconds": 768.0,
@@ -89,6 +91,17 @@
       "tested_hypotheses": [
         "H0014"
       ]
+    },
+    "N0008_dino_xattn": {
+      "parent": "N0007_dino_promptv2",
+      "children": [],
+      "status": "proposed",
+      "best_metric": null,
+      "train_seconds": null,
+      "quality": null,
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": []
     }
   }
 }

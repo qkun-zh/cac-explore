@@ -34,3 +34,4 @@
 {"ts": "2026-08-23T10:36:30+08:00", "agent": "lead", "event": "N0007 smoke GREEN (22.81M); T0015 done, T0016 claimed, node running", "refs": ["tree/nodes/N0007_dino_promptv2/model.py"]}
 {"ts": "2026-08-23T10:50:00+08:00", "agent": "lead", "event": "N0007 done: BEST val MAE 27.65 / RMSE 93.24 @25ep/768s/22.81M (-15.3% vs prev best); H0014 SUPPORTED", "refs": ["tree/nodes/N0007_dino_promptv2/result.json"]}
 {"ts": "2026-08-23T10:57:00+08:00", "agent": "lead", "event": "N0007 synthesized: H0014 supports 0.85 -> 0.585; quality 0.71 avail 0.77 score 0.74 (new best parent); next levers multi-layer taps + cross-attn merge + count calibration", "refs": ["tree/nodes/N0007_dino_promptv2/synthesis.md", "memory/index.json"]}
+{"ts": "2026-08-23T11:00:00+08:00", "agent": "lead", "event": "gen-2: N0008_dino_xattn proposed under N0007 (DINOv2 x cross-attn basis merge, H0015 <=25.5)", "refs": ["tree/nodes/N0008_dino_xattn/idea.md"]}
