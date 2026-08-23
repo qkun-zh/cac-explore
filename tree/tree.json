@@ -95,7 +95,7 @@
     "N0008_dino_xattn": {
       "parent": "N0007_dino_promptv2",
       "children": [],
-      "status": "coded",
+      "status": "running",
       "best_metric": null,
       "train_seconds": null,
       "quality": null,
