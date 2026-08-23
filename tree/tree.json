@@ -65,9 +65,9 @@
     "N0006_swin_promptv2": {
       "parent": "N0005_swin_promptseg",
       "children": [],
-      "status": "running",
-      "best_metric": null,
-      "train_seconds": null,
+      "status": "done",
+      "best_metric": 32.096889267442386,
+      "train_seconds": 409.6,
       "quality": null,
       "avail": null,
       "score": null,
