@@ -71,3 +71,4 @@
 {"ts":"2026-08-23T17:55:00+08:00","agent":"lead","event":"N0020 EARLY-STOPPED ep29 best 25.28 (stalled 8ep, gap 3.75 to champion); H0029 refuted; scale-aware deformable does not resolve separation bottleneck on DINOv2 substrate","refs":["tree/nodes/N0020_dino_scaleaware/result.json"]}
 {"ts":"2026-08-23T19:34:00+08:00","agent":"lead","event":"N0021 fullft RUNNING — mission update: target MAE<=4, frozen removed","refs":["tree/nodes/N0021_dino_fullft/"]}
 {"ts":"2026-08-23T20:00:00+08:00","agent":"lead","event":"CLEAN SLATE: archived gen0-5 (20 nodes) to tree/archive_gen0_5/; reset tree/memory/tasks; fresh start for MAE<=4 mission","refs":["tree/archive_gen0_5/"]}
+{"ts":"2026-08-23T21:00:00+08:00","agent":"lead","event":"R001 point-detect coded (24.53M) + RUNNING — paradigm shift from density to detection","refs":["tree/nodes/R001_point_detect/"]}
