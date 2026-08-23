@@ -45,8 +45,8 @@ class XAttnCountHead(nn.Module):
         feat = fmap.flatten(2).transpose(1, 2)
         ex_tok = self.ex_proj(torch.einsum("bp,bpc->bc", m.to(feat.dtype), feat))
         q = torch.cat([self.queries[None].expand(B, -1, -1), ex_tok[:, None, :]], dim=1)
-        tok = F.avg_pool2d(fmap, 2).flatten(2).transpose(1, 2) + ex_tok[:, None, :]
-        out = self.decoder(q, self.mem_proj(tok))
+        mem = self.mem_proj(F.avg_pool2d(fmap, 2).flatten(2).transpose(1, 2)) + ex_tok[:, None, :]
+        out = self.decoder(q, mem)
         basis_maps = self.basis(out[:, :-1])
         wq = torch.softmax(self.mix(out[:, :-1]).squeeze(-1), dim=-1)
         maps = torch.einsum("bkc,bchw->bkhw", basis_maps, fmap)
