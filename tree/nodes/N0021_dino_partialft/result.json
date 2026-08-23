@@ -1,0 +1,21 @@
+{
+  "node": "N0021_dino_partialft",
+  "status": "success",
+  "metrics": {
+    "mae": 21.433919935537904,
+    "rmse": 83.05522730985875,
+    "best_mae": 20.437550180622058
+  },
+  "timing": {
+    "train_seconds": 1455.2,
+    "epochs_done": 40
+  },
+  "diagnostics": {
+    "oom": false,
+    "instability": false,
+    "smoke": false,
+    "params_M": 23.11
+  },
+  "run_dir": "/data/runs/N0021_dino_partialft",
+  "ts": "2026-08-23T22:48:01+0800"
+}

@@ -94,9 +94,9 @@
     "N0021_dino_partialft": {
       "parent": null,
       "children": [],
-      "status": "running",
-      "best_metric": null,
-      "train_seconds": null,
+      "status": "done",
+      "best_metric": 20.438,
+      "train_seconds": 1441,
       "quality": null,
       "avail": null,
       "score": null,
