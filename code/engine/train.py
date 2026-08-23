@@ -153,6 +153,11 @@ def evaluate(model, loader, device, seq=False, detect=False, conf_thr=0.3, max_f
             out = model(imgs, bbox)
             if seq:
                 pred = out["logits"].argmax(-1).sum(1).float().cpu()
+            elif ebc:
+                probs = F.softmax(out["ebc_logits"], dim=1)  # [B,K,g,g]
+                bin_indices = torch.arange(probs.shape[1], device=probs.device, dtype=torch.float32)
+                expected = (probs * bin_indices.view(1, -1, 1, 1)).sum(dim=1)  # [B,g,g]
+                pred = expected.flatten(1).sum(1).float().cpu()
             elif detect:
                 pred = (torch.sigmoid(out["cls_logits"].float()) > conf_thr).sum(dim=(2, 3)).flatten().float().cpu()
             else:
@@ -222,7 +227,9 @@ def main():
     huber_delta = float(cfg.get("huber_delta", 5.0))
     paradigm = str(cfg.get("paradigm", "reg"))
     seq_mode = paradigm == "seq"
+    ebc_flag = paradigm == "ebc"
     detect_mode = paradigm == "detect"
+    ebc_mode = paradigm == "ebc"
     f_alpha = float(cfg.get("focal_alpha", 0.25))
     f_gamma = float(cfg.get("focal_gamma", 2.0))
     conf_thr = float(cfg.get("conf_threshold", 0.3))
@@ -245,6 +252,16 @@ def main():
                         targets = patch.flatten(1).round().clamp(0, K - 1).long()
                         out = model(imgs, bbox, targets)
                         loss = F.cross_entropy(out["logits"].reshape(-1, K), targets.view(-1))
+                    elif ebc_mode:
+                        out = model(imgs, bbox)
+                        logits = out["ebc_logits"]  # [B, num_bins, g, g]
+                        g = int(logits.shape[-1])
+                        K = int(logits.shape[1])
+                        # Build targets: SUM-pool density to grid, scale by area ratio
+                        cell_area = float((gt_d.shape[-1] // g) ** 2)
+                        patch_counts = F.adaptive_avg_pool2d(gt_d.float(), (g, g)) * cell_area
+                        targets = patch_counts.squeeze(1).round().clamp(0, K - 1).long()  # [B, g, g]
+                        loss = F.cross_entropy(logits, targets)
                     elif detect_mode:
                         out = model(imgs, bbox)
                         cls_pred, reg_pred = out["cls_logits"], out["reg_offsets"]  # [B,1,g,g] / [B,2,g,g]
@@ -287,7 +304,7 @@ def main():
         except torch.cuda.OutOfMemoryError:
             oom = True; break
         sched.step()
-        mae, rmse = evaluate(model, val_loader, device, seq=seq_mode, detect=detect_mode,
+        mae, rmse = evaluate(model, val_loader, device, seq=seq_mode, ebc=ebc_flag, detect=detect_mode,
                              conf_thr=conf_thr, max_frac=float(cfg.get("eval_frac", 1.0)))
         tag = ""
         if mae < best:
@@ -300,7 +317,7 @@ def main():
               f"[{time.time()-t_start:.0f}s]{tag}", flush=True)
 
     status = "failed" if oom else ("timeout" if timed_out else "success")
-    mae, rmse = evaluate(model, val_loader, device, seq=seq_mode, detect=detect_mode, conf_thr=conf_thr)
+    mae, rmse = evaluate(model, val_loader, device, seq=seq_mode, ebc=ebc_flag, detect=detect_mode, conf_thr=conf_thr)
     write_result(status, {"mae": mae, "rmse": rmse, "best_mae": best},
                  {"train_seconds": round(time.time() - t_start, 1), "epochs_done": epochs if not (timed_out or oom) else "partial"},
                  {"oom": oom, "instability": not math.isfinite(best), "smoke": cfg["smoke"], "params_M": round(total_p, 2)})
