@@ -40,3 +40,4 @@
 {"ts": "2026-08-23T11:17:00+08:00", "agent": "lead", "event": "N0008 synthesized: H0015 contradicts 0.50 confound-noted; decision rule pre-registered for N0009 stable retry", "refs": ["tree/nodes/N0008_dino_xattn/synthesis.md"]}
 {"ts": "2026-08-23T11:20:00+08:00", "agent": "lead", "event": "N0009_dino_xattn_stable created+coded (stabilization-only: lr 2.5e-4, 1 layer, K=4); H0016 registered in idea.md", "refs": ["tree/nodes/N0009_dino_xattn_stable/"]}
 {"ts": "2026-08-23T11:16:30+08:00", "agent": "lead", "event": "N0009 smoke GREEN (23.36M); T0020 claimed, node running", "refs": ["tree/nodes/N0009_dino_xattn_stable/"]}
+{"ts": "2026-08-23T11:34:00+08:00", "agent": "lead", "event": "N0009 done: best val MAE 30.67 @30ep/985s — stable but >27.65 parent -> cross-attn transfer to DINOv2 tokens REFUTED per pre-registered rule", "refs": ["tree/nodes/N0009_dino_xattn_stable/result.json"]}

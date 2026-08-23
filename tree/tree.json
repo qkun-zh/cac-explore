@@ -109,9 +109,9 @@
     "N0009_dino_xattn_stable": {
       "parent": "N0007_dino_promptv2",
       "children": [],
-      "status": "running",
-      "best_metric": null,
-      "train_seconds": null,
+      "status": "done",
+      "best_metric": 30.66903837806144,
+      "train_seconds": 999.2,
       "quality": null,
       "avail": null,
       "score": null,
