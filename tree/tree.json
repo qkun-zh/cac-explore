@@ -138,7 +138,7 @@
     "N0011_dino_pertok_gate_huber": {
       "parent": "N0010_dino_multilayer_long",
       "children": [],
-      "status": "done",
+      "status": "synthesized",
       "best_metric": 26.678,
       "train_seconds": 1285,
       "quality": null,

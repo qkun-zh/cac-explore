@@ -49,3 +49,4 @@
 {"ts": "2026-08-23T12:25:00+08:00", "agent": "lead", "event": "N0011 smoke green (23.16M). Launching real run.", "refs": ["tree/nodes/N0011_dino_pertok_gate_huber/"]}
 {"ts":"2026-08-23T13:58:00+08:00","agent":"lead","event":"N0011 done 26.68 worse than N0010 21.53; AGENTS never-idle rule added; N0012 queued","refs":["tree/nodes/N0011_dino_pertok_gate_huber/"]}
 {"ts":"2026-08-23T13:59:00+08:00","agent":"lead","event":"N0012 highres518 launching (23.11M, 518px); dispatching N0011 feedback×3 + N0013 coding in parallel","refs":["tree/nodes/N0012_dino_highres518/"]}
+{"ts":"2026-08-23T14:00:00+08:00","agent":"lead","event":"N0011 synthesized REFUTED 26.68; H0019 0.415 H0020 0.42; N0012 running ep5","refs":["tree/nodes/N0011_dino_pertok_gate_huber/synthesis.md"]}

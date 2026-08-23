@@ -305,8 +305,8 @@
     },
     "H0018": {
       "text": "IF count-w=1.0 (vs 0.3) is used IN multi-tap DINOv2 architectures, THEN RMSE/MAE ratio improves (drops), BECAUSE stronger L1 count penalty directly penalizes absolute count error more, reducing catastrophic outliers. DISPROVED IF RMSE/MAE ratio does not improve or worsens.",
-      "confidence": 0.5,
-      "n_tested": 0,
+      "confidence": 0.535,
+      "n_tested": 1,
       "status": "uncertain",
       "tags": [
         "count-weight",
@@ -319,30 +319,74 @@
           "evidence_type": "neutral",
           "strength": 0.3,
           "reasoning": "RMSE/MAE 3.63x vs parent ~3.4x; no ablation with count-w=0.1 on same arch exists; unisolated confound — did not help outlier tail but did not hurt"
+        },
+        {
+          "source_node": "N0011_dino_pertok_gate_huber",
+          "evidence_type": "supports",
+          "strength": 0.35,
+          "reasoning": "indirect: parent w1.0 21.53 beats w0.3 26.68 by 5.15, direction supports w1.0, but triple confound (gate+loss+weight) prevents isolated attribution [causal]"
         }
       ]
     },
     "H0019": {
       "text": "IF per-token layer-gating replaces scalar gating IN multi-layer DINOv2 tap architectures, THEN val MAE further decreases by >=1.0, BECAUSE different spatial regions (small objects vs background vs crowd patches) benefit from different feature depths, and a scalar gate forces a global compromise. DISPROVED IF MAE increase or no change.",
-      "confidence": 0.5,
-      "n_tested": 0,
+      "confidence": 0.415,
+      "n_tested": 1,
       "status": "uncertain",
       "tags": [
         "per-token-gate",
         "spatial",
         "N0010"
       ],
-      "log": []
+      "log": [
+        {
+          "source_node": "N0011_dino_pertok_gate_huber",
+          "evidence_type": "contradicts",
+          "strength": 0.85,
+          "reasoning": "per-token gate MAE 26.68 vs bar <=20.53 (parent 21.53 -1.0) miss 6.15; +5.15 worse than parent; no epoch approached 21.5; 49k MLP per-patch overfits frozen DINOv2 variance [quantitative, causal]"
+        }
+      ]
     },
     "H0020": {
       "text": "IF Huber loss (delta=5.0) replaces MSE in the counting head loss IN multi-tap DINOv2 architectures, THEN RMSE/MAE ratio drops below 3.0, BECAUSE Huber loss caps gradient magnitude for large errors, reducing catastrophic outlier failures without sacrificing median-case accuracy. DISPROVED IF RMSE/MAE > 3.5.",
-      "confidence": 0.5,
-      "n_tested": 0,
+      "confidence": 0.42,
+      "n_tested": 1,
       "status": "uncertain",
       "tags": [
         "huber-loss",
         "outlier-robustness",
         "N0010"
+      ],
+      "log": [
+        {
+          "source_node": "N0011_dino_pertok_gate_huber",
+          "evidence_type": "contradicts",
+          "strength": 0.8,
+          "reasoning": "RMSE/MAE 3.53 (94.34/26.68) vs target <3.0 and disproof >3.5; ratio unchanged vs parent 3.52; Huber stable (train 9.27->3.43) so caps tail gradients not optimization [quantitative, causal]"
+        }
+      ]
+    },
+    "H0021": {
+      "text": "IF count-w=1.0 is isolated (scalar gate+MSE held fixed) IN multi-tap DINOv2-S 392px architecture, THEN val MAE drops >=3.0 vs w0.3 variant, BECAUSE stronger L1 count supervision reinforces density calibration on high-count images. DISPROVED IF MAE delta <1.0 or w0.3 wins.",
+      "confidence": 0.5,
+      "n_tested": 0,
+      "status": "uncertain",
+      "tags": [
+        "count-weight",
+        "isolation",
+        "N0011"
+      ],
+      "log": []
+    },
+    "H0022": {
+      "text": "IF tail-aware reweighting (log-count or count-stratified sampling) replaces Huber capping IN multi-tap DINOv2 architectures, THEN RMSE/MAE drops below 3.2 without MAE loss vs MSE, BECAUSE reweighting preserves outlier gradients while balancing head-heavy count distribution. DISPROVED IF ratio >=3.5 or MAE worsens >1.0.",
+      "confidence": 0.5,
+      "n_tested": 0,
+      "status": "uncertain",
+      "tags": [
+        "tail-reweight",
+        "outlier",
+        "N0011"
       ],
       "log": []
     }
