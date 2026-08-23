@@ -160,7 +160,13 @@ def main():
                             oh, ow = int(dens.shape[-2]), int(dens.shape[-1])
                             dens = F.interpolate(dens.float(), size=gt_d.shape[-2:], mode="bilinear", align_corners=False)
                             dens = dens * (oh * ow) / float(dens.shape[-2] * dens.shape[-1])  # sum-conserving
-                        if loss_fn_name == "huber":
+                        if bool(cfg.get("tail_reweight", False)):
+                            pred_c = dens.float().flatten(1).sum(1)
+                            base_i = F.mse_loss(dens.float(), gt_d, reduction="none").mean(dim=(1, 2, 3)) + w_cnt * (pred_c - gt_c).abs()
+                            w = 1.0 / torch.clamp(gt_c.float(), min=1.0) ** float(cfg.get("tail_exp", 0.5))
+                            w = w / w.mean().clamp_min(1e-8)
+                            loss = (base_i * w).mean()
+                        elif loss_fn_name == "huber":
                             dens_loss = F.huber_loss(dens.float(), gt_d, delta=huber_delta, reduction="mean")
                         else:
                             dens_loss = F.mse_loss(dens.float(), gt_d)
