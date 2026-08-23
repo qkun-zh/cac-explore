@@ -1,5 +1,5 @@
 # T0001_code_R001_point_detect
-- status: pending
+- status: done
 - created: 2026-08-23T20:10:00+08:00
 - role: coding
 - node: tree/nodes/R001_point_detect

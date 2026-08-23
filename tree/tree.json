@@ -9,7 +9,7 @@
     "R001_point_detect": {
       "parent": null,
       "children": [],
-      "status": "proposed",
+      "status": "coded",
       "best_metric": null,
       "train_seconds": null,
       "quality": null,

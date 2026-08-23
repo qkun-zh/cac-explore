@@ -19,6 +19,70 @@ def load_module(path, name):
     return m
 
 
+def _sigmoid_focal_loss(logits, targets, alpha=0.25, gamma=2.0):
+    """Element-wise focal loss on raw logits; returns mean over all elements."""
+    logits, targets = logits.float(), targets.float()
+    bce = F.binary_cross_entropy_with_logits(logits, targets, reduction="none")
+    p = torch.sigmoid(logits)
+    p_t = p * targets + (1 - p) * (1 - targets)
+    a_t = alpha * targets + (1 - alpha) * (1 - targets)
+    return (a_t * (1 - p_t) ** gamma * bce).mean()
+
+
+def _detect_targets(gt_d, grid, pool="mass", thresh=0.25):
+    """Build point-detection targets from a GT density map [B,1,H,W].
+
+    cls_t [B,1,g,g]: 1 where the cell likely contains an object center.
+      pool="mass": expected #objects in cell = avg_density * HW/g^2 > thresh.
+        Scale-free (density amplitude ~1/kernel_area, so absolute thresholds fail).
+      pool="max"/"avg": raw pooled density > thresh (legacy/simple variants).
+      NOTE: approximate fallback — under-labels very large objects whose kernel
+      spreads mass over many cells; prefer exact point targets when available.
+    reg_t [B,2,g,g]: (dx,dy) pixel offset from cell center to the per-cell density
+      centroid (approximates nearest-peak offset; handles multi-object cells gracefully).
+    """
+    B, _, H, W = gt_d.shape
+    if pool == "mass":
+        pos_score = F.adaptive_avg_pool2d(gt_d.float(), (grid, grid)) * float(H * W) / float(grid * grid)
+    elif pool == "max":
+        pos_score = F.adaptive_max_pool2d(gt_d.float(), (grid, grid))
+    else:
+        pos_score = F.adaptive_avg_pool2d(gt_d.float(), (grid, grid))
+    cls_t = (pos_score > thresh).float()
+    ys = (torch.arange(H, device=gt_d.device, dtype=gt_d.dtype) + 0.5).view(1, 1, H, 1)
+    xs = (torch.arange(W, device=gt_d.device, dtype=gt_d.dtype) + 0.5).view(1, 1, 1, W)
+    denom = F.adaptive_avg_pool2d(gt_d, (grid, grid)).clamp_min(1e-8)
+    cy = F.adaptive_avg_pool2d(gt_d * ys, (grid, grid)) / denom  # centroid row in px
+    cx = F.adaptive_avg_pool2d(gt_d * xs, (grid, grid)) / denom  # centroid col in px
+    gy = (torch.arange(grid, device=gt_d.device, dtype=gt_d.dtype) + 0.5).view(1, 1, grid, 1) * (H / grid)
+    gx = (torch.arange(grid, device=gt_d.device, dtype=gt_d.dtype) + 0.5).view(1, 1, 1, grid) * (W / grid)
+    reg_t = torch.cat([(cx - gx), (cy - gy)], dim=1)  # [B,2,g,g]
+    return cls_t, reg_t
+
+
+def _points_to_targets(points, grid, img_size, device):
+    """Exact targets from GT points. points: list of [N_i,2] tensors (x,y in S-space).
+
+    cls_t [B,1,g,g]: 1 where >=1 GT point falls in the cell.
+    reg_t [B,2,g,g]: (dx,dy) offset from cell center to a GT point in that cell
+    (last point wins on multi-object collisions; cells are 14x14 px at 392/28).
+    """
+    B = len(points)
+    cls_t = torch.zeros(B, 1, grid, grid, device=device)
+    reg_t = torch.zeros(B, 2, grid, grid, device=device)
+    ps = float(img_size) / grid
+    for i, pts in enumerate(points):
+        if pts is None or pts.numel() == 0:
+            continue
+        pts = pts.to(device)
+        cols = (pts[:, 0] / ps).long().clamp(0, grid - 1)
+        rows = (pts[:, 1] / ps).long().clamp(0, grid - 1)
+        cls_t[i, 0, rows, cols] = 1.0
+        reg_t[i, 0, rows, cols] = pts[:, 0] - (cols.float() + 0.5) * ps
+        reg_t[i, 1, rows, cols] = pts[:, 1] - (rows.float() + 0.5) * ps
+    return cls_t, reg_t
+
+
 def make_loaders(cfg, smoke):
     if smoke:
         from torch.utils.data import DataLoader, Dataset
@@ -37,32 +101,48 @@ def make_loaders(cfg, smoke):
                 gs = self.size // 8
                 yy, xx = torch.meshgrid(torch.arange(gs), torch.arange(gs), indexing="ij")
                 dens = torch.zeros(gs, gs)
+                pts = []
                 for _ in range(1 + int(torch.randint(0, 5, (1,), generator=g))):  # 1-5 objects
                     cy, cx = int(torch.randint(0, gs, (1,), generator=g)), int(torch.randint(0, gs, (1,), generator=g))
                     s = 1.0 + 2.0 * float(torch.rand(1, generator=g))
                     blob = torch.exp(-((yy - cy) ** 2 + (xx - cx) ** 2) / (2 * s * s))
                     dens = dens + blob / blob.sum().clamp_min(1e-6)   # each blob normalized, count ≈ number of objects
+                    pts.append([float(cx + 0.5) * self.size / gs, float(cy + 0.5) * self.size / gs])
                 return {"imgs": img, "bboxes": torch.tensor([x0, y0, x1, y1], dtype=torch.float32),
-                        "density": dens[None], "counts": dens.sum()}
+                        "density": dens[None], "counts": dens.sum(),
+                        "points": torch.tensor(pts, dtype=torch.float32)}
         s = cfg["input_size"]
         bs = max(2, min(int(cfg.get("batch_size", 8)), 4))
+
+        def collate_synth(batch):
+            return {"imgs": torch.stack([b["imgs"] for b in batch]),
+                    "bboxes": torch.stack([b["bboxes"] for b in batch]),
+                    "density": torch.stack([b["density"] for b in batch]),
+                    "counts": torch.stack([b["counts"] for b in batch]),
+                    "points": [b["points"] for b in batch]}
+
         tr = Synth(16, s); va = Synth(8, s)
-        return DataLoader(tr, batch_size=bs, shuffle=True), DataLoader(va, batch_size=bs), bs
+        return (DataLoader(tr, batch_size=bs, shuffle=True, collate_fn=collate_synth),
+                DataLoader(va, batch_size=bs, collate_fn=collate_synth), bs)
 
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    from data.fsc147 import FSC147Density, collate_density
     from torch.utils.data import DataLoader
     root = cfg.get("data_root", "/data/dataset/FSC147")
     size = int(cfg.get("input_size", 384))
-    tr = FSC147Density(root, size, "train")
-    va = FSC147Density(root, size, "val")
+    detect_mode = str(cfg.get("paradigm", "reg")) == "detect"
+    if detect_mode:
+        from data.fsc147 import FSC147Detect as DS, collate_detect as collate
+    else:
+        from data.fsc147 import FSC147Density as DS, collate_density as collate
+    tr = DS(root, size, "train")
+    va = DS(root, size, "val")
     bs = int(cfg.get("batch_size", 8))
     nw = int(cfg.get("num_workers", 4))
-    return (DataLoader(tr, batch_size=bs, shuffle=True, num_workers=nw, collate_fn=collate_density, drop_last=True, pin_memory=True),
-            DataLoader(va, batch_size=bs, shuffle=False, num_workers=nw, collate_fn=collate_density, pin_memory=True), bs)
+    return (DataLoader(tr, batch_size=bs, shuffle=True, num_workers=nw, collate_fn=collate, drop_last=True, pin_memory=True),
+            DataLoader(va, batch_size=bs, shuffle=False, num_workers=nw, collate_fn=collate, pin_memory=True), bs)
 
 
-def evaluate(model, loader, device, seq=False, max_frac=1.0):
+def evaluate(model, loader, device, seq=False, detect=False, conf_thr=0.3, max_frac=1.0):
     model.eval(); mae = mse = n = 0
     if max_frac < 1.0:
         n_keep = max(1, int(len(loader) * max_frac))
@@ -73,6 +153,8 @@ def evaluate(model, loader, device, seq=False, max_frac=1.0):
             out = model(imgs, bbox)
             if seq:
                 pred = out["logits"].argmax(-1).sum(1).float().cpu()
+            elif detect:
+                pred = (torch.sigmoid(out["cls_logits"].float()) > conf_thr).sum(dim=(2, 3)).flatten().float().cpu()
             else:
                 dens = out["density"] if isinstance(out, dict) else out
                 pred = dens.flatten(1).sum(1).float().cpu()
@@ -138,7 +220,13 @@ def main():
     w_cnt = float(cfg.get("loss_count_weight", 0.3))
     loss_fn_name = cfg.get("loss_function", "mse")
     huber_delta = float(cfg.get("huber_delta", 5.0))
-    seq_mode = str(cfg.get("paradigm", "reg")) == "seq"
+    paradigm = str(cfg.get("paradigm", "reg"))
+    seq_mode = paradigm == "seq"
+    detect_mode = paradigm == "detect"
+    f_alpha = float(cfg.get("focal_alpha", 0.25))
+    f_gamma = float(cfg.get("focal_gamma", 2.0))
+    conf_thr = float(cfg.get("conf_threshold", 0.3))
+    reg_w = float(cfg.get("reg_weight", 1.0))
 
     best = float("inf"); timed_out = False; oom = False
     ckpt = os.path.join(run_dir, "best.pth")
@@ -157,6 +245,21 @@ def main():
                         targets = patch.flatten(1).round().clamp(0, K - 1).long()
                         out = model(imgs, bbox, targets)
                         loss = F.cross_entropy(out["logits"].reshape(-1, K), targets.view(-1))
+                    elif detect_mode:
+                        out = model(imgs, bbox)
+                        cls_pred, reg_pred = out["cls_logits"], out["reg_offsets"]  # [B,1,g,g] / [B,2,g,g]
+                        g = int(cls_pred.shape[-1])
+                        pts = b.get("points")
+                        if pts is not None:  # exact GT points (preferred)
+                            cls_t, reg_t = _points_to_targets(pts, g, int(imgs.shape[-1]), gt_d.device)
+                        else:  # density-derived fallback (approximate)
+                            cls_t, reg_t = _detect_targets(gt_d, g, pool=str(cfg.get("cls_pool", "mass")),
+                                                           thresh=float(cfg.get("cls_threshold", 0.25)))
+                        loss = _sigmoid_focal_loss(cls_pred, cls_t, alpha=f_alpha, gamma=f_gamma)
+                        pos_mask = cls_t.bool().expand_as(reg_pred)
+                        if pos_mask.any():
+                            reg_loss = F.l1_loss(reg_pred[pos_mask], reg_t.expand_as(reg_pred)[pos_mask])
+                            loss = loss + reg_w * reg_loss
                     else:
                         out = model(imgs, bbox)
                         dens = out["density"] if isinstance(out, dict) else out
@@ -184,8 +287,8 @@ def main():
         except torch.cuda.OutOfMemoryError:
             oom = True; break
         sched.step()
-        mae, rmse = evaluate(model, val_loader, device, seq=seq_mode,
-                             max_frac=float(cfg.get("eval_frac", 1.0)))
+        mae, rmse = evaluate(model, val_loader, device, seq=seq_mode, detect=detect_mode,
+                             conf_thr=conf_thr, max_frac=float(cfg.get("eval_frac", 1.0)))
         tag = ""
         if mae < best:
             best = mae; tag = " ***BEST"
@@ -197,7 +300,7 @@ def main():
               f"[{time.time()-t_start:.0f}s]{tag}", flush=True)
 
     status = "failed" if oom else ("timeout" if timed_out else "success")
-    mae, rmse = evaluate(model, val_loader, device, seq=seq_mode)
+    mae, rmse = evaluate(model, val_loader, device, seq=seq_mode, detect=detect_mode, conf_thr=conf_thr)
     write_result(status, {"mae": mae, "rmse": rmse, "best_mae": best},
                  {"train_seconds": round(time.time() - t_start, 1), "epochs_done": epochs if not (timed_out or oom) else "partial"},
                  {"oom": oom, "instability": not math.isfinite(best), "smoke": cfg["smoke"], "params_M": round(total_p, 2)})
