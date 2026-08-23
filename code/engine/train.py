@@ -62,8 +62,10 @@ def make_loaders(cfg, smoke):
             DataLoader(va, batch_size=bs, shuffle=False, num_workers=nw, collate_fn=collate_density, pin_memory=True), bs)
 
 
-def evaluate(model, loader, device, seq=False):
+def evaluate(model, loader, device, seq=False, max_frac=1.0):
     model.eval(); mae = mse = n = 0
+    if max_frac < 1.0:
+        loader = [loader[i] for i in range(max(1, int(len(loader) * max_frac)))]
     with torch.no_grad():
         for b in loader:
             imgs, bbox, gt = b["imgs"].to(device), b["bboxes"].to(device), b["counts"]
@@ -170,7 +172,8 @@ def main():
         except torch.cuda.OutOfMemoryError:
             oom = True; break
         sched.step()
-        mae, rmse = evaluate(model, val_loader, device, seq=seq_mode)
+        mae, rmse = evaluate(model, val_loader, device, seq=seq_mode,
+                             max_frac=float(cfg.get("eval_frac", 1.0)))
         tag = ""
         if mae < best:
             best = mae; tag = " ***BEST"
