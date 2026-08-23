@@ -65,13 +65,16 @@
     "N0006_swin_promptv2": {
       "parent": "N0005_swin_promptseg",
       "children": [],
-      "status": "done",
+      "status": "synthesized",
       "best_metric": 32.096889267442386,
-      "train_seconds": 409.6,
-      "quality": null,
-      "avail": null,
-      "score": null,
-      "tested_hypotheses": []
+      "train_seconds": 405.0,
+      "quality": 0.6,
+      "avail": 0.83,
+      "score": 0.69,
+      "tested_hypotheses": [
+        "H0012",
+        "H0013"
+      ]
     }
   }
 }

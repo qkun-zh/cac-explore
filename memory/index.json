@@ -189,6 +189,44 @@
         "N0005"
       ],
       "log": []
+    },
+    "H0012": {
+      "text": "IF exemplar-area prompt + dual-scale gated fusion IN FSC147 (N0006 vs parent N0005), THEN val MAE <= 31.5 (>=3.5% better), BECAUSE scale info in the prompt plus finer multi-scale grid fix N0005's two bottlenecks. DISPROVED IF MAE > 32.66.",
+      "confidence": 0.445,
+      "n_tested": 1,
+      "status": "uncertain",
+      "tags": [
+        "area-prompt",
+        "dual-scale",
+        "N0006"
+      ],
+      "log": [
+        {
+          "source_node": "N0006_swin_promptv2",
+          "evidence_type": "contradicts",
+          "strength": 0.55,
+          "reasoning": "32.10 vs parent 32.66 = -1.7% only; <=31.5 bar missed; overfit onset ~E14 caps schedule gains"
+        }
+      ]
+    },
+    "H0013": {
+      "text": "IF per-location scale gating is used at stride16/32 IN this architecture, THEN RMSE/MAE ratio drops below 3.0 at MAE parity-or-better, BECAUSE gating reallocates mass to correct scales, shrinking tail errors. DISPROVED IF ratio >= 3.0 or MAE worsens.",
+      "confidence": 0.45,
+      "n_tested": 1,
+      "status": "uncertain",
+      "tags": [
+        "scale-gate",
+        "tail-errors",
+        "N0006"
+      ],
+      "log": [
+        {
+          "source_node": "N0006_swin_promptv2",
+          "evidence_type": "contradicts",
+          "strength": 0.5,
+          "reasoning": "RMSE/MAE ratio 3.18 >= 3.0; gate did not shrink high-count tail on swin substrate"
+        }
+      ]
     }
   }
 }
