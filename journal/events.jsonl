@@ -66,3 +66,4 @@
 {"ts":"2026-08-23T16:21:00+08:00","agent":"lead","event":"N0018 protoiter EARLY-STOPPED: NaN collapse from E35, best 23.403 < champion; H0027 refuted. N0019 tailup launched","refs":["tree/nodes/N0018_dino_protoiter/train.log"]}
 {"ts":"2026-08-23T16:29:00+08:00","agent":"lead","event":"N0018 synthesized REFUTED 23.40 (NaN); H0027 0.44; Lead-booked due to subagent network failures x2","refs":["tree/nodes/N0018_dino_protoiter/synthesis.md"]}
 {"ts":"2026-08-23T17:10:00+08:00","agent":"lead","event":"N0019 done 23.36 (H0028 refuted); launching N0020 scale-aware","refs":["tree/nodes/N0019_dino_tailup/"]}
+{"ts":"2026-08-23T17:12:00+08:00","agent":"lead","event":"N0020 scale-aware RUNNING (H0029)","refs":["tasks/T0042_pending_executor_N0020.md"]}
