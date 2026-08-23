@@ -290,8 +290,8 @@
     },
     "H0017": {
       "text": "",
-      "confidence": 0.6454,
-      "n_tested": 3,
+      "confidence": 0.6667,
+      "n_tested": 4,
       "status": "uncertain",
       "tags": [],
       "log": [
@@ -312,6 +312,12 @@
           "evidence_type": "supports",
           "strength": 0.35,
           "reasoning": "champion stack trains stably at 1369 tokens/bs4: monotone descent, no OOM, gate/prompt machinery intact"
+        },
+        {
+          "source_node": "N0013_dino_mosaic",
+          "evidence_type": "supports",
+          "strength": 0.3,
+          "reasoning": "dual-tap scalar-gate stack trains stably under photometric+bbox jitter + 2x dropout/5x wd — monotone descent to 22.40, no OOM/divergence, gate+prompt machinery intact; transfers; gate weights unlogged"
         }
       ]
     },
@@ -426,6 +432,48 @@
           "evidence_type": "contradicts",
           "strength": 0.45,
           "reasoning": "early-stopped E18 best 26.03 vs parent same-epoch ~25.5; RMSE/MAE 3.66 no tail gain; confounded by 30min timeout (~45% schedule), bs8→4, lr at 56% peak when killed — retry with full schedule+grad-accu"
+        }
+      ]
+    },
+    "H0024": {
+      "text": "IF photometric+bbox jitter augmentation (jitter_prob 0.5) + dropout 0.2 + wd 5e-4 IN FSC147 champion recipe, THEN MAE ≤20.0 AND RMSE/MAE<3.4, BECAUSE augmented diversity + regularization improve generalization. DISPROVED IF MAE>21.53 OR ratio≥3.63.",
+      "confidence": 0.425,
+      "n_tested": 1,
+      "status": "uncertain",
+      "tags": [
+        "augreg",
+        "jitter",
+        "dropout",
+        "weight-decay",
+        "regularization",
+        "N0013_dino_mosaic"
+      ],
+      "log": [
+        {
+          "source_node": "N0013_dino_mosaic",
+          "evidence_type": "contradicts",
+          "strength": 0.75,
+          "reasoning": "best MAE 22.404@E38 vs parent N0010 21.531@E26 (+4.1%) breaches disproof bar on clean full-schedule identical-recipe run; regularized train floor higher yet val worse; tail ratio unchanged 3.62 vs 3.6"
+        }
+      ]
+    },
+    "H0025": {
+      "text": "IF SeqCount-style autoregressive token generation replaces density regression IN FSC147 on champion encoder stack, THEN val MAE <=19.0 AND RMSE/MAE<3.3, BECAUSE discrete per-patch classification avoids Gaussian-kernel mismatch and causal context models neighbor correlations. DISPROVED IF MAE>21.53 OR seq pipeline fails.",
+      "confidence": 0.46,
+      "n_tested": 1,
+      "status": "uncertain",
+      "tags": [
+        "seqcount",
+        "paradigm",
+        "autoregressive",
+        "N0016"
+      ],
+      "log": [
+        {
+          "source_node": "N0016_dino_seqcount",
+          "evidence_type": "contradicts",
+          "strength": 0.4,
+          "reasoning": "training collapse: CE loss->0.0000 by E2, MAE pinned 63.539 every epoch (constant predictions); wall-clock 250s/ep blows tau_max. Implementation-bug suspected (teacher-forcing leakage or AR-eval path)"
         }
       ]
     }

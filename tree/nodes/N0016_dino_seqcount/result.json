@@ -1,0 +1,18 @@
+{
+  "node": "N0016_dino_seqcount",
+  "status": "running",
+  "metrics": {
+    "mae": 63.53888086582973,
+    "rmse": 138.90855666320206,
+    "best_mae": 63.53888086582973
+  },
+  "timing": {
+    "train_seconds": 745.7,
+    "epochs_done": 3
+  },
+  "diagnostics": {
+    "oom": false
+  },
+  "run_dir": "/data/runs/N0016_dino_seqcount",
+  "ts": "2026-08-23T15:13:53+0800"
+}

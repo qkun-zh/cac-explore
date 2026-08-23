@@ -199,13 +199,15 @@
     "N0016_dino_seqcount": {
       "parent": "N0010_dino_multilayer_long",
       "children": [],
-      "status": "running",
-      "best_metric": null,
-      "train_seconds": null,
+      "status": "failed",
+      "best_metric": 63.539,
+      "train_seconds": 746,
       "quality": null,
       "avail": null,
       "score": null,
-      "tested_hypotheses": []
+      "tested_hypotheses": [
+        "H0024seq"
+      ]
     }
   }
 }
