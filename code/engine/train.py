@@ -146,7 +146,8 @@ def main():
                 with torch.cuda.amp.autocast(enabled=use_amp):
                     if seq_mode:
                         Lg, K = int(cfg.get("seq_grid", 14)), int(cfg.get("seq_vocab", 64))
-                        targets = F.adaptive_avg_pool2d(gt_d.float(), (Lg, Lg)).flatten(1).round().clamp(0, K - 1).long()
+                        patch = F.adaptive_avg_pool2d(gt_d.float(), (Lg, Lg)) * float((gt_d.shape[-1] // Lg) ** 2)  # SUM-pool: preserve mass
+                        targets = patch.flatten(1).round().clamp(0, K - 1).long()
                         out = model(imgs, bbox, targets)
                         loss = F.cross_entropy(out["logits"].reshape(-1, K), targets.view(-1))
                     else:

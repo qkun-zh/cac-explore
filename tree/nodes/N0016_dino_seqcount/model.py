@@ -78,8 +78,8 @@ class SeqCountDino(nn.Module):
         z11 = self.t11_proj(f11.flatten(2).transpose(1, 2))
         tokens = gate[0] * z6 + gate[1] * z11
         prompt = self.prompt_enc(bboxes, S)
-        adapted = self.adapter(torch.cat([prompt[:, None, :], tokens], dim=1))[:, 1:]
-        return self.mem_proj(adapted)
+        adapted = self.adapter(tokens)
+        return self.mem_proj(adapted) + self.mem_proj(prompt)[:, None, :]
 
     @staticmethod
     def causal(l, device):
