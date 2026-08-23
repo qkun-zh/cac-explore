@@ -166,9 +166,9 @@
     "N0013_dino_mosaic": {
       "parent": "N0010_dino_multilayer_long",
       "children": [],
-      "status": "coded",
-      "best_metric": null,
-      "train_seconds": null,
+      "status": "done",
+      "best_metric": 22.404,
+      "train_seconds": 1396,
       "quality": null,
       "avail": null,
       "score": null,
@@ -199,7 +199,7 @@
     "N0016_dino_seqcount": {
       "parent": "N0010_dino_multilayer_long",
       "children": [],
-      "status": "coded",
+      "status": "running",
       "best_metric": null,
       "train_seconds": null,
       "quality": null,

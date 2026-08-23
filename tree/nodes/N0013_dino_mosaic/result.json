@@ -1,0 +1,21 @@
+{
+  "node": "N0013_dino_mosaic",
+  "status": "success",
+  "metrics": {
+    "mae": 22.76096561055161,
+    "rmse": 82.47867990801686,
+    "best_mae": 22.40378149189808
+  },
+  "timing": {
+    "train_seconds": 1410.4,
+    "epochs_done": 40
+  },
+  "diagnostics": {
+    "oom": false,
+    "instability": false,
+    "smoke": false,
+    "params_M": 23.11
+  },
+  "run_dir": "/data/runs/N0013_dino_mosaic",
+  "ts": "2026-08-23T14:47:55+0800"
+}
