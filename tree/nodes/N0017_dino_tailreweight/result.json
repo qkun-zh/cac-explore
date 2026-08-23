@@ -1,0 +1,21 @@
+{
+  "node": "N0017_dino_tailreweight",
+  "status": "success",
+  "metrics": {
+    "mae": 22.597792576482842,
+    "rmse": 85.78600493783713,
+    "best_mae": 22.187288533473275
+  },
+  "timing": {
+    "train_seconds": 1272.6,
+    "epochs_done": 40
+  },
+  "diagnostics": {
+    "oom": false,
+    "instability": false,
+    "smoke": false,
+    "params_M": 23.11
+  },
+  "run_dir": "/data/runs/N0017_dino_tailreweight",
+  "ts": "2026-08-23T16:22:28+0800"
+}
