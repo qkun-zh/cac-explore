@@ -126,7 +126,8 @@
         "N0011_dino_pertok_gate_huber",
         "N0012_dino_highres518",
         "N0013_dino_mosaic",
-        "N0014_dino_highres_augreg"
+        "N0014_dino_highres_augreg",
+        "N0015_dino_highres672"
       ],
       "status": "done",
       "best_metric": 21.531,
@@ -170,6 +171,17 @@
       "tested_hypotheses": []
     },
     "N0014_dino_highres_augreg": {
+      "parent": "N0010_dino_multilayer_long",
+      "children": [],
+      "status": "coded",
+      "best_metric": null,
+      "train_seconds": null,
+      "quality": null,
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": []
+    },
+    "N0015_dino_highres672": {
       "parent": "N0010_dino_multilayer_long",
       "children": [],
       "status": "coded",
