@@ -64,3 +64,4 @@
 {"ts":"2026-08-23T16:02:00+08:00","agent":"lead","event":"N0017 done 22.19 ratio3.80 - H0026 refuted (reweight worsened tail); launching N0018 protoiter","refs":["tree/nodes/N0017_dino_tailreweight/result.json"]}
 {"ts":"2026-08-23T16:18:00+08:00","agent":"lead","event":"N0017 synthesized H0026 0.435 (sign-error confound); N0019 tailup coded queued; N0018 protoiter running","refs":["tree/nodes/N0017_dino_tailreweight/synthesis.md"]}
 {"ts":"2026-08-23T16:21:00+08:00","agent":"lead","event":"N0018 protoiter EARLY-STOPPED: NaN collapse from E35, best 23.403 < champion; H0027 refuted. N0019 tailup launched","refs":["tree/nodes/N0018_dino_protoiter/train.log"]}
+{"ts":"2026-08-23T16:29:00+08:00","agent":"lead","event":"N0018 synthesized REFUTED 23.40 (NaN); H0027 0.44; Lead-booked due to subagent network failures x2","refs":["tree/nodes/N0018_dino_protoiter/synthesis.md"]}

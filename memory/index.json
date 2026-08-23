@@ -502,6 +502,25 @@
           "reasoning": "best MAE 22.187 > kill bar 21.53 AND RMSE/MAE 3.73@best / 3.80 final vs <3.4 claim; confound-free single-knob isolation on champion verbatim. SIGN-ERROR CONFOUND: implemented formula down-weights dens"
         }
       ]
+    },
+    "H0027": {
+      "text": "IF iterative prototype refinement (T=2, K=16) IN FSC147 champion stack THEN val MAE <=19.5 AND RMSE/MAE<3.4, BECAUSE pseudo-exemplar feedback corrects dense-scene misses per LOCA. DISPROVED IF MAE>21.53 OR NaN/OOM.",
+      "confidence": 0.43,
+      "n_tested": 1,
+      "status": "uncertain",
+      "tags": [
+        "protoiter",
+        "loca",
+        "N0018"
+      ],
+      "log": [
+        {
+          "source_node": "N0018_dino_protoiter",
+          "evidence_type": "contradicts",
+          "strength": 0.7,
+          "reasoning": "best 23.40 > 21.53 AND NaN collapse from E35 - refinement amplifies variance rather than correcting on frozen DINOv2 tokens"
+        }
+      ]
     }
   }
 }
