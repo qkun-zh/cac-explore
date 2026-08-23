@@ -80,7 +80,7 @@ class DinoPromptV2(nn.Module):
         adapted, mass = self._decode(tokens, prompt, B, ps)
         densities = [mass]
         for _ in range(self.proto_iters):
-            scores = mass.flatten(2).squeeze(-1)
+            scores = mass.flatten(2).squeeze(1)
             _, sel = scores.topk(self.proto_topk, dim=1)
             gather_idx = sel.unsqueeze(-1).expand(-1, -1, adapted.shape[-1])
             proto = adapted.gather(1, gather_idx).mean(dim=1)
