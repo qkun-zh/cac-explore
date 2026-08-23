@@ -1,8 +1,8 @@
 cfg = dict(
     input_size=392,
-    epochs=35,
+    epochs=30,
     batch_size=8,
-    lr=5e-4,
+    lr=1e-3,
     weight_decay=1e-4,
     eta_min=1e-6,
     amp=True,
