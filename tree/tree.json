@@ -151,9 +151,9 @@
     "N0012_dino_highres518": {
       "parent": "N0010_dino_multilayer_long",
       "children": [],
-      "status": "running",
-      "best_metric": null,
-      "train_seconds": null,
+      "status": "done",
+      "best_metric": 26.0326,
+      "train_seconds": 1129,
       "quality": null,
       "avail": null,
       "score": null,

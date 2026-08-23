@@ -1,0 +1,18 @@
+{
+  "node": "N0012_dino_highres518",
+  "status": "running",
+  "metrics": {
+    "mae": 26.032606417061196,
+    "rmse": 95.34284048187791,
+    "best_mae": 26.032606417061196
+  },
+  "timing": {
+    "train_seconds": 1128.6,
+    "epochs_done": 18
+  },
+  "diagnostics": {
+    "oom": false
+  },
+  "run_dir": "/data/runs/N0012_dino_highres518",
+  "ts": "2026-08-23T14:17:41+0800"
+}
