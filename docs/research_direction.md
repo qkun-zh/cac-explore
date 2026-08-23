@@ -27,9 +27,13 @@ Source: official package uploaded by the user via scp; same content as the HF mi
 
 ## Constraints
 
+- **Frozen backbone (hard)**: every candidate contains a pretrained backbone loaded FROZEN from HF Hub or timm (`timm.create_model(name, pretrained=True)` / transformers AutoModel); only the counting head and lightweight adapters train. Backbone choice is itself an architectural decision recorded in idea.md
+- **Parameter budget**: ≤32M TOTAL including the frozen backbone (memory footprint counts). Engine asserts `max_params_M` (default 32) over all params
 - Parameter budget and training-time cap live in each node's `config.py`; default wall clock ≤30 minutes
 - Single RTX 3060 12GB, AMP mixed precision
-- Architecture must expose `build_model(cfg)` taking `[B,3,H,W]` + exemplar bboxes; engine enforces `max_params_M` (default 32 = mission budget)
+- Architecture must expose `build_model(cfg)` taking `[B,3,H,W]` + exemplar bboxes; engine optimizes only `requires_grad` params
+
+**Server notes for pretrained weights**: run_node.sh exports `HF_HOME=/data/asset/hf` (persistent) and `HF_ENDPOINT=https://hf-mirror.com` (reachable mirror). `timm` + `huggingface_hub` are installed in env `cac`. First run of a node downloads backbone weights — do it once inside tmux, cache persists in /data.
 
 ## Baseline Reference (from earlier cv_study work)
 

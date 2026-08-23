@@ -5,7 +5,9 @@ NODE=${1:?usage: run_node.sh <NODE_ID> [EPOCHS]}
 REPO=/data/repo
 RUNS=/data/runs/$NODE
 PY=${PY:-/data/miniconda/envs/cac/bin/python}
-mkdir -p "$RUNS"
+mkdir -p "$RUNS" /data/asset/hf
+export HF_HOME=/data/asset/hf            # persistent HF/timm cache (only /data survives)
+export HF_ENDPOINT=https://hf-mirror.com # reachable mirror on this network
 cd "$REPO"
 git pull --ff-only || true
 ARGS="--node_dir $REPO/tree/nodes/$NODE --run_dir $RUNS"

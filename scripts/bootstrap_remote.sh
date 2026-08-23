@@ -17,7 +17,7 @@ PY=/data/miniconda/envs/cac/bin/python
 if [ ! -x "$PY" ]; then
   /data/miniconda/bin/conda create -y -n cac python=3.12
   $PY -m pip install -i https://pypi.tuna.tsinghua.edu.cn/simple torch torchvision --no-cache-dir
-  $PY -m pip install -i https://pypi.tuna.tsinghua.edu.cn/simple numpy opencv-python-headless scipy pillow tqdm pyyaml --no-cache-dir
+  $PY -m pip install -i https://pypi.tuna.tsinghua.edu.cn/simple numpy opencv-python-headless scipy pillow tqdm pyyaml timm huggingface_hub --no-cache-dir
   rm -rf /root/.cache/pip
 fi
 $PY -c "import torch; print('torch', torch.__version__, 'cuda', torch.cuda.is_available())"

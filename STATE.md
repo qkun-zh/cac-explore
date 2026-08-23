@@ -10,7 +10,7 @@
 - S0001_smoke: status=success, val MAE 46.69 @ 2ep/27s (end-to-end verified on real data)
 
 ## Next Steps (in order)
-1. Idea Agent produces hypothesis nodes N0002–N0005 (`tree/nodes/*/idea.md` + `tasks/T*_pending_*.md`)
+1. Idea Agent produces root nodes N0002–N0005 under the frozen-backbone constraint (`tree/nodes/*/idea.md` + `tasks/T*_pending_*.md`)
 2. Coding Agent implements model/config → local `--smoke` self-check → push
 3. Executor runs real training in tmux (within τ_max=30min) → collect → four feedback reports
 4. Synthesis books evidence into hypotheses.jsonl + confidence updates
