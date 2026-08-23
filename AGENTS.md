@@ -68,6 +68,7 @@ Next free ID = max existing + 1, zero-padded 4 digits: nodes `N####_<slug>` (S-p
 5. Remote tasks >1 min must run in tmux; no bare SSH foreground hangs
 6. New code passes `--smoke` before real data
 7. Read `memory/failure_modes.md` before coding; append new pitfalls after incidents
+8. **Web-grounding mandate (user-specified)**: when stuck — same bug survives 2 fix attempts, unfamiliar error/API behavior, design uncertainty — OR idea-drought (can't formulate falsifiable hypotheses / no expandable direction), you MUST run targeted `websearch` BEFORE the next attempt: search exact error text verbatim, method/paper names, SOTA numbers. Fold findings into `idea.md` grounding, `memory/failure_modes.md`, or STATE.md verified facts. Spinning in place is a protocol violation
 
 ## 4. Documentation Budget (anti-entropy)
 

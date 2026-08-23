@@ -1,0 +1,21 @@
+{
+  "node": "N0002_dino_protocorr",
+  "status": "success",
+  "metrics": {
+    "mae": 42.04888739519134,
+    "rmse": 122.06080179814575,
+    "best_mae": 42.04888739519134
+  },
+  "timing": {
+    "train_seconds": 317.7,
+    "epochs_done": 10
+  },
+  "diagnostics": {
+    "oom": false,
+    "instability": false,
+    "smoke": false,
+    "params_M": 22.17
+  },
+  "run_dir": "/data/runs/N0002_dino_protocorr",
+  "ts": "2026-08-23T09:18:58+0800"
+}
