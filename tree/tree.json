@@ -55,9 +55,9 @@
     "N0021_dino_fullft": {
       "parent": null,
       "children": [],
-      "status": "running",
-      "best_metric": null,
-      "train_seconds": null,
+      "status": "failed",
+      "best_metric": 48.4,
+      "train_seconds": 565,
       "quality": null,
       "avail": null,
       "score": null,

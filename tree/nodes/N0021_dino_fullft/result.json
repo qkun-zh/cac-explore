@@ -1,0 +1,18 @@
+{
+  "node": "N0021_dino_fullft",
+  "status": "running",
+  "metrics": {
+    "mae": 48.56306552145381,
+    "rmse": 129.88756290031893,
+    "best_mae": 48.39991474003295
+  },
+  "timing": {
+    "train_seconds": 626.7,
+    "epochs_done": 10
+  },
+  "diagnostics": {
+    "oom": false
+  },
+  "run_dir": "/data/runs/N0021_dino_fullft",
+  "ts": "2026-08-23T21:16:02+0800"
+}
