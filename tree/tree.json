@@ -248,6 +248,17 @@
       "avail": null,
       "score": null,
       "tested_hypotheses": []
+    },
+    "N0020_dino_scaleaware": {
+      "parent": "N0010_dino_multilayer_long",
+      "children": [],
+      "status": "running",
+      "best_metric": null,
+      "train_seconds": null,
+      "quality": null,
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": []
     }
   }
 }
