@@ -1,0 +1,18 @@
+{
+  "node": "N0018_dino_protoiter",
+  "status": "running",
+  "metrics": {
+    "mae": NaN,
+    "rmse": NaN,
+    "best_mae": 23.403267307192504
+  },
+  "timing": {
+    "train_seconds": 1306.6,
+    "epochs_done": 38
+  },
+  "diagnostics": {
+    "oom": false
+  },
+  "run_dir": "/data/runs/N0018_dino_protoiter",
+  "ts": "2026-08-23T16:46:13+0800"
+}

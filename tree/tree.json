@@ -228,9 +228,9 @@
     "N0018_dino_protoiter": {
       "parent": "N0010_dino_multilayer_long",
       "children": [],
-      "status": "coded",
-      "best_metric": null,
-      "train_seconds": null,
+      "status": "done",
+      "best_metric": 23.403,
+      "train_seconds": 1273,
       "quality": null,
       "avail": null,
       "score": null,
@@ -239,7 +239,7 @@
     "N0019_dino_tailup": {
       "parent": "N0010_dino_multilayer_long",
       "children": [],
-      "status": "coded",
+      "status": "running",
       "best_metric": null,
       "train_seconds": null,
       "quality": null,
