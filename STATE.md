@@ -1,20 +1,25 @@
-# STATE — Clean Slate
+# STATE — Gen-6 Fresh Start
 
-**Mission**: MAE ≤ 4 on FSC147 test. No architecture restrictions. Full fine-tuning allowed.
-**Previous**: 20 nodes explored under frozen-backbone constraint → best 21.53 (N0010). Archived in `tree/archive_gen0_5/`.
+**Mission**: MAE ≤ 4 on FSC147 test. Full FT allowed. Any architecture.
+**Stage**: RESEARCH COMPLETE → root bootstrap next
 **Blockers**: none
 
-## Verified Facts (carry forward)
-- Frozen DINOv2-S ceiling = ~21.5 val; full FT needed for <16
-- SOTA reference: CountGD 5.74 · GeCo2 7.64 · DAVE 8.66 · CACViT 9.13 · LOCA 10.79
-- Engine supports huber loss + param_groups differential LR + eval_frac subsample
-- timm traps logged in failure_modes.md
-- Server: RTX 3060 12GB; revproxy alive; HF cache at /data/asset/hf
+## Research Synthesis (3 parallel agents)
+- Sub-6 SOTA methods ALL use: point detection + Hungarian matching loss (NOT density MSE)
+- Best published: VQCounter 4.86 (GroundingDINO + prompt queue + VoronoiCost)
+- Key insight: density regression saturates ~10-15; point detection reaches <6
+- Inference tricks (TT-Norm, SAM calibration) worth 1-3 MAE for free
+- Class imbalance (~95% empty patches) killed naive SeqCount; needs weighted sampling
+- AM-RADIO > DINOv2 (multi-teacher distillation of CLIP+DINOv2+SAM)
 
-## Next Steps
-1. Deep research SOTA (CoDi diffusion, DAVE detect-verify, foundation models)
-2. Design paradigm-shift architecture for MAE≤4
-3. Execute fast loop
+## Root Bootstrap Plan (K=4 paradigms)
+1. **R1: Point Detection + Hungarian Matching** (highest EV — proven by VQCounter/CountGD)
+2. **R2: Density + Verification Two-Stage** (DAVE style, combines our density expertise)
+3. **R3: Scale-Aware Deformable Attention** (SPDCN-style, exploits exemplar geometry)
+4. **R4: Diffusion Location Generation** (CoDi-style, handles annotation noise)
 
-## Active Tasks
-(none — clean slate)
+## Verified Facts
+- Engine supports huber, param_groups, eval_frac; needs Hungarian matching + CE additions
+- FSC147 annotations include point coordinates (needed for detection targets)
+- Server: RTX 3060 12GB; DINOv2-S full FT fits; GroundingDINO frozen-only fits
+- 27 old hypotheses archived with gen0-5
