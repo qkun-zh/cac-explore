@@ -1,0 +1,14 @@
+cfg = dict(
+    input_size=392,
+    epochs=25,
+    batch_size=8,
+    lr=1e-3,
+    weight_decay=1e-4,
+    eta_min=1e-5,
+    amp=True,
+    max_params_M=32,
+    loss_count_weight=0.3,
+    num_workers=4,
+    adapter_dim=768,
+    dropout=0.1,
+)
