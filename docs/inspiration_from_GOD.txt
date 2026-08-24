@@ -1,175 +1,90 @@
-# GOD v3 — 原理性灵感：不是查来的，是从本仓库自己的数据推导出来的
-> 方法论：先解读我们已有的逐像 dump（N0026），找到一个能同时解释全部已证伪异常的机制，再从该机制反推架构。全程只用随机几何/测度论的教科书数学，不搬运任何计数论文。
+# GOD v6 — 只剩活着的（经R0-I0级CPU验证修剪后）
+> 状态：OIR谱系死于R0-B；V3毙渗流路由、V4毙透视种子；V1让H-A带伤存活；本轮CPU验证（脚本 /tmp/opencode/verify_channel_floor.py，只读res_results.json与dump_val.jsonl）确认双区域误差定律与饱和方向、**证伪分辨率单调改善假设**。本文件只含：已验证事实（标来源）、存活假说（标证据等级）、墓碑清单、定价实验、两个候选种子、信道地板纲领v2（推导清晰区分【导出】与【拟合】）。
 
 ---
-## §0 三组躺在仓库里、没人解读过的数字
-来源 `tree/nodes/N0026_res_sweep/res_results.json`（val 1286 图，逐像）：
+## §1 已验证事实（每条有数据出处）
+F1 **双区域误差定律**（392px，n=1286，逐像）：`|err| ≈ 2 + 0.69·(N−50)₊`
+- 地板区：N<25 时 med|err|=1.8–2.2 恒定（信道常数项）
+- 转折点 N*≈25–50；尾部线性斜率0.686（AIC：线性1046 ≪ √N律1077）
+- 分桶中位验证：[200,400) 实测93.4 vs 模型~125（LSQ均值线低于重尾中位，方向一致）
+F2 **饱和方向**：signed误差随密度单调转负且恶化——[0,25) +1.17（34%欠计）→ [200,500) −93.4（87%欠计）→ [500,∞) −422（94%欠计）。密集段是系统性偏置非零均值方差。
+F3 **有效可见度曲线**：pred/GT 比 [200,400)→0.64 · [400,800)→0.67 · [800,3000)→**0.30**——稳定在~0.65后在 N≳800 崩塌（n=8，统计脆弱，仅记录）
+F4 **分辨率U型（新事实，推翻旧假设）**：bulk桶MAE呈U型且谷底在训练分辨率——[0,25): 224/392/518 = 5.8/**3.3**/10.6；[25,75): 17.8/**9.0**/18.8；[75,200): 56.6/**27.1**/34.9。只有密集桶单调改善：[200,500): 202.5→128.7→120.0；[500,∞): 733→487→319。
+F5 box质量矛盾（不变）：exemplar框内单物体积分中位0.07（范围至8.55，10.7%的框>1）；稀疏图计数几乎无偏。V1：质量vs框面积 Spearman 0.465正相关。
+F6 75.9% SSE 在17张 N≥500 图。
 
-**事实A — 压缩随密度单调增长（不是噪声，是系统性非线性）**
-| GT 区间 | n | median(GT/pred) @392 |
+## §2 存活假说（证据分级）
+- **H-A 幅度坍缩**：`a*=p·h/(1+μ)`，实测 p=5.5%、μ=1e-4 ⟹ a*≈0.055h 与F5量级一致；V1方向PASS。等级：方向确立、形式未定（待log-log斜率β）。注：原"box质量应随场景拥挤下降"的推论按设计缺陷判inconclusive（未控框面积），不得引用。
+- **H-B 衰减压缩 `b=τ²/(τ²+σ²)`**：F2/F3的方向与量级支持其存在（见§8.3拟合），但与H-A不可分。等级：弱-中。
+
+## §3 验尸教训（一行版）
+① f̂与r̂²来自偏差方向相反的两套测量，估计器必须与测量方案联合设计；② 照片统计前提要先检验（V4已测垂直梯度≠主导源）；③ 把空间结构压成单均值的读出信息上弱于被替换物。
+
+## §4 墓碑清单（禁止复活，一行一坟）
+| 死者 | 死因 | 判决 |
 |---|---|---|
-| [0,50) | 889 | 0.96 |
-| [50,150) | 284 | 1.10 |
-| [150,300) | 75 | 1.29 |
-| [300,600) | 26 | **2.02** |
-| [600,2200) | 12 | **2.22** |
+| 密度MSE幅度头幅度病 | 平衡点a*≈ph/(1+μ)≈0.055h | 推导+V1 |
+| TT-Norm/isotonic/trim/SWA/norm+flip联合 | 旧证伪 | DISTILLED |
+| 点检测/hires-decoder/EBC转移/full-FT | 旧证伪 | DISTILLED |
+| OIR布尔反演读出 | R0-B oracle双杀 | R0-B |
+| 一切掩码派生占用读出 | 同源失败 | V2/R0-B |
+| 渗流f̂分类器/f̂路由 | 几何覆盖率从平滑GT不可恢复 | V3 |
+| 透视校正谱系 | 横带梯度≈0 | V4 |
+| **单调分辨率改善 / 全图升分辨率** | **U型实证（F4）：bulk@518恶化3.2×** | 本轮CPU验证 |
+| **跨分辨率一致性路由（原设计）** | 依赖被证伪的单调性；仅密集侧路由幸存为经验做法 | 本轮 |
 
-稀疏段近乎无偏，密集段系统性低估且压缩比单调恶化。同一张图跨分辨率的读数剧变（如 GT≈1229：224px→61，392px→703，518px→1038）说明瓶颈在"观测量的可分性"，不在优化。
+## §5 当前最高优先：oracle-head 定价实验（GPU 30–60min）
+冻结冠军骨干 → 多尺度统计量+强回归器 → val评。≈20转蒸馏骨干 · 15–17种子1立项 · ≤14两种子加码。附D1探针：格子级特征范数vs局部GT密度曲线（特征饱和检测）。
 
-**事实B — exemplar 单物体质量 0.03–0.19，但稀疏图却几乎无偏**
-若 head 学到的是"每物体固定质量"，两者矛盾。唯一自洽解释：head 实际输出 ∝ **局部覆盖面积**（coverage），单物体质量 = k×物体像素面积。大而稀的物体面积大 → 质量接近1；小而密的物体面积小 → 质量 0.03。k 在训练分布上被校准成"平均尺寸"下的常数，遇到密集小物体即失效。
+## §6 存活种子（等§5定价后再立项）
+1. **log空间幅度头**：治天花板最直接，保空间结构。
+2. **尺寸条件化增益归一化**：§8.3证实病灶是状态依赖增益偏置——种子2由启发式升级为对症。
+~~3 透视~~（V4毙）· ~~4 f̂路由~~（V3毙）
+**新增免费离线实验 O1**（服务器CPU几分钟，无需训练）：现有dump上做split-half条件增益拟合 `N̂=g(box_area, N_hat)·Σρ`，直接度量状态条件校准能吃掉多少0.69线性项。
 
-**事实C — 已证伪清单全部指向同一个死因**
-TT-Norm 把 0.03 的质量乘回 ~30 倍 → 稀疏图爆炸到 MAE 108（它们本来是对的）；全局 isotonic 双半区都变差（压缩率是状态的函数，依赖局部分辨率/密度，不存在全局单调映射）；SWA 失败、flip 无增益（正交于该机制）。一个理论解释全部异常：**线性/全局读出无法反演一个饱和的非线性观测量。**
+---
 
-## §1 第一性原理：网络真正能"看到"的量是覆盖率 f
-ViT-S/14 把图像压成 cell 网格后，对亚 cell 尺寸物体，位置信息丢失，剩下的可观测量只有：每个 cell 被目标类占据的概率 → 覆盖率 f = 被占面积/总面积。
-随机放置、半径 r 的圆盘泊松布尔模型给出精确闭式：
-```
-f = 1 − exp(−λ·π·E[r²])      ⟹      λ = −ln(1−f)/(π·E[r²])，  N = λ·A
-```
-f 是 [0,1] 有界的——这就是压缩的数学本体：λ 大时 f 饱和，任何对 f（或其线性组合）做线性回归/全局校准的读出都必然在高密度端塌缩。而反演公式在 f→1 时发散，恰好是物理正确的"越挤越敏感"。r 由 exemplar box 免费提供（E[r²] 可从3个box估计）。周长、欧拉示性数等其它可测量各有闭式（Miles 型公式；常数不背书，用蒙特卡洛圆盘模拟一次性标定），可作交叉校验与簇集/规则排列的诊断（分量数偏离泊松预测⇒Matérn簇或硬核过程的二参推广）。
+## §8 The Channel-Floor Program v2 [math rewritten after CPU verification; every step labeled DERIVED / FITTED / ASSUMED]
 
-## §1.5 数学附录（推导 + 动力学分析）
-**(a) 覆盖率公式推导（含随机半径的偏差项）**
-点 x 未被覆盖 ⟺ 半径 r 内无圆心 ⟹ `P(未覆盖|R=r)=exp(−λπr²)`。随机半径时对 R 取期望：
-`f = 1 − E[e^{−λπR²}]`，由凸性 `≥` 不等号方向给出 **f ≤ 1−exp(−λπE[R²])**。
-用 `Ê[R²]` 天真反演的一阶相对偏差（对 f 展开到二阶）：
-`λ̂/λ ≈ 1 − ½(κ−1)·(−ln(1−f))`，其中 `κ=E[R⁴]/E[R²]² ≥ 1`。
-数值：±20% 尺寸波动 ⟹ κ≈1.05（注意 κ=CV(R²)²+1，平方放大离散）；中等离散 CV(R)≈30% ⟹ κ≈1.4 → f=0.5 时偏差 ~14%；重尾 κ=2 → 35%，且随密度增大而放大。**结论：尺寸离散是系统性低估的主源，必须用第二方程消去**（边界长度密度 `L_A=λ(1−f)·2πE[R]` 与覆盖率联立解 `(λ, E[R], E[R²])`，即 Weil(1988) 矩方法三方程；其已知偏差由 R0-B 直接量化）。
-**审查补充两条**：① `E[R²]` 只能从3个 exemplar box 估计，相对误差 ≈ CV(R²)/√3，单图可达 30%+ ——需跨同类簇收缩估计或干脆依赖边界长度方程；② 边缘效应：窗界外圆心贡献窗内覆盖，系统偏差量级 ~周长×r/A ≈ 6%@392px、r=6px，oracle 测试会把它一并计入。
+### §8.0 Verification ledger for the previous version
+| Claim | Verdict | Evidence |
+|---|---|---|
+| Constant-error floor at small N (channel term) | **CONFIRMED** | F1 flat region, σ₀≈2 |
+| Linear-in-N error growth in tail (prior/saturation term) | **CONFIRMED** | F1 slope 0.686, AIC-selected |
+| Errors are zero-mean variance | **REFUTED — they are systematic bias** | F2: median signed = −|err| |
+| Measurement improves monotonically with token-grid density | **REFUTED** | F4 U-shape, min at training res |
+| Tail information floor estimable from existing sweep | **WITHDRAWN** | degenerate fit (m∞<0), n=17 |
+| Per-object mass falls with scene-level crowding | **INCONCLUSIVE by design flaw** (size confound) | P4 uncontrolled |
 
-**(b) 误差传播 / 反演稳定性（修正§3的错误论断）**
-`N̂ = A·g(f̂)`，`g(f)=−ln(1−f)/(πμ₂)`，`g′=1/(πμ₂(1−f))`。有效独立采样数 `n_eff ≈ A/(c·πr²)`（占用场相关长度~r，c≈3）。伯努利测量噪声传播：
-`CV(N̂) = √f / (√n_eff·√(1−f)·(−ln(1−f)))`
-逐点计算：f=0.3→1.83、f=0.5→1.44、f=0.8→**1.24（最小）**、f=0.9→1.30、f=0.99→2.16、f=0.999→4.58、f=0.9999→10.9（均除以√n_eff）。
-取 n_eff≈450：f=0.99 时统计 CV≈10%，f=0.999 时 22%。**审查修正：CV 在 f→1 处渐近发散**（令 ε=1−f，`CV ~ 1/(√n_eff·√ε·|ln ε|)→∞`），并非"根本不爆炸"；准确表述是发散极迟——实用区间 f≤0.95 内系统性偏差仍占主导，深饱和区（f>0.99）测量噪声与系统偏差叠加。§3 原"方差爆炸"表述过强、"不爆炸"表述过弱，以本段阶梯为准。
-最优工作点的推导：令 d(ln CV)/df=0 ⟹ `1 = 2f/(−ln(1−f))` ⟹ 解得 **f*≈0.797**。这是场景固有属性（由 N 和物体尺寸决定），不是可调旋钮。
+### §8.2 DERIVED: the channel floor (explains σ₀)
+Scene μ = Σ m̄ δ_{xᵢ}; observation y = h∗μ + ε, ε∼N(0,σ²I). For any linear statistic T(y)=∫φ̂(−ω)y(ω)dω,
+E[T] = m̄ ∫ φ̂(−ω)ĥ(ω) S(ω) dω, S(ω)=Σᵢe^{−iω·xᵢ}.
+S(ω) is configuration-dependent for all ω≠0 (Poisson fluctuations ~√N); only S(0)=N is configuration-free. Hence position-robust count information lives at DC, φ̂ concentrated at ω=0, giving
+Var(T) = σ²∫|φ̂|² ⪆ σ²/(m̄²|ĥ(0)|²)   ⇒   an N-independent absolute-error floor. **Matches F1's σ₀≈2.**
+Caveat (ASSUMED): h linear and DC-preserving. D1 tests DC preservation; if ĥ(0)≈0 the floor must be re-derived from higher-frequency statistics with √N-growing S(ω) variance (constant *relative* error instead).
 
-**(c) 尺度不变性定理 → 推翻我自己§2的路由规则**
-把图像从 392 重采到 S 像素评估：`λ(S)=N/S²`，`r(S)=r₀S/384`，故 `λ(S)πr(S)² = Nπr₀²/384² ≡ const` —— **理想测量的覆盖率与分辨率无关**（上采样不产生新信息）。因此"选分辨率把 f 调进敏感带"在数学上不可能，§2 原路由规则作废。那为什么 H0035/36 实测高分辨率有效？因为实测 f̂ 偏离真 f 的量是 token 网格混合误差，随网格变细而降——分辨率的作用是**降低测量偏差**而非改变 f。由此得到更干净的操作判据：
-**跨分辨率自洽路由**：`|f̂@res₁ − f̂@res₂| < τ` 则低分辨率可信；否则升分辨率直至 f̂ 稳定。经验阈值平台期(150–300)的存在性是该判据的必然推论。
+### §8.3 DERIVED + FITTED: visibility attenuation (explains the 0.69 slope as BIAS, not variance)
+Model (ASSUMED): each object contributes its *visible* footprint; readout integrates evidence linearly with perfect mean-mass calibration. For planar opaque overlap with Poisson germs at coverage f, the expected visible fraction of a disk is
+v(f) = (1/πr²)∫_disk exp(−λ|B(u,r)|) du ≈ e^{−λπr²} = 1 − f   (interior approximation, boundary correction O(r/√A)).
+Then E[N̂] ≈ N·v̄(f), i.e., signed error = −N(1−v̄): a *systematic multiplicative undercount*, exactly the bias shape F2 reports (not a variance term — a variance term would give symmetric errors).
+FITTED: implied visibility v̄ = 1 − (median signed err)/N gives ≈0.67 on [200,500) and ≈0.40 on [500,∞) — physically plausible for geometric coverage f∈[0.3,0.6], decreasing as density rises, with an extra collapse at N≳800 (F3, n=8, fragile). The match is order-correct, NOT a precision test (confounds: category mix, box sizes, halo softness).
+Consequence: because the deficit is a smooth *gain* error conditioned on local state, global recalibration is mathematically incapable of fixing it (one scalar cannot track a state-dependent gain) — this retroactively derives the old H0033/H0034 failures and prescribes the cure: condition the gain on measurable state (seed 2 / experiment O1).
 
-**(d) 排列非泊松的方向预言（可证伪）**
-簇集（吸引相关，鸟群）：给定 N 时重叠多于泊松 ⟹ f 偏低 ⟹ 反演低估。规则排列（排斥相关，货架网格）：重叠少于泊松 ⟹ f 偏高 ⟹ 反演高估。我们 dump 里尾部是严重**低估** ⟹ 若排除幅度饱和解释后仍低估，则预言主导偏离为簇集型——R0-B 可直接检验该符号。
+### §8.4 NEW DERIVED FACT: resolution U-shape (three-term decomposition)
+Write bucket error at eval size S as
+MAE_b(S) ≈ Floor_b + Shift_b(|ln(S/S₀)|) + SatGain_b(S),
+where SatGain_b decreases in S (finer grid → higher v(f) evidence), Shift_b grows with distance from the training resolution S₀=392 (positional-embedding interpolation, patch-to-object ratio drift — a train/eval distribution shift), Floor_b is S-independent (§8.2). Sparse buckets: f≈0 ⟹ SatGain inactive ⟹ pure U from Shift. Dense buckets: SatGain dominates ⟹ monotone decrease. **This reproduces all five buckets' shapes in F4 qualitatively and is falsifiable per-bucket.**
+Consequences: (a) any-resolution routing may only move *dense-side* images up; (b) the tail information floor CANNOT be extrapolated from this sweep (Shift contaminates large-S points for sparse buckets, and dense buckets have not saturated: [500,∞) fit degenerate) — only R0-I3's synthetic arm can locate it.
 
-**(e) 训练动力学：为什么 BCE 占用图不会重蹈 0.03–0.19**
-密度回归的病理不是损失几何本身（位置混合的密度积分仍守恒），而是**梯度信号-压力失衡**：GT 密度图仅 ~1–5% 像素非零，奖励质量的梯度信号被 weight decay/表征压力碾平，头部输出幅度收敛到坍缩平衡——这解释了质量亏损为何随物体像素面积减小而加剧（大物体稀疏图质量接近1，小物体密集图 0.03）。BCE 占用目标翻转了信噪比：密集区 30–60% 的 cell 携带 O(1) 概率信号，且目标是概率、无幅度标度可言。可检验推论：exemplar-box 质量应与物体像素面积正相关（dump 可验）。
+### §8.5 Assembled law (all terms now empirically anchored)
+|err| ≈ σ₀ + β·(N−N*)₊ , σ₀≈2 (DERIVED §8.2 + FITTED), β≈0.69 = 1−v̄ (DERIVED form §8.3 + FITTED magnitude), N*≈25–50 (empirical).
+Open: whether β flattens (floor reached) or accelerates (u(f) onset) beyond N≈800 — underpowered (n=8); decidable by R0-I3.
 
-**(f) 训练动力学的定量玩具模型（幅度坍缩的平衡点）——数值已实测校准**
-最简模型：头部对正密度像素输出幅度 a，目标高度 h，显著正像素占比 p，衰减映射 μa²。损失 `L=p(a−h)²+(1−p)a²+μa²`，dL/da=0：
-`a* = p·h/(1+μ)`
-**实测代入**（2026-08-24 服务器抽样300张train GT图）：`p` 中位 **0.055**（IQR 0.026–0.090，阈值0.1×峰值）；冠军配置 `weight_decay=1e-4` ⟹ μ≈0 ⟹ **a*≈0.055h**。与实测 exemplar-box 质量 0.03–0.19 同量级。审查声明两条：① 玩具模型描述训练分布边缘的幅度标定；字面成立将预言稀疏图整体缩水，与稀疏计数准确矛盾——机制A只约束"超出训练支撑的高密度需求"，分工由 dump 检验（box质量 vs 物体面积相关方向）。② 实测量是**积分比**、玩具预测的是**峰值比**，两者相等需假设空间展布相近——量级论证而非精确等式。
-机制B（压缩曲线来源）：位置不确定度 σ 增大时乘性衰减 `b=τ²/(τ²+σ²)` 预测压缩随密度单调恶化——§0表格 0.96→2.22 的形状。
-BCE 免疫性：正例占比=f 本身（敏感带内约30–80%）。
+### §8.6 Feasibility of ≤10 (updated)
+Tail ≤25% relative error requires v̄≳0.75 sustained through N≈1000 AND exemplar-conditioned m̄ with CV≲15%. v̄≈0.30 measured at the extreme ⟹ **currently failing killer-1 by 2.5×**; no physical violation — but the burden is on raising effective visibility (bandwidth/amodal evidence), not on recalibration.
 
-**(f2) 数值假设的实测替换记录（原为拍脑袋，现已钉死）**
-| 量 | 原假设 | 实测 | 结论 |
-|---|---|---|---|
-| 显著正像素占比 p | ~5%（拍的）| **5.5%** 中位（300图抽样）| ✓ 幸存 |
-| 权重衰减 μ | 0.05（拍的）| **1e-4**（N0021 config）| 修正：坍缩主因是标签频率平均 p·h 本身，连衰减都不需要——机制更干净 |
-| 物体半边长 @384 | 6px（拍的）| **~20px** 中位（box 26.5px × 缩放0.75）；密集尾部类更小 | 修正：n_eff 与 CV 随尺寸分档 |
-| 图内尺寸离散 CV(R) | 未估 | **0.224** 中位（3框6边）| κ−1≈(2×0.224)²≈0.20 ⟹ f=0.5 偏差≈7%，比我悲观例子温和；但 μ₂ 三框采样噪声 CV(R²)/√3≈26% 仍是单图反演的紧约束 |
-| 深饱和区统计CV | 统一"~10%" | 分档：r=6/10/20px 时 f=0.99 对应 **10%/17%/34%** | 修正：大物体场景深饱和区噪声不可忽略 |
+### §8.7 Standing experiments
+Unchanged: R0-I1 (scalar-vs-map probe, GPU 10min), R0-I2 (three-tier localization + D1 saturation probe), R0-I3 (synthetic floor — now the *only* route to the tail information limit, upgraded priority). New: **O1 offline conditional-gain fit** (server CPU, minutes): split-half fit of N̂=g(box_area, N_hat)·Σρ on existing dumps; measures how much of the 0.69 linear term is reclaimable by state-conditioned calibration without any training.
 
-**(g) 推理期动力学：跨分辨率一致性是个收敛过程**
-f̂(S) 随 token 网格 S 变细单调收敛到真 f（测量偏差 b(S)↓，H0035 的尾部单调改善是其经验证据）。一致性间隙 `δ(S)=|f̂(S₁)−f̂(S₂)|` 是当前偏差的可观测量代理，路由停止条件 `δ<τ` 即为不动点判据；无需保证 δ 单调，只需可测。
-
-## §1.6 定理级弹药（已证明的数学结论 → 一针见血的决策规则）
-**A. 连续渗流相变（Hall 1985；Meester–Roy《Random Geometric Structures》定理级结果）——最锋利的一根**
-二维重叠圆盘布尔模型在 `θ_c = 1−exp(−η_c) ≈ 0.676`（`η_c=λπr²≈1.128`）处发生**严格相变**：f<θ_c 时占用集以有限分支为主（分量数~个体数），f≥θ_c 时出现贯穿整图的巨分支。
-一针见血之处：它把"密集图难数"从质量抱怨升级为**可判定的逐图机制分类**——
-- bulk图（f≪0.68）：亚临界，"个体"存在良好，任何合理读出都该准（实测bulk MAE 3–9 ✓）；
-- 尾部图（f→0.5–0.7）：恰在临界窗内，涨落最大、簇相关性主导——75.9% SSE 集中于此不是偶然，是临界现象；
-- f≥θ_c：巨分支吞并个体，**"数个体"问题本身不适定**，唯一有意义的量是强度 λ ——正是反演读出的领地。
-顺带严格击毙拓扑范式的高密度野心：Betti-0 计数在 f>θ_c 后必然失效，且是突变不是渐变。同时给出**逐图读出选择器 v3**：f̂<θ_c−margin 可直接数连通分支（更便宜更稳）；f̂≥θ_c 强制走反演。注意与§1.5(c)尺度不变性自洽：物理 f 不随分辨率变——分辨率改变的是测量质量，不改变相区归属。
-
-**B. Hug–Weil 唯一性（Adv. Appl. Prob. 33 (2001) 39–60；d=2,3）——适定性证书**
-平稳布尔模型的本征体积密度 {Vⱼ} (j=0..d) **唯一确定**粒子过程强度 γ 与典型颗粒矩。即：面积分数+边界长度+欧拉三个观测联立解 `(λ, Ā, Ū)` 不存在伪解——反演是适定的，不是拟合巧合。这把"多解担忧"从工程问题降格为不存在的问题。
-
-**C. Laslett 定理 + M/G/∞ 对应（Laslett 1983；queueing 经典）——高密度的无偏估计通道**
-一维扫描线上的布尔模型 ≡ M/G/∞ 排队：泊松到达=圆心、服务时长=颗粒长、合并区间=忙期。Laslett 定理保证切点经变换后恢复同强度泊松结构。实操含义：对占用图做行扫描，拟合**分量长度分布的形状**（M/D/∞ 有闭式 Laplace 变换；我们实测 CV(R)≈0.224 支持窄分布近似）即可估计 λ——用分布形状而非两个矩，绕开 Weil(1988) 矩方法的已知偏差，比 van Lieshout 的 MCMC-MLE 便宜几个数量级。尾部桶 [500,∞) 的专用升级件，CPU 即可跑。
-
-**D. 配套三件（支撑角色）**
-Hadwiger 表征定理：本征体积是仅有的平移旋转不变可加赋值 ⟹ {面积,周长,欧拉} 是随机集的**完备正则测量基**，选它们不是品味是定理。Robbins 定理：软欧拉可测。Slivnyak–Mecke/Campbell：以上所有公式的推导机器。Cramér–Rao（数值化）：给定占用图观测下 λ 的 Fisher 信息 → 任意估计器的方差下界 = **停止判据**——若 R0-C 后 CR 下界仍高于 MAE≤10 所需精度，则该分辨率/该图的信息论天花板已到，加架构无益。
-
-**综合决策树（定理背书版）**：每图估 f̂ → f̂<θ_c−margin 走分量计数 / θ_c≤f̂ 走覆盖反演（+可选C通道）/ 深饱和 f>0.95 且 C 通道分歧 → 报告信息上限。每一分叉都有定理署名，不再有经验阈值的独断。
-## §2 提案：占用-反演读出 OIR (Occupancy-Inversion Readout)
-把学习问题从"回归幅度"改成"预测占用 + 解析反演"：
-1. **学习目标改为 exemplar 条件占用图 o(x)∈[0,1]**（BCE 监督，GT 占用由 GT 密度图阈值重建）。占用是伯努利量：**无幅度天花板、无质量标度需要锚定** —— DISTILLED 事实#3 从根上消失。
-2. **计数不在网络里**：f̂ = mean(o)，N̂ 由 §1.5(a) 的三方程组联立解出（含尺寸离散校正），网络只负责它擅长的（空间判别）。
-3. **分辨率路由（按§1.5(c)修正版）**：跨分辨率自洽判据 `|f̂@392 − f̂@518| < τ → 用392`，否则升辨率至 f̂ 稳定。经验阈值平台期(150–300)的存在性是该判据的必然推论。
-4. 参数预算不变（复用冠军 backbone+FiLM exemplar 注入，head 输出1通道 sigmoid），~23M。
-
-## §3 诚实的失败模式（预注册，按§1.5推导修正）
-- 极端重叠图（f>0.99，推算约 GT>1500@392px）：统计CV按§1.5(b,f2)尺寸分档 10–34%，且系统性偏差被 −ln(1−f) 放大、矩方法偏差深饱和区失稳——预期只能部分修复 [600,∞)；彻底修复需更高 token 网格密度或承认信息上限。
-- 尺寸离散：一阶偏差 `½(κ−1)(−ln(1−f))` 已推导（§1.5a）；κ=1.5、f=0.5 时低估17% —— 必须用边界长度方程联立消去，单方程天真反演注定失败。
-- GT 占用重建有阈值伪影 → R0 用 oracle 扫阈取上界，上界不行就杀，不给借口。
-
-## §4 R0 kill-gates（锁死，不得改）
-- **R0-A 估计器自洽**（CPU 10min）：合成泊松圆盘图，反演误差 <5%。 sanity。
-- **R0-B oracle 上界**（CPU 20min）：GT 密度图→oracle 最优阈值→f→反演（r 取真值）。PASS IF val Spearman>0.9 且 [300,∞) 桶 rel-err 中位 <40%。FAIL ⇒ 整个估计器类出局。
-- **R0-C 可学习性**（GPU 25min）：冻结冠军 backbone + 2层头 + sigmoid，BCE 训占用图 10ep。PASS IF cell-AUROC>0.80 且反演后 val MAE ≤24（即25分钟训练就贴平40分钟冠军，否则读出无红利）。
-- 节点假设（过门后才注册）：IF OIR 读出替换幅度密度头 IN 冠军谱系 THEN routed val MAE ≤16.5 且 tail[500+) ≤250 BECAUSE 计数=覆盖率解析反演（无幅度饱和，质量由构造锚定）。DISPROVED IF routed ≥19.2 或 bulk[0,75) 劣化>0.5。
-
-## §5 查证结果（2026-08-24 全网检索）
-**数学确实全老**，且比§1写的更现成：
-- 覆盖率反演强度是 Matheron(1975)/Miles(1976)/Weil(1988) 的矩方法三方程组：`p=1−exp(−λ·Ā)`、边界长度密度 `L_A=λ(1−p)Ū`、欧拉密度 `χ_A=λ(1−p)−λ²Ū²/(4π)` ——三个观测量联立可直接解出 `(λ, Ā, Ū)`，连蒙特卡洛标定都不用。见 Gallego & Simó (Image Anal Stereol) 与 Hug-Last-Weil 综述 arXiv:2308.05861。
-- 极端重叠下"被完全盖住的粒子不可辨识"问题有正式解：van Lieshout & van Zwet (2000) bombing-model 强度的 MLE（coupling-from-the-past）；Weil 矩方法已知有偏——R0-B oracle 测试直接量化这个偏差。
-**但映射无人占据**：
-- 计数文献全部是 密度回归/检测/匹配/生成式；显微细胞计数也全是密度回归或分割计数（ilastik、FCRN、Count-Ception 等），无随机集反演。
-- 最近邻是 Rajan et al. "Cox Processes for Counting by Detection"（CNN 分类器输出→点过程强度贝叶斯估计）：精神相近但假设实例可分（blob 可数），无布尔并的反演、无 exemplar 条件、未上过 FSC147。
-- 材料科学用 germ-grain 模型合成训练图做分割（Altendorf et al.）——方向相反（模型→数据，非 数据→计数）。
-**新颖性辩护词定稿**：诊断（饱和压缩曲线驱动读出设计）+ 映射（exemplar→grain尺寸 r、占用头→覆盖率 f、Davy-Miles 三方程→N）在 CAC 中未被占据；引用源头写立体学教材而非计数论文，novelty_check 应近零命中。风险如实预注册：矩方法偏差、非泊松排列（簇集/规则网格）需二参推广、f>0.99 深饱和区测量噪声与系统偏差叠加（CV阶梯见§1.5b）。
-
-## §6 具体设计：OIR-Net（~24.3M / 预算32M）
-```
-图片(392²)
-   │
-DINOv2-S/reg4（timm，22M，dynamic_img_size）
-   ├─ 冻结 blocks 0-9            ← 时标分离杠杆 H0032✓
-   └─ 微调 blocks 10-11 @lr×0.1   ← 已验证唯一可训范围
-   │
-block6 + block11 特征拼接 → 784格 × 768ch
-   │
-exemplar条件化：3框 → 格网ROI池化 → 均值+宽高Fourier编码(128ch)
-   → FiLM逐通道scale/shift调制全部token          ← 替代N0028未完成的余弦门控
-   │
-颈部 Conv3×3 768→256→128（GroupNorm+GELU，~2M）  ← 不上采样，保持28×28
-   │
-头 1×1conv → sigmoid → 占用概率图 ô(x)∈[0,1]     ← 全网络唯一输出
-```
-| 参数 | 量 |
-|---|---|
-| DINOv2-S | 22M（可训仅 blocks10-11+norm ≈3.6M）|
-| 颈部 | ~2.06M |
-| FiLM(128→1536)+头 | ~0.21M |
-| **合计** | **~24.3M < 32M ✓** |
-
-训练配置：bs8@392 · AdamW lr=1e-3 / wd=1e-4（冠军原配实测值）· ImageNet norm+flip 开（N0027✓收敛加速）· **32ep上限+E16绝对bar**（N0021教训：best@E25后15ep全废）· 预算~26min压线τ_max。
-预注册双预案：① R0-C AUROC<0.7 → 判FiLM太弱，换cross-attention重试一次（§7 waiver上限），再败诚实挂卡；② f̂校准好但bulk反演有偏 → 锅在框估尺寸，切两方程解。
-
-## §7 推理流程（网络画地图，公式算数量）
-1. 前向一次：392÷14=28 → 784格占用概率 ô
-2. `f̂ = mean(ô)` —— 数学可观测量到手，网络使命结束
-3. 尺寸从框白拿：`πr̂² ≈ mean(框宽×框高)·κ_corr`（κ_corr≈0.8-1 合成盘标定一次）
-4. 反演：`λ̂ = −ln(1−f̂)/(πr̂²)`，`N̂ = λ̂·A`。无饱和：f̂高一点 N̂ 就大一点
-5. 自检A · 方程对账：从ô梯度模量软边界长度（第二方程），与f联立解出不依赖框的 (λ,尺寸)；两套答案差>30% → 标记偏离随机放置假设（强簇集/网格），该图降权或回退冠军读出
-6. 自检B · 跨分辨率一致性：同图518px再跑一遍，`|f̂₃₉₂−f̂₅₁₈|<τ(0.03)` 则收工，否则取大图——替代经验阈值200的新路由（平台期存在性由此预言）
-7. 相区选择器（§1.6A定理背书）：f̂<θ_c−margin(≈0.63) → 该图亚临界，可直接数连通分量交叉验证；f̂≥θ_c(0.676) → 反演强制；f>0.95且C通道分歧 → 报告信息上限。逐图分派，不再一刀切。
-
-与老推理对比：密度求和（幅度会塌）→ 概率平均+代数（无幅度概念）；无自检 → 双重自检全带诊断量。
-
-## §8 损失函数规格（一项，处处故意）
-```
-L = −(1/784) Σ_c [ w·t_c·log ô_c + (1−t_c)·log(1−ô_c) ]      SoftBCE，仅此一项
-```
-- **软标签 t_c∈[0,1]**：GT密度图低阈值二值化（τ≈2–5%峰高，oracle扫阈定默认）→ 14px平均池化 → 格子被盖面积比。硬0/1会毁掉面积比例信息，反演即失准。
-- **BCE的唯一合法性与交接点**：BCE是严格合适评分规则，极小化解=条件概率 P(被盖|特征) —— 正是公式假设网络在估的量；公式要求无偏f̂ → proper scoring rule保证。
-- **pos_weight w**：负/正格子比，训练集统计固定值预注册（不用per-batch）。
-- **排除项及前科**：① 密度MSE——平衡点 a*≈p·h/(1+μ)=0.055h 实测级坍缩（§1.5f）；② 计数回归头——标量头重新引入幅度天花板；③ |N̂公式−GT| 直优最终指标——把代数搅进梯度，仅R2消融臂。
-- **免费自平均性质**：计数只需 mean(ô) 对，不需每格准；概率误差零均值时784格平均自动抵消。老范式幅度缩水会被积分放大，无药可救——这是结构性优势非调参运气。
-- Dice锐化项不进R1（扭曲边际校准=伤命根子），预注册为AUROC停滞时的R2预案。
-
-## §9 给 Idea Agent 的落地指令
-本文件§0–§8已是完整规格。你的工作：把它形式化为 idea.md 卡片——假设按§4节点假设原文抄录（阈值锁死不得改）、novelty_check 跑 stage-1（预期零相似命中，§5辩护词直接粘）、R0-A/B/C 过门后才许写 model.py/config.py 进树。执行顺序铁律：R0-A(CPU)→R0-B(oracle上界)→R0-C(GPU)→建完整OIR-Net。任何一步FAIL即终止谱系，journal记录，不留恋。
+### §8.8 Endgame (unchanged in substance, re-derived basis)
+Amortized Bayesian counter with proper-scoring posterior output (immune to gain collapse by construction), exemplar-carried m̄ calibration (killer 2), bandwidth widening via multi-resolution *dense-side-only* evidence (killer 1), feature-saturation repair via partial FT if D1 confirms closure (killer 3). MAE converges to the posterior median the channel permits — the operational definition of the information-theoretic limit.

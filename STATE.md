@@ -1,36 +1,31 @@
-# STATE — Session 2026-08-24 (closed, distilled)
+# STATE — Session 2026-08-24 (evening, Lead=qkun-local)
 
-**Champion ckpt**: N0021_dino_partialft val MAE **20.438** @23.11M (`/data/runs/N0021_dino_partialft/best.pth`)
-**Effective best**: **MAE 19.18 / RMSE 66.37** — routing readout (N̂@392≥200→518px), split-half validated
-**New node**: N0028_scb_multires val MAE **~48.4 @E2** (23.55M, 23.11→+0.44M), SCB-lite γ=0 + multi-res {392/518} alternation
+**Champion ckpt**: N0021_dino_partialft val MAE **20.438** @23.11M (`/data/runs/N0021_dino_partialft/best.pth` server-side ckpt was smoke-overwritten; retrain scheduled)
+**Effective best**: routed readout (N̂@392≥200→518) **MAE 19.18 / RMSE 66.37** split-half honest
+**GPU**: RTX3060 idle · creds `local/address_and_password.md`
 
-**Server**: UP (RTX3060 12GB idle) · creds: `local/address_and_password.md`
+## Read `docs/DISTILLED_2026-08-24.md` first (levers/facts), then GOD v6 §1 facts + §4 tombstones.
 
-## Read `docs/DISTILLED_2026-08-24.md` FIRST — it replaces node-dir archaeology
+## What happened this block (all CPU/GPU probes under /data/asset/r0i_probe/, outside repo)
+- **Seed nodes both duds**: N0029_loghead FAIL (incomplete E33/40, best 20.753 > champion); N0030_sizenorm degenerate execution (9.3s, mae==rmse==151.95) invalid. H0043/H0044 unresolved, not refuted.
+- **N0028 zombie cleaned**: died E3 silently long ago; tree.json honesty pass done.
+- **R0-I localization suite** (my runs):
+  - global-stats readout on frozen feats: 63.4 MAE → scalarization trap reconfirmed
+  - linear spatial cell probe (sqrt target): **47.1** — no-exemplar linear ceiling ≫ champion
+  - D1: token-norm anti-correlates with local density (−0.205 cell / −0.564 image) — norm≠info
+  - **frozen-backbone + fresh champion head stack = 22.431** vs partial-FT 20.403 ⟹ **backbone FT worth ~2.0 MAE**; features not information-starved at low-20s
+- **CPU error-law verification** (verify_channel_floor.py): two-regime law `|err| ≈ 2 + 0.69·(N−50)₊` confirmed; errors are systematic gain BIAS (94% undercount tail), not variance; **resolution U-shape discovered** — bulk worst at 518 (10.6 vs 3.3@392), only dense-side routing safe.
+- GOD v6 rewritten: tombstones updated (monotone-resolution & cross-res-consistency routing dead), §8 channel-floor program v2 with DERIVED/FITTED/ASSUMED labels.
 
-Contains: confirmed/refuted levers with evidence, 5 key measured facts, and the three fully-specified open proposals:
-
-- **P1 N0028_scb_multires** — SCB-lite exemplar gating (γ=0 init) + {392,518} joint training; target routed ≤15.9; H0040/H0042 bars pre-specified
-- **P2 COIN R0** — physics kill-gate: Spearman ρ(similarity-map sum, count)>0.75, no training — **FAIL** (ρ=0.018)
-- **P3 AXIOM-TTC R0** — drift audit on our own ckpt before any TTT work — **PASS** (Spearman 0.349, 0.426)
-
-## Session ledger
-
-- Nodes run: N0024 early-stopped (H0032 no cross-paradigm transfer), N0025 eval lab (H0033/34 refuted → mass-anchoring discovery), N0026 res sweep (H0035/36 ✓ routing), N0027 hygiene tie (H0037 band-disproved, H0039 SWA refuted)
-- Hypotheses H0030–H0039 booked; index rebuilt; 3 code bugs found (input-norm missing→fixed in N0027, flip never on→flag exists, result.json last-ep headline→UNFIXED)
-- New node N0028_scb_multires added: SCB-lite + multires training (smoke→40ep pending); tree status updated
-
-## Distillation: dead nodes/cards archived to `tree/archive_2026-08-24/` & `tasks/archive/`
+## Implications (the one paragraph that matters)
+Readout re-parameterization around the current recipe is a ±0.5 noise game (N0029 concurs). Backbone FT buys ~2.0. Everything points the same way: to move toward ≤10 you must ADD information — dense-side bandwidth, visibility/amodal evidence, exemplar-conditioned mass calibration — not reshuffle the readout. Bulk floor ≈2 counts is already at channel level.
 
 ## Next queue
+1. **R0-I3 synthetic floor** (CPU-heavy, ~30min): only remaining route to quantify the TAIL information limit (existing sweep can't extrapolate).
+2. **O1 offline conditional-gain fit** (server CPU minutes): split-half `g(box_area, N_hat)` on existing dumps — prices how much of the 0.69 slope is reclaimable without training.
+3. If pursuing bulk: backbone distillation/compression study (Tier-A gap says features have ~2× headroom over raw-pixel baseline of similar MAE 64 — both weak; real ceiling needs Tier-A with nonlinear probe).
+4. Re-train N0021 ckpt on server (smoke-overwritten) before any deployment-grade eval.
 
-1. **P1 N0028_scb_multires** — monitor training (currently E2 @48.41 improving toward 15.9 target); if H0040/H0042 pass → R1 attribution arms; otherwise refute and back to champion lineage
-2. P2/P3 R0 kill-gates are GPU-cheap; results recorded: COIN FAIL (ρ too low), AXIOM PASS (drift predictive) — proceed to R1 only if needed
-3. If P1 wins: refit routing threshold split-half on new ckpt; then P1's R2 attribution arms
-4. Champion lineage alternates: lr_mult {0.05,0.2}; blocks 9-11; TT-Norm eval-only (research-ranked #1 lever)
-5. Unverified flags: our manifest train-size (3659 official vs 6591 mission text); DINOv3-S availability
-
-## Rules refreshed this session
-
-- Multi-angle ideation mandatory (math+physics lenses + champion keeper) — AGENTS.md Step 3
-- Gates: novelty_check → check_hypothesis → calibration_report (never skip)
+## Rules refreshed
+- Probe scripts live in /data/asset/r0i_probe (server) + /tmp/opencode (local); repo untouched by probes.
+- Gates unchanged: novelty_check → check_hypothesis → calibration_report.
