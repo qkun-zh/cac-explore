@@ -62,8 +62,15 @@ python code/selection/select_next.py parent          # → best parent by qualit
 python code/selection/select_next.py hypo --parent <ID>  # → Q_t hypothesis set
 ```
 
-### Step 3: Idea Agent (subagent)
-Reads memory/index.json + parent's synthesis.md. Writes idea.md with:
+### Step 3: Idea Agent (subagent) — MANDATORY MULTI-ANGLE DISPATCH
+Idea generation MUST be parallel multi-angle, never a single agent:
+- **≥1 pure-mathematics lens** (first-principles: point processes, decision theory, equivariance, identifiability)
+- **≥1 pure-physics lens** (measurement/inverse-problem theory: particle counting, deconvolution, shot noise, super-resolution)
+- **≥1 champion-lineage agent** that builds incrementally on the current best node — the champion's benefits must NEVER be dropped while exploring disruption
+- Optional extra lenses: counter-intuitive, low-cost/high-yield details, training dynamics
+Zero-base lenses get NO champion anchoring, NO refuted-list foreclosure, NO minimal-experiment bias; each returns ONE sharpest proposal with mechanism + kill-or-confirm ladder. The Lead integrates and picks.
+
+The Idea agent then reads memory/index.json + parent's synthesis.md. Writes idea.md with:
 - 1-2 targeted changes from parent (NOT full redesign)
 - Each change maps to a specific hypothesis being tested
 - Falsification criteria pre-registered
