@@ -134,7 +134,7 @@ def make_loaders(cfg, smoke):
         from data.fsc147 import FSC147Detect as DS, collate_detect as collate
     else:
         from data.fsc147 import FSC147Density as DS, collate_density as collate
-    tr = DS(root, size, "train")
+    tr = DS(root, size, "train", augment=bool(cfg.get("augment", False)))
     va = DS(root, size, "val")
     bs = int(cfg.get("batch_size", 8))
     nw = int(cfg.get("num_workers", 4))
@@ -214,6 +214,12 @@ def main():
     assert total_p < float(cfg.get("max_params_M", 32)), f"params {total_p:.2f}M over budget"  # mission budget: 32M
 
     train_loader, val_loader, _ = make_loaders(cfg, cfg["smoke"])
+    dl_hi = None
+    if bool(cfg.get("dual_res_eval", False)) and not cfg["smoke"]:  # optional rider: eval@448 (≤10 LOC)
+        sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        from torch.utils.data import DataLoader
+        from data.fsc147 import FSC147Density as DSH, collate_density as CH
+        dl_hi = DataLoader(DSH(str(cfg.get("data_root", "/data/dataset/FSC147")), int(cfg.get("dual_res_size", 448)), "val"), batch_size=4, shuffle=False, num_workers=2, collate_fn=CH, pin_memory=True)
     if hasattr(model, 'param_groups'):
         optim = torch.optim.AdamW(model.param_groups(float(cfg.get("lr", 1e-3)),
                                                     float(cfg.get("weight_decay", 1e-4))))
@@ -236,6 +242,11 @@ def main():
     reg_w = float(cfg.get("reg_weight", 1.0))
 
     best = float("inf"); timed_out = False; oom = False
+    swa_s, swa_e = cfg.get("swa_start"), cfg.get("swa_end")
+    use_swa = swa_s is not None and swa_e is not None
+    if use_swa:
+        swa_s, swa_e = int(swa_s), int(swa_e)
+    swa_sum, swa_lo, swa_hi = {}, None, None
     ckpt = os.path.join(run_dir, "best.pth")
     for ep in range(1, epochs + 1):
         if time.time() - t_start > args.timeout_min * 60:
@@ -304,6 +315,12 @@ def main():
         except torch.cuda.OutOfMemoryError:
             oom = True; break
         sched.step()
+        if use_swa and swa_s <= ep <= swa_e:  # SWA-lite: CPU accumulator of trainable params
+            for n, p in model.named_parameters():
+                if p.requires_grad:
+                    v = p.detach().float().cpu()
+                    swa_sum[n] = v if n not in swa_sum else swa_sum[n] + v
+            swa_lo, swa_hi = (ep if swa_lo is None else swa_lo), ep
         mae, rmse = evaluate(model, val_loader, device, seq=seq_mode, ebc=ebc_flag, detect=detect_mode,
                              conf_thr=conf_thr, max_frac=float(cfg.get("eval_frac", 1.0)))
         tag = ""
@@ -318,9 +335,22 @@ def main():
 
     status = "failed" if oom else ("timeout" if timed_out else "success")
     mae, rmse = evaluate(model, val_loader, device, seq=seq_mode, ebc=ebc_flag, detect=detect_mode, conf_thr=conf_thr)
+    diag = {"oom": oom, "instability": not math.isfinite(best), "smoke": cfg["smoke"], "params_M": round(total_p, 2)}
+    if dl_hi is not None:
+        m448, r448 = evaluate(model, dl_hi, device, seq=seq_mode, ebc=ebc_flag, detect=detect_mode, conf_thr=conf_thr)
+        diag.update(mae448=round(m448, 4), rmse448=round(r448, 4))
+    if use_swa and swa_sum:  # uniform-average window (clamped to epochs actually run)
+        cnt = swa_hi - swa_lo + 1
+        swa_sd = {n: v / cnt for n, v in swa_sum.items()}
+        torch.save({"epoch_window": [swa_lo, swa_hi], "truncated": swa_hi < swa_e, "model": swa_sd},
+                   os.path.join(run_dir, "swa.pth"))
+        model.load_state_dict(swa_sd, strict=False)
+        swa_mae, swa_rmse = evaluate(model, val_loader, device, seq=seq_mode, ebc=ebc_flag, detect=detect_mode, conf_thr=conf_thr)
+        diag.update(swa_mae=round(swa_mae, 4), swa_rmse=round(swa_rmse, 4),
+                    swa_epoch_window=[swa_lo, swa_hi], swa_truncated=bool(swa_hi < swa_e))
+        print(f"[engine] swa window=[{swa_lo},{swa_hi}] MAE={swa_mae:.3f} RMSE={swa_rmse:.3f}", flush=True)
     write_result(status, {"mae": mae, "rmse": rmse, "best_mae": best},
-                 {"train_seconds": round(time.time() - t_start, 1), "epochs_done": epochs if not (timed_out or oom) else "partial"},
-                 {"oom": oom, "instability": not math.isfinite(best), "smoke": cfg["smoke"], "params_M": round(total_p, 2)})
+                 {"train_seconds": round(time.time() - t_start, 1), "epochs_done": epochs if not (timed_out or oom) else "partial"}, diag)
     print(f"[engine] done status={status} best={best:.3f}", flush=True)
 
 

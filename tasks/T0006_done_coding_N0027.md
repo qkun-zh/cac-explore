@@ -1,6 +1,7 @@
 # T0006_coding_N0027_norm_flip_swa
 
-- status: pending          # pending -> claimed_<agent> -> done | cancelled
+- status: done               # pending -> claimed_<agent> -> done | cancelled
+- finished: 2026-08-24T10:15:00+0800
 - created: 2026-08-24T09:57:00+0800
 - role: coding
 - node: tree/nodes/N0027_norm_flip_swa
@@ -37,3 +38,11 @@ SPEC:
    completion marker; never blocking loops.
 5. Report back: unified diff summary (engine), node files written, exact smoke output lines,
    confirmation nothing committed. Claims will be verified against filesystem (hallucination rule).
+
+EVIDENCE (coding agent, 2026-08-24):
+- Node files: model.py (champion copy + ImageNet buffers in_mean/in_std @ forward top; nothing else), config.py (champion byte-identical + augment/swa_start=14/swa_end=28/dual_res_eval/dual_res_size=448). NOTE: dropout stays 0.1 per champion cfg/idea.md (prompt said 0.15 — cfg value wins).
+- Engine diff (+36/-3): L137 augment passthrough (default False); SWA-lite (~19 LOC: CPU accumulator of trainable params E14-28, uniform avg → swa.pth {epoch_window,truncated,model} → load_state_dict(strict=False) → one evaluate() → diag swa_mae/swa_rmse/swa_epoch_window/swa_truncated); dual-res rider 10 LOC (val@448 bs4, final-epoch eval only, diag mae448/rmse448); headline untouched. fsc147.py + champion node untouched.
+- Smoke N0027 --smoke --epochs 16 (server): `[normdbg] post-norm range=[-2.118,2.640]` (debug print verified then removed+resynced, md5 2a65ea3e) · `params_M: 23.11` · `[engine] swa window=[14,16] MAE=2.012 RMSE=2.529` · diagnostics `"swa_mae":2.0121,"swa_truncated":true` · swa.pth written (18.4MB) · status=success.
+- Regression N0021 --smoke --epochs 2 (flags-off): status=success, no swa/dual lines, params=23.11M — identical to N0027 ⇒ norm adds zero params (STATE's 23.26M was a different accounting).
+- Real-data sanity (temp script, deleted after): val sums finite>0 · flip@i sign_ok=True count_preserved=True inside=True · 448 loader fwd grid [2,1,32,32] finite.
+- Nothing committed/pushed locally or on server; real 40ep NOT launched (Executor's).
