@@ -147,9 +147,9 @@
   "N0027_norm_flip_swa": {
    "parent": "N0021_dino_partialft",
    "children": [],
-   "status": "running",
-   "best_metric": null,
-   "train_seconds": null,
+   "status": "done",
+   "best_metric": 20.403,
+   "train_seconds": 1513,
    "quality": null,
    "avail": null,
    "score": null,

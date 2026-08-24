@@ -158,6 +158,56 @@
           "reasoning": "Offline per-image routing on existing dump: N>=200->518 else 392 gives MAE 19.178 (-6.2%) RMSE 66.37 (-16.9%); else-448 variant gives 19.95/64.79. Threshold plateau 150-300 (19.95-19.84 range on varia"
         }
       ]
+    },
+    "H0037": {
+      "text": "IF imgs are normalized with timm default ImageNet mean=(0.485,0.456,0.406), std=(0.229,0.224,0.225) applied to the /255 tensor (node-local, inside model.forward) IN the champion partial-FT recipe kept otherwise identical THEN val best MAE <=19.94 (=20.44-0.5) BECAUSE frozen blocks 0-9 currently consume off-distribution input (fsc147.py:68 emits imgs/255 only) and realigning with DINOv2 pretraining statistics restores discriminative frozen features. DISPROVED IF MAE in [20.14, 20.74]. NOTE: lr retune deliberately excluded from this arm (one follow-up lr_mult arm only if disproof lands in noise band).",
+      "confidence": 0.445,
+      "n_tested": 1,
+      "status": "uncertain",
+      "tags": [
+        "input-norm",
+        "hygiene",
+        "N0027"
+      ],
+      "log": [
+        {
+          "source_node": "N0027_norm_flip_swa",
+          "evidence_type": "contradicts",
+          "strength": 0.55,
+          "reasoning": "Joint arm (norm+flip): best 20.403 vs champion 20.438 (-0.17%, inside noise); bar <=19.94 missed, lands in pre-registered disproof band [20.14,20.74]. Convergence much faster (22.47@E10 vs ~28@E10) bu"
+        }
+      ]
+    },
+    "H0038": {
+      "text": "IF the existing horizontal-flip augment (p=0.5, train split only, fsc147.py:63-66, img+density+bbox consistent) is enabled via cfg['augment'] on top of the H0037 norm fix IN a single JOINT training arm of the champion lineage THEN joint best MAE <=19.74 BECAUSE mirror symmetry doubles effective train data at zero cost while counts are flip-invariant. DISPROVED IF joint MAE >20.44. HONEST LIMIT: flip is NOT separately testable in the same run as norm; individual attribution runs ONLY as a norm-only second arm IF the joint arm wins.",
+      "confidence": 0.5,
+      "n_tested": 0,
+      "status": "uncertain",
+      "tags": [
+        "aug-flip",
+        "hygiene",
+        "N0027"
+      ],
+      "log": []
+    },
+    "H0039": {
+      "text": "IF a uniform running average of TRAINABLE parameters over epoch ends E14-E28 is saved as swa.pth and evaluated once after the training loop IN the shared engine (zero extra training time) THEN swa-MAE < best-single-MAE - 0.2 BECAUSE parameter averaging selects the flat-minimum basin and cancels the late-epoch RMSE tail-drift observed in the champion (79.8->83.1 over E26-40). DISPROVED IF swa-MAE >= best-single-MAE - 0.2.",
+      "confidence": 0.42,
+      "n_tested": 1,
+      "status": "uncertain",
+      "tags": [
+        "swa",
+        "dynamics",
+        "N0027"
+      ],
+      "log": [
+        {
+          "source_node": "N0027_norm_flip_swa",
+          "evidence_type": "contradicts",
+          "strength": 0.8,
+          "reasoning": "SWA over E14-28 gives 21.083 vs best-single 20.403 (+0.68 WORSE). Iterate averaging fails here - late-phase epochs are not bouncing in one basin but drifting (consistent with causal.md RMSE-creep acco"
+        }
+      ]
     }
   }
 }
