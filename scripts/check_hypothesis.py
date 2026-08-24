@@ -24,6 +24,8 @@ ROOT = Path(__file__).resolve().parent.parent
 LEDGER = ROOT / "memory" / "hypotheses.jsonl"
 
 MARKERS = ["IF", "IN", "THEN", "BECAUSE", "DISPROVED"]
+MARKER_RE = [(m, re.compile(rf"\b{m}\b")) for m in MARKERS]
+FALSIFIER_RE = re.compile(r"DISPROVED\s+IF\s*(.+)$", re.DOTALL)
 MEASURE = re.compile(r"(<=|>=|==|<|>|\d)", re.IGNORECASE)
 MECHANISM_MIN = 20
 
@@ -35,24 +37,26 @@ def validate(text: str):
         return ["empty text"], []
 
     pos, last = [], -1
-    for m in MARKERS:
-        i = raw.find(m)
-        if i < 0:
+    for m, rx in MARKER_RE:
+        mt = rx.search(raw)
+        if not mt:
             errors.append(f"missing marker {m!r}")
             pos.append(None)
         else:
-            pos.append(i)
-            if i < last:
+            pos.append(mt.start())
+            if mt.start() < last:
                 errors.append(f"marker {m!r} out of order")
-            last = max(last, i)
+            last = max(last, mt.start())
+
+    complete = len(pos) == 5 and all(p is not None for p in pos)
 
     def seg(a, b):
-        return raw[pos[a] + len(MARKERS[a]):pos[b]].strip(" ,.:;") if (pos[a] is not None and pos[b] is not None) else None
+        return raw[pos[a] + len(MARKERS[a]):pos[b]].strip(" ,.:;")
 
-    choice = seg(0, 1) if len(pos) == 5 and all(p is not None for p in pos) else None
-    scope = seg(1, 2)
-    effect = seg(2, 3)
-    mech = seg(3, 4)
+    choice = seg(0, 1) if complete else None
+    scope = seg(1, 2) if complete else None
+    effect = seg(2, 3) if complete else None
+    mech = seg(3, 4) if complete else None
 
     if choice is not None and not choice:
         errors.append("empty [choice]")
@@ -65,9 +69,9 @@ def validate(text: str):
     elif mech and len(mech) < MECHANISM_MIN:
         warnings.append(f"mechanism very short ({len(mech)} chars)")
 
-    d = raw.find("DISPROVED")
-    falsifier = raw[d + len("DISPROVED"):].strip(" :.If") if d >= 0 else ""
-    if d >= 0:
+    fm = FALSIFIER_RE.search(raw)
+    falsifier = fm.group(1).strip() if fm else ""
+    if "DISPROVED" in raw:
         if not falsifier:
             errors.append("empty falsification criterion")
         elif not MEASURE.search(falsifier):
