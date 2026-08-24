@@ -9,7 +9,9 @@
 1. `cd ~/cac_explore && git pull --ff-only`
 2. Read this document, then `STATE.md`
 3. **Preflight**: `ssh -o ConnectTimeout=8 -o BatchMode=yes cac-server 'echo SERVER_OK'`
-   - OK → proceed; timeout → degraded mode (Idea/research only, tell user to rotate server)
+   - OK → proceed; timeout → check `local/address_and_password.md` (mtime) for fresh creds and re-onboard: `python3 scripts/install_key.py` (installs pubkey + rewrites ssh alias), then retry preflight
+   - Still down → degraded mode (Idea/research only, tell user to rotate server)
+   - ALWAYS treat `local/address_and_password.md` as the source of truth for host/port/password — the user updates it on every rotation; never assume the old address works
 4. `git log -1 --format=%ci -- docs/inspiration_from_GOD.txt` → if recent, read it (user hints)
 5. Read on demand: `docs/PROTOCOL.md`, `tail journal/events.jsonl`, `memory/failure_modes.md`
 
@@ -102,7 +104,8 @@ README ≤120 · AGENTS ≤180 · PROTOCOL ≤160 · STATE.md ≤60 · idea.md �
 
 | Item | Value |
 |---|---|
-| Connection | `ssh cac-server` |
+| Creds (source of truth) | `local/address_and_password.md` — check mtime EVERY session; after any change run `python3 scripts/install_key.py` once |
+| Connection | `ssh cac-server` (alias rewritten by install_key.py on rotation) |
 | Python | `/data/miniconda/envs/cac/bin/python` |
 | HF cache | `/data/asset/hf` with `HF_ENDPOINT=https://hf-mirror.com` |
 | Network | GitHub via revproxy if direct fails; pip needs Tsinghua mirror |
