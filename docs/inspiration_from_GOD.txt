@@ -88,3 +88,37 @@ Unchanged: R0-I1 (scalar-vs-map probe, GPU 10min), R0-I2 (three-tier localizatio
 
 ### §8.8 Endgame (unchanged in substance, re-derived basis)
 Amortized Bayesian counter with proper-scoring posterior output (immune to gain collapse by construction), exemplar-carried m̄ calibration (killer 2), bandwidth widening via multi-resolution *dense-side-only* evidence (killer 1), feature-saturation repair via partial FT if D1 confirms closure (killer 3). MAE converges to the posterior median the channel permits — the operational definition of the information-theoretic limit.
+
+---
+## §9 P3-R1 立项：公理驱动测试时自适应（AXIOM-TTC）——查证后的诚实定位
+**2026-08-24 全网查证（TTA/TTT × 计数）**：
+- **已占**：Dual-TTT (arXiv 2606.17601) —— 首个计数TTT框架，但场景=腐蚀鲁棒性（雨雾噪声），训去噪模块、文本引导；CrowdTTA (IEEE TBME'24) —— 元学习TTA人群计数，dropout不确定性造伪标签+增强一致性。周边：TENT/CoTTA/Mean-Teacher系（分类检测分割）、跨域自监督倒立任务（CVPR'22，训练时非测试时）。
+- **仍空置**：①几何公理作为自适应信号（切图自洽用模型自身空间图做伪GT、尺度积分不变性、exemplar交换不变性）；②免元训练（直接从部署ckpt出发的即插即用优化）；③exemplar条件化CAC场景。
+- **新颖性口号降级**：~~首个计数TTT~~（归Dual-TTT）→ "首个公理驱动、免元训练、即插即用的CAC测试时自适应"。价值打折但方向被CrowdTTA的有效性间接背书。
+
+**R1 规格（锁死）**：
+- 对象：冠军/N0031 ckpt，val分层抽样300图（按密度桶分层）
+- 自适应参数：仅head+adapter（骨干冻结），Adam lr=1e-5，T=20步/图
+- 公理损失（等权）：
+  L_flip：水平镜像预测与原预测的L1（安全廉价）
+  L_scale：0.8x缩放重前向，积分应不变
+  L_swap：交换box0/box1重前向，积分应不变（注：冠军只用box0⟹此信号度量exemplar敏感度）
+  L_selfcrop：中心80%裁剪放大回392重前向，其积分应≈模型自身density图在该区域的积分（模型自证伪GT，无均匀假设）
+  L_anchor：‖pred_adapted − pred_init‖₁ 权重λ=10（信任域防漂移；P3-R0已证漂移与误差相关0.349/0.426）
+- 判决：adapted MAE vs raw MAE 分桶报告。PASS IF 总体ΔMAE≤−0.3 且 bulk不劣化>0.3 且 tail不恶化。FAIL即封存P3。
+- 成本：300图×20步×~4次前向 ≈ GPU 25–40min。
+
+---
+## §10 架构决议（2026-08-24，用户拍板）
+**骨干**：DINOv2-S/reg4 → **DINOv3 ViT-S/16**（`facebook/dinov3-vits16-pretrain-lvd1689m`，21M，2025-08发布；同参量稠密线性探针ADE20k 47.0 vs DINOv3-S+ 48.8，超SigLIP2-g/EVA02等同档4+点）。备选压线：ViT-S+/16（29M）。
+**骨干后**：**ViT-Split双头**（ICCV 25，官方repo `JackYFL/ViT-Split`，原生DINOv2设计，DINOv3小时级适配）：
+```
+冻结DINOv3-S/16
+├─ task head：复制最后Kt=3层可训（~4M）
+├─ prior head：均匀采样Kp=4层 → 1×1 + 可变形3×3 CNN（轻）
+└─ fusion net → 密度头 → 计数
++ exemplar FiLM条件化（叠加fusion后）
+```
+依据：ADE20k冻结DINOv2-S+Split线性头51.6 > 全量UperNet微调50.6（参量还少42M）；训练快4×（无早层反传）。总参预算 ~27M <32M。
+**验证顺序**：①clone验证DINOv3兼容（1h）→ ②逐cell探针盲测 DINOv3 vs DINOv2 特征差（8min）→ ③注册新节点全量训练（~10min/40ep）。
+**前置决议**：不加普通MLP（无局部先验）；如需前置用卷积stem/SPM族（Early Conv NeurIPS21，+1-2%），暂缓——先测Split裸配。
