@@ -35,7 +35,7 @@ Exemplar-conditioned cosine similarity map S(x) from frozen backbone = pulse tra
 Test-time training on label-free counting axioms: crop-additivity, scale-integral invariance, exemplar-swap invariance + trust-region anchor (KL to init kills zero-collapse). LoRA+LN gains ~0.5M adaptable params, ~30 steps/image. Claimed −1.5..−2.5 from a strong base. **R0 drift audit on OUR champion ckpt: corr(|count drift under zoom/crop/swap|, |error|) ≥ 0.3 else kill.**
 
 ## Server gotchas (not yet in failure_modes.md)
-- No tmux → `setsid nohup ... </dev/null > log 2>&1 & echo PID_$!`
+- ~~No tmux~~ **RESOLVED 2026-08-24**: installed tmux 3.6a into base miniconda (`conda install -y -c conda-forge tmux`; no sudo on box). Non-login ssh shells need `export PATH=/data/miniconda/bin:$PATH` before `tmux`/`run_node.sh`. libtinfo.so.6 version warning is benign (sessions verified working). Fallback if env is ever rebuilt: `setsid nohup ... </dev/null > log 2>&1 & echo PID_$!`
 - scp into /data/repo creates untracked files that BLOCK later git pull → move aside, pull, diff-verify, delete backup
 - `pkill -f "train.py"` self-matches your ssh command line → use `[t]rain.py`
 - Engine SWA/dual-res riders exist since N0027 (backward-compat, flags default off)

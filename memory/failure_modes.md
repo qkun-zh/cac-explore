@@ -16,6 +16,7 @@
 - Deleting/moving while a writer is active: rm'd pip's in-flight /tmp/pip-unpack-* wheels (killed an install); mv raced a running unzip producing a mangled layout. Always pgrep for active writers before any cleanup. (setup)
 - Long inline SSH commands that drop mid-flight half-execute silently: anything >30s goes in tmux with a completion marker file (e.g. `.EXTRACT_OK`); verify by marker + counts, never by "no error seen". (setup)
 - Multi-line Python nested inside ssh single quotes hangs on quoting: put such scripts in the repo (`scripts/*.py`) instead of inline. (setup)
+- Server has no sudo and shipped without tmux: install userland tools via conda, not apt (`conda install -y -c conda-forge tmux` → /data/miniconda/bin/tmux). Non-login ssh shells don't inherit /data/miniconda/bin — export PATH explicitly in every remote command that needs it. libtinfo.so.6 version warning from the conda tmux is benign. (2026-08-24)
 
 ## Git / Accounts
 
