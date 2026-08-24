@@ -1,8 +1,39 @@
-# STATE — Session 2026-08-24 (degraded mode: server DOWN)
+# STATE — Session 2026-08-24
 
-**Champion**: **N0021_dino_partialft — val MAE 20.44 / RMSE 83.06** @ 23.26M, 1441s
-**Target**: ≤32M params, MAE ≤10 on FSC147 **test** (relaxed from ≤4 this session)
-**Blockers**: `ssh cac-server` TIMEOUT — user must rotate/restore server
+**Champion ckpt**: **N0021_dino_partialft** val MAE 20.44 @ 23.26M
+**Effective best (eval-only routing, H0036)**: **MAE 19.18 / RMSE 66.37** — route N̂@392≥200→518 readout else 392; zero training
+**Target**: ≤32M params, MAE ≤10 FSC147 test · Server: UP (RTX3060 12GB)
+
+## Progress this session
+1. Takeover + housekeeping; server rotated & onboarded (install_key.py)
+2. N0024 ebc+partialFT early-stopped E16 (26.15 vs bar 22.80): H0032 doesn't transfer to EBC; conf 0.5175
+3. 5-lens ideation (math/dynamics/counterintuitive/detail/physics) integrated
+4. Verified 3 code bugs: missing DINOv2 input norm (fsc147.py:68 only /255); flip-aug never enabled; result.json headline = last-epoch not best
+5. N0025 eval lab: H0033 TT-Norm REFUTED (exemplar mass ≈0.03–0.19, no per-object anchoring → 108 MAE); H0034 isotonic REFUTED (cross-fit hurts both halves); diagnostic: 75.9% SSE in 17 imgs N≥500
+6. N0026 res sweep: H0035 PASS (448: RMSE −8, tail error ↓ monotonically with res); H0036 ROUTING PASS → new best
+7. Hypotheses banked H0030–H0036 (conf: H0035 .585, H0036 .585, H0032 .517)
+
+## Architecture (champion recipe)
+```
+Frozen DINOv2-S reg4 @392 → taps(6+11) → gate → Fourier+area prompt
+→ adapter(384→768→384 d.15) → conv head → density [B,1,28,28]; N=Σρ
++ blocks10-11 unfrozen lr×0.1; 40ep bs8 lr1e-3 cosine AMP, 24min/GPU
++ ROUTING READOUT (no params): N̂@392≥200 → re-read at 518px
+```
+
+## Refuted (do NOT retry)
+Full FT · EBC-paradigm transfer of partialFT · per-token gate · Huber · highres decoder-as-model · seqcount AR · tail-reweight · proto-iterative · scale-deform · point detect · mosaic-in-domain · TT-Norm gain calib (no mass anchoring) · global isotonic recalibration · trimmed-sum readout
+
+## Next queue
+1. N0027 hygiene retrain: input-norm fix (H0037 exp ≥0.5) + flip aug (H0038 exp ≥0.2) + SWA-lite piggyback; engine reports eval@392+448
+2. Split-half confirmation of routing threshold before test deployment
+3. If H0037 confirms: consider multi-res TRAINING (392+518 joint) targeting tail bucket
+4. Later: exemplar-box averaging (3 boxes), log-VST head, drift-budget schedule
+
+## Key Files
+- Champion: `tree/nodes/N0021_dino_partialft/best.pth` (server) · Routing data: `tree/nodes/N0026_res_sweep/res_results.json`
+- Eval labs: `scripts/eval_readout_lab.py`, `scripts/eval_res_sweep.py` · Engine: `code/engine/train.py`
+
 
 ## Progress this session
 1. Takeover housekeeping: tree status fixes (fullft→failed), stale tasks archived
