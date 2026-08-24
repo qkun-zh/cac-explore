@@ -123,15 +123,41 @@
     },
     "H0035": {
       "text": "IF champion is evaluated at resolutions {224,308,448,518} THEN some non-392 resolution improves RMSE >=3 without MAE regression >0.5 BECAUSE the fixed 14px cell grid quantizes dense scenes irreducibly at 392 while 1x1-conv head + normalized prompts are resolution-equivariant by construction. DISPROVED IF every non-392 res degrades MAE >2.0.",
-      "confidence": 0.5,
-      "n_tested": 0,
+      "confidence": 0.585,
+      "n_tested": 1,
       "status": "uncertain",
       "tags": [
         "resolution",
         "quantization",
         "N0026"
       ],
-      "log": []
+      "log": [
+        {
+          "source_node": "N0026_res_sweep",
+          "evidence_type": "supports",
+          "strength": 0.85,
+          "reasoning": "Eval sweep on champion ckpt: S=448 RMSE -7.97 (71.88 vs 79.86) with dMAE -0.089; tail bucket [500,inf) error falls monotonically with res (487->406->319 MAE at 392/448/518) confirming cell-quantizatio"
+        }
+      ]
+    },
+    "H0036": {
+      "text": "IF images are routed by raw self-prediction (N_hat@392 >= 200) to 518px eval readout ELSE kept at 392/448 THEN val MAE <=19.5 AND RMSE <=70 BECAUSE the 14px-cell quantization floor binds only dense scenes while bulk images are already resolved. DISPROVED IF routed MAE >20.44 or RMSE >76.",
+      "confidence": 0.585,
+      "n_tested": 1,
+      "status": "uncertain",
+      "tags": [
+        "resolution",
+        "routing",
+        "eval-only"
+      ],
+      "log": [
+        {
+          "source_node": "N0026_res_sweep",
+          "evidence_type": "supports",
+          "strength": 0.85,
+          "reasoning": "Offline per-image routing on existing dump: N>=200->518 else 392 gives MAE 19.178 (-6.2%) RMSE 66.37 (-16.9%); else-448 variant gives 19.95/64.79. Threshold plateau 150-300 (19.95-19.84 range on varia"
+        }
+      ]
     }
   }
 }

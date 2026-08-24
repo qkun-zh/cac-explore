@@ -1,0 +1,260 @@
+[sweep] loaded /data/runs/N0021_dino_partialft/best.pth meta={'epoch': 25, 'best_mae': 20.437550180622058} device=cuda
+[sweep] full-val GT distribution: n=1286 min=7.0 median=27.0 max=2092.0 | tercile edges FIXED ONCE: [17.000, 46.000]
+[sweep] S=224 bs=8 ps=16 val=1286 running=1286 amp=True
+/data/repo/code/data/fsc147.py:68: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at /pytorch/torch/csrc/utils/tensor_numpy.cpp:213.)
+  return {"imgs": torch.from_numpy(np.asarray(img)).permute(2, 0, 1).float() / 255.0,
+/data/repo/code/data/fsc147.py:68: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at /pytorch/torch/csrc/utils/tensor_numpy.cpp:213.)
+  return {"imgs": torch.from_numpy(np.asarray(img)).permute(2, 0, 1).float() / 255.0,
+/data/repo/code/data/fsc147.py:68: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at /pytorch/torch/csrc/utils/tensor_numpy.cpp:213.)
+  return {"imgs": torch.from_numpy(np.asarray(img)).permute(2, 0, 1).float() / 255.0,
+/data/repo/code/data/fsc147.py:68: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at /pytorch/torch/csrc/utils/tensor_numpy.cpp:213.)
+  return {"imgs": torch.from_numpy(np.asarray(img)).permute(2, 0, 1).float() / 255.0,
+[sweep S=224] batch 10/161 rows=80 runMAE=15.866
+[sweep S=224] batch 20/161 rows=160 runMAE=14.457
+[sweep S=224] batch 30/161 rows=240 runMAE=41.242
+[sweep S=224] batch 40/161 rows=320 runMAE=46.875
+[sweep S=224] batch 50/161 rows=400 runMAE=44.344
+[sweep S=224] batch 60/161 rows=480 runMAE=53.349
+[sweep S=224] batch 70/161 rows=560 runMAE=48.302
+[sweep S=224] batch 80/161 rows=640 runMAE=43.255
+[sweep S=224] batch 90/161 rows=720 runMAE=39.893
+[sweep S=224] batch 100/161 rows=800 runMAE=38.777
+[sweep S=224] batch 110/161 rows=880 runMAE=36.920
+[sweep S=224] batch 120/161 rows=960 runMAE=37.049
+[sweep S=224] batch 130/161 rows=1040 runMAE=35.644
+[sweep S=224] batch 140/161 rows=1120 runMAE=34.632
+[sweep S=224] batch 150/161 rows=1200 runMAE=35.848
+[sweep S=224] batch 160/161 rows=1280 runMAE=35.346
+
+[sweep S=224] DONE n=1286 MAE=35.3165 RMSE=109.6367
+
+-- S=224 terciles (edges fixed once: 17.00/46.00) --
+stratum                  n        MAE       RMSE    sse%
+ter1[<17.0]            431      4.879      5.503    0.08
+ter2[17.0,46.0)        427     11.221     12.815    0.45
+ter3[>=46.0]           428     90.007    189.532   99.46
+
+-- S=224 GT-count buckets + SSE share --
+stratum                  n        MAE       RMSE    sse%
+[0,25)                 604      5.848      6.675    0.17
+[25,75)                419     17.837     20.897    1.18
+[75,200)               191     56.558     64.576    5.15
+[200,500)               55    202.550    223.059   17.70
+[500,inf)               17    733.439    830.134   75.79
+[sweep] S=308 bs=8 ps=22 val=1286 running=1286 amp=True
+/data/repo/code/data/fsc147.py:68: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at /pytorch/torch/csrc/utils/tensor_numpy.cpp:213.)
+  return {"imgs": torch.from_numpy(np.asarray(img)).permute(2, 0, 1).float() / 255.0,
+/data/repo/code/data/fsc147.py:68: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at /pytorch/torch/csrc/utils/tensor_numpy.cpp:213.)
+  return {"imgs": torch.from_numpy(np.asarray(img)).permute(2, 0, 1).float() / 255.0,
+/data/repo/code/data/fsc147.py:68: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at /pytorch/torch/csrc/utils/tensor_numpy.cpp:213.)
+  return {"imgs": torch.from_numpy(np.asarray(img)).permute(2, 0, 1).float() / 255.0,
+/data/repo/code/data/fsc147.py:68: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at /pytorch/torch/csrc/utils/tensor_numpy.cpp:213.)
+  return {"imgs": torch.from_numpy(np.asarray(img)).permute(2, 0, 1).float() / 255.0,
+[sweep S=308] batch 10/161 rows=80 runMAE=10.494
+[sweep S=308] batch 20/161 rows=160 runMAE=9.806
+[sweep S=308] batch 30/161 rows=240 runMAE=31.468
+[sweep S=308] batch 40/161 rows=320 runMAE=34.572
+[sweep S=308] batch 50/161 rows=400 runMAE=32.854
+[sweep S=308] batch 60/161 rows=480 runMAE=42.354
+[sweep S=308] batch 70/161 rows=560 runMAE=38.215
+[sweep S=308] batch 80/161 rows=640 runMAE=33.979
+[sweep S=308] batch 90/161 rows=720 runMAE=31.112
+[sweep S=308] batch 100/161 rows=800 runMAE=29.969
+[sweep S=308] batch 110/161 rows=880 runMAE=28.529
+[sweep S=308] batch 120/161 rows=960 runMAE=28.421
+[sweep S=308] batch 130/161 rows=1040 runMAE=27.133
+[sweep S=308] batch 140/161 rows=1120 runMAE=26.219
+[sweep S=308] batch 150/161 rows=1200 runMAE=27.320
+[sweep S=308] batch 160/161 rows=1280 runMAE=26.829
+
+[sweep S=308] DONE n=1286 MAE=26.8009 RMSE=94.1280
+
+-- S=308 terciles (edges fixed once: 17.00/46.00) --
+stratum                  n        MAE       RMSE    sse%
+ter1[<17.0]            431      3.013      4.306    0.07
+ter2[17.0,46.0)        427      7.557      9.403    0.33
+ter3[>=46.0]           428     69.955    162.834   99.60
+
+-- S=308 GT-count buckets + SSE share --
+stratum                  n        MAE       RMSE    sse%
+[0,25)                 604      3.569      4.793    0.12
+[25,75)                419     12.507     15.826    0.92
+[75,200)               191     41.007     50.042    4.20
+[200,500)               55    162.090    193.472   18.07
+[500,inf)               17    607.226    716.947   76.69
+[sweep] S=392 bs=8 ps=28 val=1286 running=1286 amp=True
+/data/repo/code/data/fsc147.py:68: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at /pytorch/torch/csrc/utils/tensor_numpy.cpp:213.)
+  return {"imgs": torch.from_numpy(np.asarray(img)).permute(2, 0, 1).float() / 255.0,
+/data/repo/code/data/fsc147.py:68: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at /pytorch/torch/csrc/utils/tensor_numpy.cpp:213.)
+  return {"imgs": torch.from_numpy(np.asarray(img)).permute(2, 0, 1).float() / 255.0,
+/data/repo/code/data/fsc147.py:68: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at /pytorch/torch/csrc/utils/tensor_numpy.cpp:213.)
+  return {"imgs": torch.from_numpy(np.asarray(img)).permute(2, 0, 1).float() / 255.0,
+/data/repo/code/data/fsc147.py:68: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at /pytorch/torch/csrc/utils/tensor_numpy.cpp:213.)
+  return {"imgs": torch.from_numpy(np.asarray(img)).permute(2, 0, 1).float() / 255.0,
+[sweep S=392] batch 10/161 rows=80 runMAE=6.908
+[sweep S=392] batch 20/161 rows=160 runMAE=6.769
+[sweep S=392] batch 30/161 rows=240 runMAE=24.095
+[sweep S=392] batch 40/161 rows=320 runMAE=24.375
+[sweep S=392] batch 50/161 rows=400 runMAE=23.785
+[sweep S=392] batch 60/161 rows=480 runMAE=33.092
+[sweep S=392] batch 70/161 rows=560 runMAE=29.628
+[sweep S=392] batch 80/161 rows=640 runMAE=26.473
+[sweep S=392] batch 90/161 rows=720 runMAE=24.008
+[sweep S=392] batch 100/161 rows=800 runMAE=22.734
+[sweep S=392] batch 110/161 rows=880 runMAE=21.719
+[sweep S=392] batch 120/161 rows=960 runMAE=21.479
+[sweep S=392] batch 130/161 rows=1040 runMAE=20.397
+[sweep S=392] batch 140/161 rows=1120 runMAE=19.783
+[sweep S=392] batch 150/161 rows=1200 runMAE=20.909
+[sweep S=392] batch 160/161 rows=1280 runMAE=20.478
+
+[sweep S=392] DONE n=1286 MAE=20.4408 RMSE=79.8562
+
+-- S=392 terciles (edges fixed once: 17.00/46.00) --
+stratum                  n        MAE       RMSE    sse%
+ter1[<17.0]            431      3.039      5.965    0.19
+ter2[17.0,46.0)        427      5.809      9.235    0.44
+ter3[>=46.0]           428     52.562    137.985   99.37
+
+-- S=392 GT-count buckets + SSE share --
+stratum                  n        MAE       RMSE    sse%
+[0,25)                 604      3.258      5.727    0.24
+[25,75)                419      9.021     14.659    1.10
+[75,200)               191     27.140     37.559    3.29
+[200,500)               55    128.746    170.598   19.52
+[500,inf)               17    486.734    604.923   75.86
+[sweep] S=448 bs=4 ps=32 val=1286 running=1286 amp=True
+/data/repo/code/data/fsc147.py:68: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at /pytorch/torch/csrc/utils/tensor_numpy.cpp:213.)
+  return {"imgs": torch.from_numpy(np.asarray(img)).permute(2, 0, 1).float() / 255.0,
+/data/repo/code/data/fsc147.py:68: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at /pytorch/torch/csrc/utils/tensor_numpy.cpp:213.)
+  return {"imgs": torch.from_numpy(np.asarray(img)).permute(2, 0, 1).float() / 255.0,
+/data/repo/code/data/fsc147.py:68: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at /pytorch/torch/csrc/utils/tensor_numpy.cpp:213.)
+  return {"imgs": torch.from_numpy(np.asarray(img)).permute(2, 0, 1).float() / 255.0,
+/data/repo/code/data/fsc147.py:68: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at /pytorch/torch/csrc/utils/tensor_numpy.cpp:213.)
+  return {"imgs": torch.from_numpy(np.asarray(img)).permute(2, 0, 1).float() / 255.0,
+[sweep S=448] batch 10/322 rows=40 runMAE=8.159
+[sweep S=448] batch 20/322 rows=80 runMAE=7.613
+[sweep S=448] batch 30/322 rows=120 runMAE=7.415
+[sweep S=448] batch 40/322 rows=160 runMAE=7.348
+[sweep S=448] batch 50/322 rows=200 runMAE=11.300
+[sweep S=448] batch 60/322 rows=240 runMAE=21.602
+[sweep S=448] batch 70/322 rows=280 runMAE=20.932
+[sweep S=448] batch 80/322 rows=320 runMAE=22.095
+[sweep S=448] batch 90/322 rows=360 runMAE=21.489
+[sweep S=448] batch 100/322 rows=400 runMAE=21.992
+[sweep S=448] batch 110/322 rows=440 runMAE=23.708
+[sweep S=448] batch 120/322 rows=480 runMAE=31.006
+[sweep S=448] batch 130/322 rows=520 runMAE=28.907
+[sweep S=448] batch 140/322 rows=560 runMAE=27.926
+[sweep S=448] batch 150/322 rows=600 runMAE=26.446
+[sweep S=448] batch 160/322 rows=640 runMAE=25.443
+[sweep S=448] batch 170/322 rows=680 runMAE=24.345
+[sweep S=448] batch 180/322 rows=720 runMAE=23.282
+[sweep S=448] batch 190/322 rows=760 runMAE=22.776
+[sweep S=448] batch 200/322 rows=800 runMAE=22.018
+[sweep S=448] batch 210/322 rows=840 runMAE=21.958
+[sweep S=448] batch 220/322 rows=880 runMAE=21.199
+[sweep S=448] batch 230/322 rows=920 runMAE=20.724
+[sweep S=448] batch 240/322 rows=960 runMAE=20.855
+[sweep S=448] batch 250/322 rows=1000 runMAE=20.470
+[sweep S=448] batch 260/322 rows=1040 runMAE=19.917
+[sweep S=448] batch 270/322 rows=1080 runMAE=19.390
+[sweep S=448] batch 280/322 rows=1120 runMAE=19.590
+[sweep S=448] batch 290/322 rows=1160 runMAE=20.733
+[sweep S=448] batch 300/322 rows=1200 runMAE=20.748
+[sweep S=448] batch 310/322 rows=1240 runMAE=20.495
+[sweep S=448] batch 320/322 rows=1280 runMAE=20.410
+
+[sweep S=448] DONE n=1286 MAE=20.3520 RMSE=71.8827
+
+-- S=448 terciles (edges fixed once: 17.00/46.00) --
+stratum                  n        MAE       RMSE    sse%
+ter1[<17.0]            431      5.530      8.595    0.48
+ter2[17.0,46.0)        427      7.761     12.007    0.93
+ter3[>=46.0]           428     47.840    123.723   98.59
+
+-- S=448 GT-count buckets + SSE share --
+stratum                  n        MAE       RMSE    sse%
+[0,25)                 604      5.681      8.410    0.64
+[25,75)                419     10.796     17.484    1.93
+[75,200)               191     25.098     35.346    3.59
+[200,500)               55    118.653    161.189   21.51
+[500,inf)               17    405.796    531.728   72.33
+[sweep] S=518 bs=4 ps=37 val=1286 running=1286 amp=True
+/data/repo/code/data/fsc147.py:68: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at /pytorch/torch/csrc/utils/tensor_numpy.cpp:213.)
+  return {"imgs": torch.from_numpy(np.asarray(img)).permute(2, 0, 1).float() / 255.0,
+/data/repo/code/data/fsc147.py:68: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at /pytorch/torch/csrc/utils/tensor_numpy.cpp:213.)
+  return {"imgs": torch.from_numpy(np.asarray(img)).permute(2, 0, 1).float() / 255.0,
+/data/repo/code/data/fsc147.py:68: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at /pytorch/torch/csrc/utils/tensor_numpy.cpp:213.)
+  return {"imgs": torch.from_numpy(np.asarray(img)).permute(2, 0, 1).float() / 255.0,
+/data/repo/code/data/fsc147.py:68: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at /pytorch/torch/csrc/utils/tensor_numpy.cpp:213.)
+  return {"imgs": torch.from_numpy(np.asarray(img)).permute(2, 0, 1).float() / 255.0,
+[sweep S=518] batch 10/322 rows=40 runMAE=15.889
+[sweep S=518] batch 20/322 rows=80 runMAE=13.976
+[sweep S=518] batch 30/322 rows=120 runMAE=13.193
+[sweep S=518] batch 40/322 rows=160 runMAE=13.523
+[sweep S=518] batch 50/322 rows=200 runMAE=15.737
+[sweep S=518] batch 60/322 rows=240 runMAE=24.272
+[sweep S=518] batch 70/322 rows=280 runMAE=24.418
+[sweep S=518] batch 80/322 rows=320 runMAE=26.094
+[sweep S=518] batch 90/322 rows=360 runMAE=26.123
+[sweep S=518] batch 100/322 rows=400 runMAE=26.633
+[sweep S=518] batch 110/322 rows=440 runMAE=28.453
+[sweep S=518] batch 120/322 rows=480 runMAE=34.850
+[sweep S=518] batch 130/322 rows=520 runMAE=32.847
+[sweep S=518] batch 140/322 rows=560 runMAE=31.641
+[sweep S=518] batch 150/322 rows=600 runMAE=30.321
+[sweep S=518] batch 160/322 rows=640 runMAE=29.653
+[sweep S=518] batch 170/322 rows=680 runMAE=28.768
+[sweep S=518] batch 180/322 rows=720 runMAE=27.793
+[sweep S=518] batch 190/322 rows=760 runMAE=27.321
+[sweep S=518] batch 200/322 rows=800 runMAE=26.719
+[sweep S=518] batch 210/322 rows=840 runMAE=26.530
+[sweep S=518] batch 220/322 rows=880 runMAE=25.819
+[sweep S=518] batch 230/322 rows=920 runMAE=25.264
+[sweep S=518] batch 240/322 rows=960 runMAE=25.644
+[sweep S=518] batch 250/322 rows=1000 runMAE=25.370
+[sweep S=518] batch 260/322 rows=1040 runMAE=24.921
+[sweep S=518] batch 270/322 rows=1080 runMAE=24.492
+[sweep S=518] batch 280/322 rows=1120 runMAE=24.831
+[sweep S=518] batch 290/322 rows=1160 runMAE=25.920
+[sweep S=518] batch 300/322 rows=1200 runMAE=25.915
+[sweep S=518] batch 310/322 rows=1240 runMAE=25.738
+[sweep S=518] batch 320/322 rows=1280 runMAE=25.715
+
+[sweep S=518] DONE n=1286 MAE=25.6419 RMSE=65.3257
+
+-- S=518 terciles (edges fixed once: 17.00/46.00) --
+stratum                  n        MAE       RMSE    sse%
+ter1[<17.0]            431     10.357     13.692    1.47
+ter2[17.0,46.0)        427     14.390     19.171    2.86
+ter3[>=46.0]           428     52.259    110.756   95.67
+
+-- S=518 GT-count buckets + SSE share --
+stratum                  n        MAE       RMSE    sse%
+[0,25)                 604     10.582     13.473    2.00
+[25,75)                419     18.834     26.100    5.20
+[75,200)               191     34.944     44.816    6.99
+[200,500)               55    119.964    160.291   25.75
+[500,inf)               17    318.841    440.329   60.06
+
+========================================================================
+RES SWEEP TABLE  (baseline S=392: MAE=20.441 RMSE=79.856; full=True)
+  res     n       MAE      RMSE     dMAE    dRMSE
+  224  1286    35.316   109.637 +14.876 +29.781
+  308  1286    26.801    94.128  +6.360 +14.272
+  392  1286    20.441    79.856  +0.000  +0.000
+  448  1286    20.352    71.883  -0.089  -7.974
+  518  1286    25.642    65.326  +5.201 -14.531
+
+-- TAIL bucket [500,inf) (KEY: carried ~76% of SSE @392 via 17 imgs) --
+  res     n       MAE      RMSE     sse%
+  224    17   733.439   830.134   75.79
+  308    17   607.226   716.947   76.69
+  392    17   486.734   604.923   75.86
+  448    17   405.796   531.728   72.33
+  518    17   318.841   440.329   60.06
+
+VERDICT H0035: PASS — ['448'] improves RMSE>=3 with dMAE<=0.5 vs 392
+========================================================================
+[sweep] results written to /data/repo/tree/nodes/N0026_res_sweep/res_results.json

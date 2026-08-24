@@ -134,9 +134,9 @@
   "N0026_res_sweep": {
    "parent": "N0021_dino_partialft",
    "children": [],
-   "status": "proposed",
-   "best_metric": null,
-   "train_seconds": null,
+   "status": "done",
+   "best_metric": 19.178,
+   "train_seconds": 420,
    "quality": null,
    "avail": null,
    "score": null,

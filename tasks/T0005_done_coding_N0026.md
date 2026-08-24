@@ -1,6 +1,7 @@
 # T0005_coding_N0026_res_sweep
 
-- status: pending          # pending -> claimed_<agent> -> done | cancelled
+- status: done             # pending -> claimed_<agent> -> done | cancelled
+- evidence: scripts/eval_res_sweep.py green on server (smoke: extreme grids 224+518, 20 imgs each, SMOKE_OK rows=40 nonfinite=0; 518 ran bs4 no OOM). Full sweep 5 sizes x 1286 val imgs: 392 baseline reproduced MAE=20.4408 (champion 20.4376, AMP drift). VERDICT H0035: PASS — S=448 improves RMSE -7.97 (79.856→71.883) with dMAE -0.089 (bar: dRMSE<=-3 AND dMAE<=+0.5); S=518 RMSE -14.53 (65.326) but MAE +5.20 fails the MAE guard alone; 224/308 degrade both. KEY tail [500,inf) (17 imgs): monotone res gain — MAE 486.7@392 → 405.8@448 → 318.8@518; RMSE 604.9 → 531.7 → 440.3; SSE share 75.9% → 72.3% → 60.1% (cell quantization mechanism CONFIRMED in tail). Tercile edges fixed once from full val GT distribution: [17.000, 46.000]. Results: tree/nodes/N0026_res_sweep/{res_results.json (per-image x per-res),res_sweep_log.txt}; server copies at /data/repo/tree/nodes/N0026_res_sweep/. No engine/model/data files touched; nothing committed.
 - created: 2026-08-24T09:17:26+0800
 - role: coding
 - node: tree/nodes/N0026_res_sweep
