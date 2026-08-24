@@ -104,10 +104,10 @@
     "H0032"
    ]
   },
-    "N0024_ebc_partialft": {
-      "parent": "N0022_dino_ebc_fullft",
-      "children": [],
-      "status": "proposed",
+  "N0024_ebc_partialft": {
+   "parent": "N0022_dino_ebc_fullft",
+   "children": [],
+   "status": "running",
       "best_metric": null,
       "train_seconds": null,
       "quality": null,
