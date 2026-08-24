@@ -56,6 +56,26 @@
           "reasoning": "E8 best 45.5 vs parent E8 28.0; gap +17.5; 16x more output cells need more training than tau_max allows"
         }
       ]
+    },
+    "H0032": {
+      "text": "IF only backbone blocks 10-11 + final norm are unfrozen at lr_mult=0.1 IN the frozen DINOv2-S reg4 champion recipe THEN val best MAE beats frozen inference (target <21.53, stretch <=18) BECAUSE top-block drift adds dataset-specific count abstraction while 10 frozen blocks anchor the feature distribution (drift rate < head fit rate = timescale separation). DISPROVED IF best MAE >= 21.53 OR training destabilizes (loss spike / plateau like full-FT).",
+      "confidence": 0.575,
+      "n_tested": 1,
+      "status": "uncertain",
+      "tags": [
+        "partial-ft",
+        "backbone-lr-mult",
+        "fine-tuning",
+        "N0021"
+      ],
+      "log": [
+        {
+          "source_node": "N0021_dino_partialft",
+          "evidence_type": "supports",
+          "strength": 0.75,
+          "reasoning": "Best MAE 20.438@E25 (-5.1% vs frozen parent 21.53), stable 40/40ep (worst epoch 25.2, no OOM/NaN) while full-FT sibling collapsed to 48.4 with E5 loss spike 93.9 — narrow scope x low lr jointly restor"
+        }
+      ]
     }
   }
 }
