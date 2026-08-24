@@ -117,6 +117,33 @@
       "tested_hypotheses": [
         "H0032"
       ]
+    },
+    "N0025_eval_readout": {
+      "parent": "N0021_dino_partialft",
+      "children": [],
+      "status": "proposed",
+      "best_metric": null,
+      "train_seconds": null,
+      "quality": null,
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": [
+        "H0033",
+        "H0034"
+      ]
+    },
+    "N0026_res_sweep": {
+      "parent": "N0021_dino_partialft",
+      "children": [],
+      "status": "proposed",
+      "best_metric": null,
+      "train_seconds": null,
+      "quality": null,
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": [
+        "H0035"
+      ]
     }
   }
 }
