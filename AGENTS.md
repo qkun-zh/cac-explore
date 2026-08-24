@@ -112,6 +112,7 @@ Update STATE.md (REWRITE the single session block; never append duplicate sectio
 10. Verify subagent claims against actual file system / git log (hallucinations have occurred)
 11. **Target stability**: the mission metric/target changes ONLY via editing `docs/research_direction.md` at session start with a journal entry. Never drift mid-session or mid-experiment — target drift invalidates early-stop bars and evidence weights.
 12. **Gate order**: no tree registration without novelty gate; no booking without check_hypothesis pass; no session close without calibration table in the latest synthesis.
+13. **Docs-sync on ops changes**: any environment/ops change (tool installed/removed, creds rotation, path/env change, server quirk discovered) is documented IMMEDIATELY in the affected docs (STATE/DISTILLED gotchas, `memory/failure_modes.md`, §5 cheat-sheet) and committed before proceeding — never deferred to session close.
 
 ## 4. Documentation Budget
 
