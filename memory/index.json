@@ -82,6 +82,56 @@
           "reasoning": "Cross-paradigm transfer test: partial FT (blocks10-11 @lr0.1) inside EBC pipeline early-stopped at E16 gate (best 26.15 vs pre-registered bar <=22.80; champion-lineage E16 was 21.30). Narrow-scope dri"
         }
       ]
+    },
+    "H0033": {
+      "text": "IF density field is rescaled per-image by median-over-exemplar-boxes inverse gain (each exemplar box holds exactly 1 object IN FSC147 GT) at eval THEN val MAE <=19.5 BECAUSE prompt-conditioned scalar gain drift is the dominant first-order systematic of the intensity readout. DISPROVED IF val MAE >20.64 or >50% of images have |gain-1|<0.01.",
+      "confidence": 0.41,
+      "n_tested": 1,
+      "status": "uncertain",
+      "tags": [
+        "ttnorm",
+        "eval-only",
+        "N0025"
+      ],
+      "log": [
+        {
+          "source_node": "N0025_eval_readout",
+          "evidence_type": "contradicts",
+          "strength": 0.9,
+          "reasoning": "Eval-lab on champion ckpt: exemplar-box density integrals 0.03-0.19 not ~1; median gain clamps at 5.0; ttnorm MAE 20.44->108.26. Head mass scale has NO per-object anchoring - TT-Norm recipe from Count"
+        }
+      ]
+    },
+    "H0034": {
+      "text": "IF predicted counts are passed through a monotone map fit by split-half isotonic regression (fit half A, apply to half B, report both directions) THEN held-out-half MAE improves >=0.6 BECAUSE MSE-training regresses toward the count prior (attenuation slope<1) and L1-optimal readout is conditional median not mean. DISPROVED IF improvement <0.3 or fitted curve within +/-5% of identity.",
+      "confidence": 0.415,
+      "n_tested": 1,
+      "status": "uncertain",
+      "tags": [
+        "calibration",
+        "eval-only",
+        "N0025"
+      ],
+      "log": [
+        {
+          "source_node": "N0025_eval_readout",
+          "evidence_type": "contradicts",
+          "strength": 0.85,
+          "reasoning": "Split-half isotonic hurts BOTH halves (17.18->19.34, 23.70->25.26); trimmed-sum monotonically hurts (+0.24/+0.76/+2.24). No global count miscalibration exists; errors are not spurious-peak-cell artifa"
+        }
+      ]
+    },
+    "H0035": {
+      "text": "IF champion is evaluated at resolutions {224,308,448,518} THEN some non-392 resolution improves RMSE >=3 without MAE regression >0.5 BECAUSE the fixed 14px cell grid quantizes dense scenes irreducibly at 392 while 1x1-conv head + normalized prompts are resolution-equivariant by construction. DISPROVED IF every non-392 res degrades MAE >2.0.",
+      "confidence": 0.5,
+      "n_tested": 0,
+      "status": "uncertain",
+      "tags": [
+        "resolution",
+        "quantization",
+        "N0026"
+      ],
+      "log": []
     }
   }
 }

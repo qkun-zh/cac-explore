@@ -1,6 +1,7 @@
 # T0004_coding_N0025_eval_readout
 
-- status: pending          # pending -> claimed_<agent> -> done | cancelled
+- status: done             # pending -> claimed_<agent> -> done | cancelled
+- evidence: scripts/eval_readout_lab.py green on server (smoke 20 imgs SMOKE_OK rows=20 nonfinite=0; box scaling cross-checked vs Dataset). Full 1286-img val pass MAE_raw=20.441 (= champion 20.4376 within AMP drift). Verdicts: H0033 FAIL — ttnorm MAE 108.261 (+87.8 vs raw), median g clamped at 5.0, exemplar-box integrals ~0.03-0.19 (not ~1); H0034 FAIL — split-half isotonic cross-fit hurts both directions (A->B -2.160, B->A -1.555); trims all worse (trim0.5% +0.241, trim1% +0.756, trim2% +2.238); deployment gate BLOCKED (ship raw counts). Results: tree/nodes/N0025_eval_readout/{lab_results.txt,dump_val.jsonl}
 - created: 2026-08-24T09:17:26+0800
 - role: coding
 - node: tree/nodes/N0025_eval_readout

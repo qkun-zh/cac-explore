@@ -1,0 +1,75 @@
+# N0025_eval_readout — lab_results.txt (server run 2026-08-24, RTX3060, ckpt /data/runs/N0021_dino_partialft/best.pth ep25 best_mae=20.4376)
+
+=== FULL DUMP STDOUT (scripts/eval_readout_lab.py --dump, 1286 imgs, warnings elided below) ===
+[lab] loaded /data/runs/N0021_dino_partialft/best.pth meta={'epoch': 25, 'best_mae': 20.437550180622058} device=cuda
+[lab] val imgs=1286 running_on=1286 S=392 bs=8 amp=True
+[dump] batch 10/161 rows=80 runMAE_raw=6.908
+[dump] batch 20/161 rows=160 runMAE_raw=6.769
+[dump] batch 30/161 rows=240 runMAE_raw=24.095
+[dump] batch 40/161 rows=320 runMAE_raw=24.375
+[dump] batch 50/161 rows=400 runMAE_raw=23.785
+[dump] batch 60/161 rows=480 runMAE_raw=33.092
+[dump] batch 70/161 rows=560 runMAE_raw=29.628
+[dump] batch 80/161 rows=640 runMAE_raw=26.473
+[dump] batch 90/161 rows=720 runMAE_raw=24.008
+[dump] batch 100/161 rows=800 runMAE_raw=22.734
+[dump] batch 110/161 rows=880 runMAE_raw=21.719
+[dump] batch 120/161 rows=960 runMAE_raw=21.479
+[dump] batch 130/161 rows=1040 runMAE_raw=20.397
+[dump] batch 140/161 rows=1120 runMAE_raw=19.783
+[dump] batch 150/161 rows=1200 runMAE_raw=20.909
+[dump] batch 160/161 rows=1280 runMAE_raw=20.478
+[dump] DONE rows=1286 MAE_raw=20.4408 RMSE_raw=79.8562 SSE_tt=54685138.0
+[lab] dump written to /tmp/n0025_full.jsonl
+
+=== ANALYZE STDOUT (--analyze dump_val.jsonl) ===
+========================================================================
+N0025 READOUT LAB ANALYSIS  rows=1286  (offline CPU, leak-safe)
+========================================================================
+
+-- Overall --
+arm              MAE       RMSE  dMAE vs raw
+raw           20.441     79.856       +0.000
+ttnorm       108.261    206.212      +87.821
+trim0.5%      20.681     80.275       +0.241
+trim1%        21.197     80.842       +0.756
+trim2%        22.679     82.025       +2.238
+
+-- Count-stratified MAE by N_gt bucket --
+bucket               raw    ttnorm  trim0.5%    trim1%    trim2%      n
+[0,25)             3.301    47.550     3.079     3.024     3.450    612
+[25,75)            9.069   102.080     9.441    10.140    11.954    411
+[75,200)          27.140   184.578    27.987    29.208    32.082    191
+[200,500)        128.746   300.109   130.195   132.097   135.911     55
+[500,inf)        486.734   965.192   489.703   493.920   502.191     17
+
+-- Count-stratified SSE share (%) by N_gt bucket --
+bucket               raw    ttnorm  trim0.5%    trim1%    trim2%      n
+[0,25)              0.25      3.62      0.22      0.20      0.20    612
+[25,75)             1.09     13.06      1.09      1.12      1.24    411
+[75,200)            3.29     22.99      3.40      3.56      3.90    191
+[200,500)          19.52     19.09     19.58     19.65     19.75     55
+[500,inf)          75.86     41.24     75.71     75.47     74.91     17
+
+-- Split-half isotonic (cross-fit only; identity outside p10-p90 of fit half) --
+raw      fitA->B: pre=17.180 post=19.340 improvement=-2.160 (fit-half curve rel-dev-from-identity=0.2282, band=[10.7,124.4])
+raw      fitB->A: pre=23.702 post=25.256 improvement=-1.555 (fit-half curve rel-dev-from-identity=0.2147, band=[10.9,103.9])
+ttnorm   fitA->B: pre=97.477 post=65.770 improvement=+31.707 (fit-half curve rel-dev-from-identity=0.5340, band=[27.6,328.7])
+ttnorm   fitB->A: pre=119.046 post=87.919 improvement=+31.127 (fit-half curve rel-dev-from-identity=0.5495, band=[24.7,291.6])
+
+-- TT-Norm gain stats --
+images=1286 skipped(all integrals<1e-6)=102 (7.9%) |g-1|<0.01 among active=4/1184 (0.3%) median(g)=5.0000
+
+-- H0033 verdict (TT-Norm per-image exemplar gain) --
+MAE raw=20.441  MAE ttnorm=108.261  delta=+87.821  (pass bar <=19.5; fail bar >20.64; inert-gain fail bar >50% |g-1|<0.01)
+VERDICT H0033: FAIL — ttnorm MAE 108.261 vs bars [19.5 pass / 20.64 fail]; inert-gain share 0.3% vs 50% bar; skip share 7.9%
+
+-- H0034 verdict (split-half isotonic recalibration, raw readout) --
+improvement A-fit->B=-2.160  B-fit->A=-1.555  min=-2.160  (pass bar >=0.6; fail bar <0.3; identity-fail: curve within +/-5% of identity)
+VERDICT H0034: FAIL — min held-out improvement -2.160 vs bars [<0.3 fail / >=0.6 pass]; curve~identity(A,B)=(False,False)
+
+-- Deployment gate (full-val isotonic refit onto test) --
+stability: both directions improve >=0.3 -> False (A->B -2.160, B->A -1.555); fitted curves ~identity: A=0.2282, B=0.2147
+BLOCKED: ship raw counts on test
+NOTE: verdicts above use split-half CROSS-FIT numbers only; val labels never touch test beyond this sanctioned map.
+========================================================================
