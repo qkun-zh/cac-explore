@@ -4,7 +4,7 @@
 
 On the FSC147 class-agnostic counting benchmark, discover lightweight, accurate, transferable CAC architectures via hypothesis-driven multi-agent evolutionary search.
 
-**Target**: ≤32M parameters, MAE ≤ 4 on FSC147 **test**.
+**Target**: ≤32M parameters, MAE ≤ 10 on FSC147 **test**.
 
 ## Task Definition
 

@@ -52,10 +52,10 @@
       "score": null,
       "tested_hypotheses": []
     },
-    "N0021_dino_fullft": {
-      "parent": null,
-      "children": [],
-      "status": "running",
+  "N0021_dino_fullft": {
+   "parent": null,
+   "children": [],
+   "status": "failed",
       "best_metric": 48.4,
       "train_seconds": 565,
       "quality": null,
