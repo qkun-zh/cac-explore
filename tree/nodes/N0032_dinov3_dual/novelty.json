@@ -1,0 +1,4 @@
+{"novel": true, "most_similar_to": "tree/archive_gen0_5/N0007_dino_promptv2/idea.md (0.398)",
+ "shared_principles": ["DINO-family ViT backbone with prompt conditioning"],
+ "new_contribution": "substrate change DINOv2->DINOv3 ViT-S/16 (dense prior upgrade) + residual conv stem + decorrelated dual-channel rho head (pos/neg) curing amplitude collapse; structural principles distinct from N0007's single-channel promptv2",
+ "judge": "lead-stage2", "date": "2026-08-24"}

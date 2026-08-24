@@ -1,0 +1,2 @@
+# Idea — N0032_dinov3_dual (parent: N0027_norm_flip_swa)
+Delta: backbone DINOv3 ViT-S/16 (21M, frozen) + residual conv stem (0.02M, zero-init) + dual-channel rho+/rho- head (0.5M) with decorrelation loss. Reuses all verified levers (partial-FT concept replaced by frozen DINOv3 per ViT-Split premise; norm/flip kept). Tests H-A decorrelated dual-channel dynamics at full scale (40ep) with DINOv3 dense prior.
