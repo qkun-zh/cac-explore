@@ -107,7 +107,8 @@
   "N0024_ebc_partialft": {
    "parent": "N0022_dino_ebc_fullft",
    "children": [],
-   "status": "running",
+   "status": "failed",
+   "best_metric": 26.15,
       "best_metric": null,
       "train_seconds": null,
       "quality": null,
