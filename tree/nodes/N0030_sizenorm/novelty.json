@@ -1,0 +1,8 @@
+{
+  "novel": true,
+  "most_similar_to": "N0029_loghead",
+  "shared_principles": ["head output-end modification", "champion partial-FT recipe unchanged"],
+  "new_contribution": "multiplicative size-conditioned output via extra log_scale channel (injects exemplar-box size as explicit output-side modulation) — distinct from N0029's monotone log reparameterization which adds no information",
+  "stage1_best_sim": 0.625,
+  "judge": "Lead structural review: new-conditional-channel vs pure-reparameterization are different mechanism classes"
+}

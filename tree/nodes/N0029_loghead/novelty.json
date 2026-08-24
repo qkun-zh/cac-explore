@@ -1,0 +1,8 @@
+{
+  "novel": true,
+  "most_similar_to": "N0030_sizenorm",
+  "shared_principles": ["head output-end modification", "champion partial-FT recipe unchanged"],
+  "new_contribution": "monotone log/exp reparameterization of density head (no new information source; changes loss contour geometry from absolute amplitude to order-of-magnitude) — distinct from N0030's multiplicative size conditioning which adds a new conditional variable",
+  "stage1_best_sim": 0.625,
+  "judge": "Lead structural review: reparameterization vs new-conditional-channel are different mechanism classes; both may run as parallel arms"
+}
