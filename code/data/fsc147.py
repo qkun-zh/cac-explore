@@ -54,19 +54,32 @@ class FSC147Density(torch.utils.data.Dataset):
         dens = dens * (count0 / dens.sum().clamp_min(1e-8))  # sum-conserving → count unchanged
 
         ann = self.anno[im_id]
+        # primary bbox (box 0) retains old contract field "bboxes"
         corners = ann["box_examples_coordinates"][0]
         xs = [p[0] for p in corners]
         ys = [p[1] for p in corners]
         sx, sy = S / float(ann["W"]), S / float(ann["H"])
         bbox = torch.tensor([min(xs) * sx, min(ys) * sy, max(xs) * sx, max(ys) * sy], dtype=torch.float32)
+        # all 3 exemplar boxes for SCB-lite (P1) — same scaling convention as :57-61
+        bboxes3 = []
+        for corners3 in ann["box_examples_coordinates"][:3]:
+            xs3 = [p[0] for p in corners3]
+            ys3 = [p[1] for p in corners3]
+            bboxes3.append([min(xs3) * sx, min(ys3) * sy, max(xs3) * sx, max(ys3) * sy])
+        # pad to 3 if annotation has fewer (edge case)
+        while len(bboxes3) < 3:
+            bboxes3.append(bboxes3[-1])
+        bboxes3 = torch.tensor(bboxes3, dtype=torch.float32)  # [3,4]
 
         if self.augment and torch.rand(1).item() < 0.5:
             img = img.transpose(Image.FLIP_LEFT_RIGHT)
             dens = dens.flip(-1)
             bbox = torch.tensor([S - bbox[2], bbox[1], S - bbox[0], bbox[3]])
+            # flip all 3 boxes identically (P1 requirement)
+            bboxes3 = torch.stack([torch.tensor([S - b[2], b[1], S - b[0], b[3]]) for b in bboxes3])
 
         return {"imgs": torch.from_numpy(np.asarray(img)).permute(2, 0, 1).float() / 255.0,
-                "bboxes": bbox, "density": dens[None], "counts": dens.sum()}
+                "bboxes": bbox, "bboxes3": bboxes3, "density": dens[None], "counts": dens.sum()}
 
 
 class FSC147Detect(FSC147Density):
@@ -92,23 +105,35 @@ class FSC147Detect(FSC147Density):
         ys = [p[1] for p in corners]
         sx, sy = S / float(ann["W"]), S / float(ann["H"])
         bbox = torch.tensor([min(xs) * sx, min(ys) * sy, max(xs) * sx, max(ys) * sy], dtype=torch.float32)
+        bboxes3 = []
+        for corners3 in ann["box_examples_coordinates"][:3]:
+            xs3 = [p[0] for p in corners3]
+            ys3 = [p[1] for p in corners3]
+            bboxes3.append([min(xs3) * sx, min(ys3) * sy, max(xs3) * sx, max(ys3) * sy])
+        while len(bboxes3) < 3:
+            bboxes3.append(bboxes3[-1])
+        bboxes3 = torch.tensor(bboxes3, dtype=torch.float32)
         pts = self._load_points(im_id)
 
         if self.augment and torch.rand(1).item() < 0.5:
             img = img.transpose(Image.FLIP_LEFT_RIGHT)
             dens = dens.flip(-1)
             bbox = torch.tensor([S - bbox[2], bbox[1], S - bbox[0], bbox[3]])
+            bboxes3 = torch.stack([torch.tensor([S - b[2], b[1], S - b[0], b[3]]) for b in bboxes3])
             pts = torch.stack([S - pts[:, 0], pts[:, 1]], dim=1)
 
         return {"imgs": torch.from_numpy(np.asarray(img)).permute(2, 0, 1).float() / 255.0,
-                "bboxes": bbox, "density": dens[None], "counts": dens.sum(), "points": pts}
+                "bboxes": bbox, "bboxes3": bboxes3, "density": dens[None], "counts": dens.sum(), "points": pts}
 
 
 def collate_density(batch):
-    return {"imgs": torch.stack([b["imgs"] for b in batch]),
-            "bboxes": torch.stack([b["bboxes"] for b in batch]),
-            "density": torch.stack([b["density"] for b in batch]),
-            "counts": torch.stack([b["counts"] for b in batch])}
+    out = {"imgs": torch.stack([b["imgs"] for b in batch]),
+           "bboxes": torch.stack([b["bboxes"] for b in batch]),
+           "density": torch.stack([b["density"] for b in batch]),
+           "counts": torch.stack([b["counts"] for b in batch])}
+    if "bboxes3" in batch[0]:
+        out["bboxes3"] = torch.stack([b["bboxes3"] for b in batch])
+    return out
 
 
 def collate_detect(batch):

@@ -144,20 +144,34 @@
     "H0035"
    ]
   },
-  "N0027_norm_flip_swa": {
-   "parent": "N0021_dino_partialft",
-   "children": [],
-   "status": "done",
-   "best_metric": 20.403,
-   "train_seconds": 1513,
-   "quality": null,
-   "avail": null,
-   "score": null,
-   "tested_hypotheses": [
-    "H0037",
-    "H0038",
-    "H0039"
-   ]
+   "N0027_norm_flip_swa": {
+    "parent": "N0021_dino_partialft",
+    "children": ["N0028_scb_multires"],
+    "status": "done",
+    "best_metric": 20.403,
+    "train_seconds": 1513,
+    "quality": null,
+    "avail": null,
+    "score": null,
+    "tested_hypotheses": [
+     "H0037",
+     "H0038",
+     "H0039"
+    ]
+   },
+   "N0028_scb_multires": {
+    "parent": "N0027_norm_flip_swa",
+    "children": [],
+    "status": "proposed",
+    "best_metric": null,
+    "train_seconds": null,
+    "quality": null,
+    "avail": null,
+    "score": null,
+    "tested_hypotheses": [
+     "H0040",
+     "H0042"
+    ]
+   }
   }
- }
 }

@@ -108,18 +108,23 @@ def make_loaders(cfg, smoke):
                     blob = torch.exp(-((yy - cy) ** 2 + (xx - cx) ** 2) / (2 * s * s))
                     dens = dens + blob / blob.sum().clamp_min(1e-6)   # each blob normalized, count ≈ number of objects
                     pts.append([float(cx + 0.5) * self.size / gs, float(cy + 0.5) * self.size / gs])
+                bboxes3 = torch.stack([torch.tensor([x0, y0, x1, y1], dtype=torch.float32)]*3)
                 return {"imgs": img, "bboxes": torch.tensor([x0, y0, x1, y1], dtype=torch.float32),
+                        "bboxes3": bboxes3,
                         "density": dens[None], "counts": dens.sum(),
                         "points": torch.tensor(pts, dtype=torch.float32)}
         s = cfg["input_size"]
         bs = max(2, min(int(cfg.get("batch_size", 8)), 4))
 
         def collate_synth(batch):
-            return {"imgs": torch.stack([b["imgs"] for b in batch]),
-                    "bboxes": torch.stack([b["bboxes"] for b in batch]),
-                    "density": torch.stack([b["density"] for b in batch]),
-                    "counts": torch.stack([b["counts"] for b in batch]),
-                    "points": [b["points"] for b in batch]}
+            out = {"imgs": torch.stack([b["imgs"] for b in batch]),
+                   "bboxes": torch.stack([b["bboxes"] for b in batch]),
+                   "density": torch.stack([b["density"] for b in batch]),
+                   "counts": torch.stack([b["counts"] for b in batch]),
+                   "points": [b["points"] for b in batch]}
+            if "bboxes3" in batch[0]:
+                out["bboxes3"] = torch.stack([b["bboxes3"] for b in batch])
+            return out
 
         tr = Synth(16, s); va = Synth(8, s)
         return (DataLoader(tr, batch_size=bs, shuffle=True, collate_fn=collate_synth),
@@ -142,6 +147,15 @@ def make_loaders(cfg, smoke):
             DataLoader(va, batch_size=bs, shuffle=False, num_workers=nw, collate_fn=collate, pin_memory=True), bs)
 
 
+def _call_model(model, imgs, bbox, bboxes3=None):
+    """Helper: call model with optional bboxes3 if model supports it."""
+    if bboxes3 is not None:
+        try:
+            return model(imgs, bbox, bboxes3)
+        except TypeError:
+            return model(imgs, bbox)
+    return model(imgs, bbox)
+
 def evaluate(model, loader, device, seq=False, ebc=False, detect=False, conf_thr=0.3, max_frac=1.0):
     model.eval(); mae = mse = n = 0
     if max_frac < 1.0:
@@ -150,7 +164,10 @@ def evaluate(model, loader, device, seq=False, ebc=False, detect=False, conf_thr
     with torch.no_grad():
         for b in loader:
             imgs, bbox, gt = b["imgs"].to(device), b["bboxes"].to(device), b["counts"]
-            out = model(imgs, bbox)
+            b3 = b.get("bboxes3")
+            if b3 is not None:
+                b3 = b3.to(device)
+            out = _call_model(model, imgs, bbox, b3)
             if seq:
                 pred = out["logits"].argmax(-1).sum(1).float().cpu()
             elif ebc:
@@ -214,6 +231,20 @@ def main():
     assert total_p < float(cfg.get("max_params_M", 32)), f"params {total_p:.2f}M over budget"  # mission budget: 32M
 
     train_loader, val_loader, _ = make_loaders(cfg, cfg["smoke"])
+    # P1 multi-res joint training: second loader @518 bs4, loaders[ep%2] alternation
+    train_loader_518 = None
+    if not cfg.get("smoke") and bool(cfg.get("multires", False)):
+        sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        from torch.utils.data import DataLoader
+        from data.fsc147 import FSC147Density as DS518, collate_density as CH518
+        size2 = int(cfg.get("input_size2", 518))
+        bs2 = int(cfg.get("batch_size2", 4))
+        # reuse same dataset class but separate instance @518
+        root2 = cfg.get("data_root", "/data/dataset/FSC147")
+        nw2 = int(cfg.get("num_workers", 2))
+        train_loader_518 = DataLoader(DS518(root2, size2, "train", augment=bool(cfg.get("augment", False))),
+                                      batch_size=bs2, shuffle=True, num_workers=nw2, collate_fn=CH518, drop_last=True, pin_memory=True)
+        print(f"[engine] multires enabled: 392 bs{cfg.get('batch_size',8)} + 518 bs{bs2} alternation", flush=True)
     dl_hi = None
     if bool(cfg.get("dual_res_eval", False)) and not cfg["smoke"]:  # optional rider: eval@448 (≤10 LOC)
         sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -252,9 +283,14 @@ def main():
         if time.time() - t_start > args.timeout_min * 60:
             timed_out = True; break
         model.train(); ls = nb = 0
+        # P1 multires: alternate loaders by epoch parity
+        cur_loader = train_loader_518 if (train_loader_518 is not None and ep % 2 == 1) else train_loader
         try:
-            for b in train_loader:
+            for b in cur_loader:
                 imgs, bbox, gt_d, gt_c = b["imgs"].to(device), b["bboxes"].to(device), b["density"].to(device), b["counts"].to(device)
+                b3 = b.get("bboxes3")
+                if b3 is not None:
+                    b3 = b3.to(device)
                 optim.zero_grad()
                 with torch.cuda.amp.autocast(enabled=use_amp):
                     if seq_mode:
@@ -264,7 +300,7 @@ def main():
                         out = model(imgs, bbox, targets)
                         loss = F.cross_entropy(out["logits"].reshape(-1, K), targets.view(-1))
                     elif ebc_mode:
-                        out = model(imgs, bbox)
+                        out = _call_model(model, imgs, bbox, b3)
                         logits = out["ebc_logits"]  # [B, num_bins, g, g]
                         g = int(logits.shape[-1])
                         K = int(logits.shape[1])
@@ -274,7 +310,7 @@ def main():
                         targets = patch_counts.squeeze(1).round().clamp(0, K - 1).long()  # [B, g, g]
                         loss = F.cross_entropy(logits, targets)
                     elif detect_mode:
-                        out = model(imgs, bbox)
+                        out = _call_model(model, imgs, bbox, b3)
                         cls_pred, reg_pred = out["cls_logits"], out["reg_offsets"]  # [B,1,g,g] / [B,2,g,g]
                         g = int(cls_pred.shape[-1])
                         pts = b.get("points")
@@ -289,7 +325,7 @@ def main():
                             reg_loss = F.l1_loss(reg_pred[pos_mask], reg_t.expand_as(reg_pred)[pos_mask])
                             loss = loss + reg_w * reg_loss
                     else:
-                        out = model(imgs, bbox)
+                        out = _call_model(model, imgs, bbox, b3)
                         dens = out["density"] if isinstance(out, dict) else out
                         if dens.shape[-2:] != gt_d.shape[-2:]:  # models may emit low-res density; upsample to GT size
                             oh, ow = int(dens.shape[-2]), int(dens.shape[-1])

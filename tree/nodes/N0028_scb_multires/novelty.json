@@ -1,0 +1,8 @@
+{
+  "novel": true,
+  "most_similar_to": "N0027_norm_flip_swa",
+  "shared_principles": ["DINOv2-S reg4 partial-FT backbone", "resolution-aware evaluation"],
+  "new_contribution": "SCB-lite residual exemplar gating with gamma=0 init (spatial exemplar-feature injection) + {392,518} joint training via ep%2 loader alternation and bboxes3 emission — neither present in prior nodes; structural mechanism differs from scalar area-prompt only",
+  "stage1_best_sim": 0.259,
+  "judge": "Lead-booked due to subagent unavailability (network cancel); manual structural review per AGENTS deviation protocol"
+}
