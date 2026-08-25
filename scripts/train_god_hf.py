@@ -39,47 +39,52 @@ def get_hf_objects(token=None, size=384):
     return processor
 
 class FSC147HF(Dataset):
-    """Loads images from local /data/dataset/FSC147 (mirror of HF) but interface matches load_dataset.
-    Points/boxes from annotation json in S-space (384). Processor handles resize/normalize.
-    If HF datasets is available and fast, set use_hf=True to use load_dataset streaming.
-    """
-    def __init__(self, root="/data/dataset/FSC147", processor=None, split="train", size=384):
-        self.root = root
+    """Real HF-stack dataset: load_dataset(isentropic/FSC147, refs/convert/parquet) +
+    Train_Test_Val_FSC_147.json / annotation_FSC147_384.json via hf_hub_download(repo_type='dataset').
+    Rows carry 'path' (e.g. 1050.jpg) so ids join with annotations. Processor does resize+norm in collate."""
+    def __init__(self, split="train", processor=None, size=384):
         self.S = size
         self.processor = processor
-        with open(os.path.join(root, "Train_Test_Val_FSC_147.json")) as f:
-            self.ids = json.load(f)[split]
-        with open(os.path.join(root, "annotation_FSC147_384.json")) as f:
-            self.anno = json.load(f)
-        self.img_dir = os.path.join(root, "images_384_VarV2")
-        # also try to load_dataset for compliance check (optional)
-        self.use_hf = False
-        # For god loss we need points in S-space: anno["points"] are original coords, need scaling, but VarV2 anno already scaled? Check
-        # In fsc147.py, points were scaled by S/W, S/H - annotation stores original W/H and points in original coords? Actually anno points are original coords, but _load_points scales.
-        # We will scale here similarly.
+        token = None
+        for p in ["/tmp/hf_token.txt", "/root/.cache/huggingface/token"]:
+            if os.path.exists(p):
+                token = open(p).read().strip(); break
+        os.environ.setdefault("HF_HOME", "/data/asset/hf")
+        os.environ.setdefault("HF_ENDPOINT", "https://hf-mirror.com")
+        from datasets import load_dataset
+        from datasets import Image as HFImage
+        from huggingface_hub import hf_hub_download
+        full = load_dataset(HF_DATASET, revision="refs/convert/parquet", token=token)["train"]
+        raw = full.cast_column("image", HFImage(decode=False))
+        paths = [os.path.basename(raw[i]["image"]["path"]) for i in range(len(raw))]  # metadata-only pass
+        p_splits = hf_hub_download(HF_DATASET, "Train_Test_Val_FSC_147.json", repo_type="dataset", token=token)
+        p_anno = hf_hub_download(HF_DATASET, "annotation_FSC147_384.json", repo_type="dataset", token=token)
+        split_ids = set(json.load(open(p_splits))[split])
+        self.anno = json.load(open(p_anno))
+        self.rows = [i for i, pth in enumerate(paths) if pth in split_ids]
+        self.ids = [paths[i] for i in self.rows]
+        self.ds = full
+        print(f"[FSC147HF] split={split} rows={len(self.rows)} (from {len(paths)} total)", flush=True)
+
     def __len__(self):
-        return len(self.ids)
+        return len(self.rows)
+
     def __getitem__(self, i):
-        im_id = self.ids[i]
-        stem = im_id[:-4] if im_id.endswith(".jpg") else im_id
-        # image
-        img_path = os.path.join(self.img_dir, f"{stem}.jpg")
-        img = Image.open(img_path).convert("RGB")
-        # processor will resize to S and normalize
-        # we need to do processor here to get pixel_values, but dataset should return PIL for collate to use processor batch-wise
-        # For simplicity, return PIL and let collate call processor
+        row = self.rows[i]
+        im_id = self.ids[i]              # e.g. 1050.jpg
+        stem = im_id[:-4]
+        img = self.ds[row]["image"]      # decoded PIL, variable aspect
+        S = self.S
         ann = self.anno[im_id]
-        # boxes
+        sx, sy = S / float(ann["W"]), S / float(ann["H"])
         bboxes3 = []
         for corners in ann["box_examples_coordinates"][:3]:
             xs = [p[0] for p in corners]; ys = [p[1] for p in corners]
-            sx, sy = self.S / float(ann["W"]), self.S / float(ann["H"])
             bboxes3.append([min(xs)*sx, min(ys)*sy, max(xs)*sx, max(ys)*sy])
-        while len(bboxes3)<3:
+        while len(bboxes3) < 3:
             bboxes3.append(bboxes3[-1])
         bboxes3 = torch.tensor(bboxes3, dtype=torch.float32)
-        # points in S-space
-        pts = torch.tensor([[p[0]*self.S/float(ann["W"]), p[1]*self.S/float(ann["H"])] for p in ann["points"]], dtype=torch.float32) if "points" in ann else torch.zeros(0,2)
+        pts = torch.tensor([[p[0]*sx, p[1]*sy] for p in ann["points"]], dtype=torch.float32)
         return {"image": img, "bboxes3": bboxes3, "points": pts, "id": stem}
 
 def collate_hf(batch, processor):
@@ -155,17 +160,10 @@ def main():
     processor = get_hf_objects(size=args.size)
     print(f"processor size {processor.size}")
 
-    # datasets per spec (HF compliance: local mirror is same as isentropic/FSC147, skip streaming download for speed)
-    print("HF dataset compliance: using local mirror /data/dataset/FSC147 (mirrors isentropic/FSC147)")
-    try:
-        import datasets as _ds
-        print(f"HF datasets {_ds.__version__} available")
-    except Exception as e:
-        print(f"HF datasets check: {e}")
-
-    # local mirrored datasets for actual training (same content, faster)
-    train_set = FSC147HF(root="/data/dataset/FSC147", processor=processor, split="train", size=args.size)
-    val_set = FSC147HF(root="/data/dataset/FSC147", processor=processor, split="val", size=args.size)
+    # datasets per spec: real load_dataset path (parquet branch, cached)
+    print("HF dataset: load_dataset(isentropic/FSC147, refs/convert/parquet)", flush=True)
+    train_set = FSC147HF(split="train", processor=processor, size=args.size)
+    val_set = FSC147HF(split="val", processor=processor, size=args.size)
     train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, num_workers=2, collate_fn=lambda b: collate_hf(b, processor))
     val_loader = DataLoader(val_set, batch_size=args.batch_size, shuffle=False, num_workers=2, collate_fn=lambda b: collate_hf(b, processor))
     print(f"train {len(train_set)} val {len(val_set)}")
