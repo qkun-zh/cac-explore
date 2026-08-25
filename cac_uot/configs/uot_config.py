@@ -16,7 +16,7 @@ class UOTConfig:
 
     # unbalanced OT  (KL-relaxed, log-domain Sinkhorn)
     transport_weight: float = 1.0                 # α
-    entropy_reg: float = 0.15                     # ε (raised: widen support radius, fix dead-zone)
+    entropy_reg: float = 0.08                     # ε (raised: widen support radius, fix dead-zone)
     supply_tau: float = 1.0                       # τ_supply (row,  ↔ γ)
     demand_tau: float = 1.0                       # τ_demand (col, ↔ β)
     sinkhorn_iters: int = 10                      # K
