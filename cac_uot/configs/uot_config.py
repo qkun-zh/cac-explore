@@ -26,10 +26,10 @@ class UOTConfig:
     # count-mass auxiliary: |Σw − N| direct supervision (P1)
     count_mass_weight: float = 1.0
 
-    # three fixes  F1 / F3 / F4  — single F1 per user request
-    box_anchor_weight: float = 1.0                # F1: on
+    # three fixes  F1 / F3 / F4  — off; current experiment = cnt_mass(P1) + eps widen(P2) only
+    box_anchor_weight: float = 0.0                # F1: off (failed single test)
     loss_normalize: str = "none"                  # F3: off
-    use_standardized_gate: bool = False           # F4: off (GateA)
+    use_standardized_gate: bool = False           # F4: off
 
     # training
     batch_size: int = 8
