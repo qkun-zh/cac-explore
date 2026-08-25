@@ -23,10 +23,10 @@ class UOTConfig:
     repulsion_weight: float = 1e-3                # λ
     repulsion_sigma_scale: float = 1.0            # σ
 
-    # three fixes  F1 / F3 / F4  (on per user request)
-    box_anchor_weight: float = 1.0                # F1: exemplar box mass anchor
-    loss_normalize: str = "demand_size"           # F3: loss / N
-    use_standardized_gate: bool = True            # F4: standardized gate
+    # three fixes  F1 / F3 / F4  — single F1 per user request
+    box_anchor_weight: float = 1.0                # F1: on
+    loss_normalize: str = "none"                  # F3: off
+    use_standardized_gate: bool = False           # F4: off (GateA)
 
     # training
     batch_size: int = 8
