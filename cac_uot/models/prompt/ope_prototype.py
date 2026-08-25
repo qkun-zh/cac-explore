@@ -83,7 +83,7 @@ class IterativeAdaptationLayer(nn.Module):
             if not self.zero_shot:
                 tgt = self.norm1(tgt + self.dropout1(self.self_attn(
                     query=self.with_emb(tgt, query_pos_emb),
-                    key=self.with_emb(appearance), value=appearance,
+                    key=self.with_emb(appearance, query_pos_emb), value=appearance,
                     attn_mask=tgt_mask, key_padding_mask=tgt_kpm)[0]))
             tgt = self.norm2(tgt + self.dropout2(self.enc_dec_attn(
                 query=self.with_emb(tgt, query_pos_emb),
