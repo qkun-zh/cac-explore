@@ -155,15 +155,13 @@ class OPEModule(nn.Module):
         return all_prototypes  # [L, k^2*n, B, d]
 
 
-def ope_response_maps(f_e, prototypes_last, kernel_dim, num_objects):
-    """Depth-wise correlation of prototypes against feature map -> response maps [B, d, H, W]."""
+def ope_response_maps(f_e, protos, kernel_dim, num_objects):
+    """Depth-wise correlation of one iteration's prototypes against feature map.
+       f_e [B,d,H,W], protos [k^2*n, B, d] -> response maps [B, d, H, W] (max over objects)."""
     bs, d, H, W = f_e.shape
-    outs = []
-    for i in range(prototypes_last.size(0)):
-        protos = prototypes_last[i].permute(1, 0, 2).reshape(
-            bs, num_objects, kernel_dim, kernel_dim, -1).permute(0, 1, 4, 2, 3).flatten(0, 2)[:, None, ...]
-        rm = F.conv2d(
-            torch.cat([f_e for _ in range(num_objects)], dim=1).flatten(0, 1).unsqueeze(0),
-            protos, bias=None, padding=kernel_dim // 2, groups=protos.size(0))
-        outs.append(rm.view(bs, num_objects, d, H, W).max(dim=1)[0])
-    return outs[-1]
+    p = protos.permute(1, 0, 2).reshape(
+        bs, num_objects, kernel_dim, kernel_dim, d).permute(0, 1, 4, 2, 3).flatten(0, 2)[:, None, ...]
+    rm = F.conv2d(
+        torch.cat([f_e for _ in range(num_objects)], dim=1).flatten(0, 1).unsqueeze(0),
+        p, bias=None, padding=kernel_dim // 2, groups=p.size(0))
+    return rm.view(bs, num_objects, d, H, W).max(dim=1)[0]
