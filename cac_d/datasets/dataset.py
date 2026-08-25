@@ -11,12 +11,15 @@ ANNO_FILE = "annotation_FSC147_384.json"
 _cache = {}
 
 def _load_images(token):
-    """Single shared HF load: decoded image dataset + basename path list."""
+    """Single shared HF load: decoded image dataset + basename path list.
+    Paths are read from the parquet struct column directly (no byte copies)."""
     if "img" not in _cache:
         ds = load_dataset(REPO, revision=REV, token=token)["train"]
-        raw = ds.cast_column("image", Image(decode=False))
+        raw = ds.cast_column("image", Image(decode=False)).data["image"]
+        chunks = raw.chunks if hasattr(raw, "chunks") else [raw]
+        _cache["paths"] = [os.path.basename(p) for c in chunks
+                           for p in c.field("path").to_pylist()]
         _cache["img"] = ds
-        _cache["paths"] = [os.path.basename(r["path"]) for r in raw.data["image"].to_pylist()]
     return _cache["img"], _cache["paths"]
 
 def _load_json(fname, token):
