@@ -21,8 +21,9 @@ class ExemplarEncoder(nn.Module):
         B,C,H,W = feat.shape
         K = bboxes.shape[1]
         s = W / float(img_size)
-        roi = roi_align(feat, list((bboxes * s).unbind(0)),
-                        output_size=(self.r, self.r))              # list of [K,4] -> [B*K,C,r,r]
+        idx = torch.arange(B, device=bboxes.device, dtype=bboxes.dtype).view(B,1,1).expand(B,K,1)
+        rois = torch.cat([idx, bboxes * s], -1).reshape(B*K, 5)    # [B*K,5] batched rois
+        roi = roi_align(feat, rois, output_size=(self.r, self.r))  # [B*K,C,r,r]
         tok = self.proj(roi.flatten(2).transpose(1, 2))                # [B*K,r*r,D]
         wh = (bboxes[:,:,2:4] - bboxes[:,:,:2]).clamp_min(1.)          # [B,K,2]
         tok = (tok.view(B, K, self.r*self.r, -1)
