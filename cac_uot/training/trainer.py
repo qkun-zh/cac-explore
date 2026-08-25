@@ -3,12 +3,14 @@ import torch, math, time, json
 BUCKETS = [(0,25),(25,75),(75,200),(200,500),(500,float("inf"))]
 
 def _spearman(a,b):
-    ra = a.argsort().float(); rb = b.argsort().float()
-    # rank transform via argsort twice
-    ra = torch.empty_like(a).float().scatter_(0, ra.argsort(), torch.arange(1, len(a)+1, dtype=torch.float32))
-    rb = torch.empty_like(b).float().scatter_(0, rb.argsort(), torch.arange(1, len(b)+1, dtype=torch.float32))
-    ra -= ra.mean(); rb -= rb.mean()
-    return (ra*rb).sum() / (ra.norm()*rb.norm()).clamp_min(1e-12)
+    # ranks via argsort(argsort(x)): position of each element in sorted order
+    ra = torch.empty_like(a).long()
+    rb = torch.empty_like(b).long()
+    ra.scatter_(0, a.argsort(), torch.arange(len(a)))
+    rb.scatter_(0, b.argsort(), torch.arange(len(b)))
+    raf = ra.float() - ra.float().mean()
+    rbf = rb.float() - rb.float().mean()
+    return (raf*rbf).sum() / (raf.norm()*rbf.norm()).clamp_min(1e-12)
 
 def train_one_epoch(model, loader, optimizer, device, cfg, ep, log_every=50):
     model.train(); total=0; nb=0; t0=time.time()
@@ -29,7 +31,7 @@ def train_one_epoch(model, loader, optimizer, device, cfg, ep, log_every=50):
             ws = w.sum(1)
             print(f"ep{ep} it{nb}/{len(loader)} loss={loss.item():.3f} "
                   f"[trans={met.get('trans',0):.2f} klr={met.get('klr',0):.2f} klc={met.get('klc',0):.2f} "
-                  f"resr={met.get('resr',0):.1f} resc={met.get('resc',0):.1f} anchor={met.get('anchor',0):.3f} rep={met.get('rep',0):.4f}] "
+                  f"resr={met.get('resr',0):.1f} resc={met.get('resc',0):.1f} anchor={met.get('anchor',0):.3f} cnt_mass={met.get('cnt_mass',0):.3f} rep={met.get('rep',0):.4f}] "
                   f"w_sum={ws.mean().item():.1f} gate={g.mean().item():.3f} a={model.gate.alpha.item():+.2f} gnorm={gn.item():.1f}", flush=True)
     return total/max(nb,1)
 

@@ -32,11 +32,14 @@ class UOTCounter(nn.Module):
             S=self.S, sinkhorn_iters=self.cfg.sinkhorn_iters)
         rep = sum(repulsion(p[b:b+1], w[b:b+1], self.cfg.repulsion_weight, max(sigma,8), self.S) for b in range(w.shape[0])) / w.shape[0]
         anchor = box_mass_anchor(w, p, bboxes3, self.cfg.box_anchor_weight)
-        loss = loss_uot + rep + anchor
+        # count-mass auxiliary: |Σw − N| direct supervision (P1 fix)
+        n_gt = torch.tensor([len(g) for g in points], dtype=torch.float32, device=w.device)
+        count_mass = (w.sum(1) - n_gt).abs().mean() * self.cfg.count_mass_weight
+        loss = loss_uot + rep + anchor + count_mass
         if self.cfg.loss_normalize == "demand_size":
             avg_n = sum(len(g) for g in points) / max(len(points),1)
             loss = loss / max(avg_n, 1)
         return {"w": w, "p": p, "gate": gate, "loss": loss, "pred_counts": cnt_open,
-                "counts_sumw": w.sum(1).detach(), "metrics": {**met, "rep": rep.item(), "anchor": anchor.item() if torch.is_tensor(anchor) else anchor}}
+                "counts_sumw": w.sum(1).detach(), "metrics": {**met, "rep": rep.item(), "anchor": anchor.item() if torch.is_tensor(anchor) else anchor, "cnt_mass": count_mass.item()}}
 
 def build_model(cfg): return UOTCounter(cfg)

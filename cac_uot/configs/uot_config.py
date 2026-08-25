@@ -16,12 +16,15 @@ class UOTConfig:
 
     # unbalanced OT  (KL-relaxed, log-domain Sinkhorn)
     transport_weight: float = 1.0                 # α
-    entropy_reg: float = 0.05                     # ε
+    entropy_reg: float = 0.15                     # ε (raised: widen support radius, fix dead-zone)
     supply_tau: float = 1.0                       # τ_supply (row,  ↔ γ)
     demand_tau: float = 1.0                       # τ_demand (col, ↔ β)
     sinkhorn_iters: int = 10                      # K
     repulsion_weight: float = 1e-3                # λ
     repulsion_sigma_scale: float = 1.0            # σ
+
+    # count-mass auxiliary: |Σw − N| direct supervision (P1)
+    count_mass_weight: float = 1.0
 
     # three fixes  F1 / F3 / F4  — single F1 per user request
     box_anchor_weight: float = 1.0                # F1: on
