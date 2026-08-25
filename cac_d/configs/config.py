@@ -25,7 +25,7 @@ class Config:
     sinkhorn_iters: int = 32
     # OT coverage regularizer (Proto4DME-inspired Sinkhorn balanced assignment)
     use_ot_coverage: bool = True
-    ot_weight: float = 0.5
+    ot_weight: float = 0.1
     ot_epsilon: float = 0.1
     ot_iters: int = 10
     # density & count calibration
