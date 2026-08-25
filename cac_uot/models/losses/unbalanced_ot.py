@@ -14,7 +14,7 @@ def _logsumexp(x, dim):
 
 
 def sinkhorn_log_domain(lk, la, lb, tau_row, tau_col, eps,
-                        max_iters=200, tol=1e-6):
+                        max_iters=30, tol=1e-3):
     """Log-domain generalized Sinkhorn scaling for KL-relaxed UOT.
 
     lk  : [M,N] log-kernel  (= −C/ε)

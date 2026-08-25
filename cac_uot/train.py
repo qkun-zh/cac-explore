@@ -27,7 +27,23 @@ def main():
     # model
     model = UOTCounter(cfg).to(device)
     print(f"params {sum(p.numel() for p in model.parameters())/1e6:.2f}M trainable {sum(p.numel() for p in model.parameters() if p.requires_grad)/1e6:.2f}M")
-    opt = torch.optim.AdamW([p for p in model.parameters() if p.requires_grad], lr=cfg.lr, weight_decay=cfg.weight_decay)
+    # optimizer: use param_groups if backbone has unfrozen blocks (differential lr)
+    trainable = [p for p in model.parameters() if p.requires_grad]
+    bb = model.backbone
+    if hasattr(bb, 'backbone_lr_mult') and bb.backbone_lr_mult < 1.0:
+        bb_params, head_params = [], []
+        for name_, p in model.named_parameters():
+            if not p.requires_grad: continue
+            if name_.startswith("backbone.") and "encoder.layer" in name_:
+                bb_params.append(p)
+            else:
+                head_params.append(p)
+        opt = torch.optim.AdamW([
+            {"params": head_params, "lr": cfg.lr},
+            {"params": bb_params, "lr": cfg.lr * bb.backbone_lr_mult},
+        ], weight_decay=cfg.weight_decay)
+    else:
+        opt = torch.optim.AdamW(trainable, lr=cfg.lr, weight_decay=cfg.weight_decay)
     best=float("inf")
     for ep in range(1, cfg.epochs+1):
         loss = train_one_epoch(model, train_loader, opt, device, cfg, ep)

@@ -34,6 +34,10 @@ class UOTConfig:
     # P1 direct count-mass supervision |Σw − N|
     count_mass_weight: float = 1.0
 
+    # backbone partial fine-tuning (P4)
+    unfreeze_last_n_blocks: int = 1               # 0=frozen; 1=last block only
+    backbone_lr_mult: float = 0.1                 # lr multiplier for unfrozen blocks
+
     # training
     batch_size: int = 8
     epochs: int = 40
