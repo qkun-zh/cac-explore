@@ -32,7 +32,7 @@ class UOTCounter(nn.Module):
         pos = self.pos_emb_ope(B, fm.shape[2], fm.shape[3], fm.device).flatten(2).permute(2, 0, 1)
         protos = self.ope(fm, pos, bboxes3)[-1]               # last iteration [k^2*n, B, D]
         resp = ope_response_maps(fm, protos, self.cfg.ope_kernel_dim, 3)  # [B,D,h,w]
-        cond = resp.flatten(2).permute(2, 0, 1)               # [B,M,D]
+        cond = resp.flatten(2).permute(0, 2, 1)           # [B,M,D]
         w, p = self.head(tokens, cond, self.centers)          # [B,M], [B,M,2]
         if points is None:
             return {"w": w, "p": p, "pred_counts": w.sum(1), "counts_sumw": w.sum(1)}
