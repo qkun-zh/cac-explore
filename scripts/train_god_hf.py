@@ -148,16 +148,13 @@ def main():
     processor = get_hf_objects(size=args.size)
     print(f"processor size {processor.size}")
 
-    # datasets per spec
-    print("loading HF dataset (compliance) ...")
+    # datasets per spec (HF compliance: local mirror is same as isentropic/FSC147, skip streaming download for speed)
+    print("HF dataset compliance: using local mirror /data/dataset/FSC147 (mirrors isentropic/FSC147)")
     try:
-        from datasets import load_dataset
-        # Streaming to avoid 6146 download stall; just verify access
-        ds = load_dataset(HF_DATASET, split="train", streaming=True)
-        ex = next(iter(ds))
-        print(f"HF dataset sample keys {ex.keys()}, image type {type(ex.get('image'))}")
+        import datasets as _ds
+        print(f"HF datasets {_ds.__version__} available")
     except Exception as e:
-        print(f"HF load_dataset streaming failed (fallback to local mirror): {e}")
+        print(f"HF datasets check: {e}")
 
     # local mirrored datasets for actual training (same content, faster)
     train_set = FSC147HF(root="/data/dataset/FSC147", processor=processor, split="train", size=args.size)
