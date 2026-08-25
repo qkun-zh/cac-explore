@@ -91,14 +91,16 @@ def collate_hf(batch, processor):
     points = [b["points"] for b in batch]  # list [N,2]
     return {"pixel_values": pixel_values, "bboxes3": bboxes3, "points": points}
 
-def train_one_epoch(model, loader, optimizer, device, cfg):
+def train_one_epoch(model, loader, optimizer, device, cfg, ep=0, log_every=50):
     model.train()
     total_loss = 0
+    nb = 0
+    import time as _t
+    t0 = _t.time()
     for batch in loader:
         pixel_values = batch["pixel_values"].to(device)
         bboxes3 = batch["bboxes3"].to(device)
-        points = batch["points"]  # list
-        # points already in S-space, no need to move? they are tensors on cpu
+        points = [p.to(device) for p in batch["points"]]  # move GT points to device
         optimizer.zero_grad()
         with torch.autocast(device_type="cuda", dtype=torch.float16, enabled=cfg.get("amp", True)):
             out = model(pixel_values, bboxes3=bboxes3, points=points)
@@ -106,7 +108,10 @@ def train_one_epoch(model, loader, optimizer, device, cfg):
         loss.backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
         optimizer.step()
-        total_loss += loss.item()
+        total_loss += loss.item(); nb += 1
+        if nb % log_every == 0:
+            ws = out["w"].sum(dim=1).detach().float().mean().item()
+            print(f"ep{ep} it{nb}/{len(loader)} loss={loss.item():.3f} w_sum~{ws:.1f} [{_t.time()-t0:.0f}s]", flush=True)
     return total_loss / max(len(loader),1)
 
 @torch.no_grad()
@@ -171,18 +176,13 @@ def main():
     model = build_model(cfg).to(device)
     print(f"model params {sum(p.numel() for p in model.parameters())/1e6:.2f}M, trainable {sum(p.numel() for p in model.parameters() if p.requires_grad)/1e6:.2f}M")
 
-    # HF AdamW per spec (transformers 5.15 moved to torch.optim, fallback)
-    try:
-        from transformers import AdamW as HFAdamW
-    except ImportError:
-        import torch.optim as _topt
-        HFAdamW = _topt.AdamW
-    optimizer = HFAdamW([p for p in model.parameters() if p.requires_grad], lr=args.lr, weight_decay=0.05, betas=(0.9,0.999), eps=1e-8)
-    print(f"optimizer HF AdamW lr={args.lr}")
+    # torch AdamW (transformers 5.x no longer ships its own)
+    optimizer = torch.optim.AdamW([p for p in model.parameters() if p.requires_grad], lr=args.lr, weight_decay=0.05, betas=(0.9, 0.999), eps=1e-8)
+    print(f"optimizer torch AdamW lr={args.lr}")
 
     best = float("inf")
     for ep in range(1, args.epochs+1):
-        loss = train_one_epoch(model, train_loader, optimizer, device, cfg)
+        loss = train_one_epoch(model, train_loader, optimizer, device, cfg, ep=ep)
         mae, rmse = evaluate(model, val_loader, device)
         print(f"Ep {ep:02d} loss={loss:.4f} val MAE={mae:.3f} RMSE={rmse:.3f} best={best:.3f}")
         if mae < best:
