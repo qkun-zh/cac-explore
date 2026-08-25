@@ -1,3 +1,4 @@
+import math
 import torch, torch.nn.functional as F
 
 def gaussian_density(points, B, H, W, S, sigma=1.5):
@@ -29,6 +30,48 @@ def sim_margin_loss(smax, gt_dens):
         s = smax[b, 0]
         loss = loss + F.softplus(s[~m].mean() - s[m].mean() + 0.1)
     return loss / B
+
+def ot_coverage_loss(S, gt_d, eps=0.1, iters=10):
+    """Sinkhorn OT coverage regularizer (inspired by Proto4DME §3.3):
+    balanced assignment of GT density mass K exemplars, minimizing
+    expected cosine distance + entropy regularization.
+    S: [B, H, W, K] exemplar similarity maps (SimModule output)
+    gt_d: [B, 1, H, W] GT Gaussian density
+    """
+    B, H, W, K = S.shape
+    M = H * W
+    Q = (1.0 - S).view(B, K, M)                   # [B, K, M] cosine distance ∈ [0,1]
+    t = gt_d.view(B, M)
+    tsum = t.sum(-1, keepdim=True).clamp(min=1e-12)
+    t = t / tsum                                   # [B, M] Σ_m t_m = 1
+
+    INVALID = -1e4
+    log_a = math.log(1.0 / K)                      # uniform row marginal
+
+    tot = S.new_zeros(())
+    for b in range(B):
+        if t[b].sum() < 1e-12:
+            continue                               # skip empty images
+        Qb = Q[b]                                  # [K, M]
+        tb = t[b]                                  # [M]
+
+        # log-domain Sinkhorn: column then row normalization, T iterations
+        log_P = log_a + tb.clamp(min=1e-12).log()  # [K, M] init
+        for _ in range(iters):
+            # column norm: Σ_k P[k,m] = t[m]
+            log_P = log_P - torch.logsumexp(log_P, 0, keepdim=True) + tb.clamp(min=1e-12).log()
+            # row norm: Σ_m P[k,m] = a[k] = 1/K
+            log_P = log_P - torch.logsumexp(log_P, 1, keepdim=True) + log_a
+
+        # transport plan (differentiable via logsumexp)
+        log_P = torch.clamp(log_P, min=INVALID)
+        P = log_P.exp()                            # [K, M]
+
+        # L_ot = <P, Q> + ε H(P),  H(P) = -Σ P log P
+        H_P = -(P * (log_P - INVALID).clamp(min=0)).sum()
+        tot = tot + (P * Qb).sum() + eps * H_P
+
+    return tot / B
 
 def uot_loss(p, w, points, S=384, eps=0.08, tau=1.0, alpha=1.0, iters=32):
     """Minimal unbalanced OT on selected candidate cells (see heads.PileHead):

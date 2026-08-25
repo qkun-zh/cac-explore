@@ -3,7 +3,7 @@ import torch.nn.functional as F
 from .backbone.backbone import ConvNeXtBackbone
 from .prompt.prompt import ExemplarEncoder
 from .heads.heads import FineFuser, SimModule, Condenser, DensityDecoder, PileHead, grid_centers
-from .losses.losses import gaussian_density, sim_margin_loss, uot_loss
+from .losses.losses import gaussian_density, sim_margin_loss, uot_loss, ot_coverage_loss
 
 class Counter(nn.Module):
     """Frozen HF backbone (multi-scale) -> fine token map @1/4 + explicit
@@ -42,16 +42,23 @@ class Counter(nn.Module):
         counts = dens.sum((1, 2, 3))
         if points is None:
             return {"pred_counts": counts, "density": dens}
-        sstats = torch.stack([smax.squeeze(1), smean.squeeze(1)], -1).flatten(1, 2)  # [B,M,2]
-        w, p = self.pile(fine.flatten(2).transpose(1, 2), sstats, self.centers, self.cell)
         gt_d = gaussian_density(points, B, Hf, Wf, self.S, sigma=self.cfg.gauss_sigma)
         loss_den = F.mse_loss(dens, gt_d)
         N = torch.tensor([len(q) for q in points], device=dens.device, dtype=torch.float32)
         loss_cnt = F.smooth_l1_loss((counts+1).log(), (N+1).log())
         loss_sim = sim_margin_loss(smax, gt_d)
-        loss_uot = self._uot_topk(w, p, points)
+        if self.cfg.use_ot_coverage:
+            loss_ot = ot_coverage_loss(S, gt_d,
+                                        eps=self.cfg.ot_epsilon,
+                                        iters=self.cfg.ot_iters)
+            ot_w = self.cfg.ot_weight
+        else:
+            sstats = torch.stack([smax.squeeze(1), smean.squeeze(1)], -1).flatten(1, 2)
+            w, p = self.pile(fine.flatten(2).transpose(1, 2), sstats, self.centers, self.cell)
+            loss_ot = self._uot_topk(w, p, points)
+            ot_w = self.cfg.transport_weight
         loss = (self.cfg.density_weight*loss_den + self.cfg.cnt_weight*loss_cnt +
-                self.cfg.sim_weight*loss_sim + self.cfg.transport_weight*loss_uot)
+                self.cfg.sim_weight*loss_sim + ot_w*loss_ot)
         return {"loss": loss, "pred_counts": counts.detach(), "density": dens}
 
     def _uot_topk(self, w, p, points):

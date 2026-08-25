@@ -18,11 +18,16 @@ class Config:
     # heads
     pile_hidden: int = 128
     uot_topk: int = 2048
-    # UOT minimal: transport + demand KL
+    # UOT minimal: transport + demand KL (legacy, used when use_ot_coverage=False)
     transport_weight: float = 0.5
     entropy_reg: float = 0.08
     demand_tau: float = 1.0
     sinkhorn_iters: int = 32
+    # OT coverage regularizer (Proto4DME-inspired Sinkhorn balanced assignment)
+    use_ot_coverage: bool = True
+    ot_weight: float = 0.5
+    ot_epsilon: float = 0.1
+    ot_iters: int = 10
     # density & count calibration
     density_weight: float = 1.0
     cnt_weight: float = 1.0
