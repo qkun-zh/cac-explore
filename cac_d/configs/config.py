@@ -25,8 +25,9 @@ class Config:
     # density
     density_weight: float = 1.0
     # training
-    batch_size: int = 8
+    batch_size: int = 32
     epochs: int = 40
-    lr: float = 1e-3
+    lr: float = 2e-3
     weight_decay: float = 0.05
     amp: bool = True
+    num_workers: int = 8

@@ -11,8 +11,8 @@ def main():
     tok=open("/tmp/hf_token.txt").read().strip() if os.path.exists("/tmp/hf_token.txt") else None
     proc=AutoImageProcessor.from_pretrained(cfg.hf_model, token=tok, trust_remote_code=True, size={"height":cfg.image_size,"width":cfg.image_size})
     train=FSC147("train",None,cfg.image_size); val=FSC147("val",None,cfg.image_size)
-    tr=DataLoader(train,batch_size=cfg.batch_size,shuffle=True,num_workers=2,collate_fn=lambda b: collate(b,proc))
-    va=DataLoader(val,batch_size=cfg.batch_size,shuffle=False,num_workers=2,collate_fn=lambda b: collate(b,proc))
+    tr=DataLoader(train,batch_size=cfg.batch_size,shuffle=True,num_workers=cfg.num_workers,collate_fn=lambda b: collate(b,proc))
+    va=DataLoader(val,batch_size=cfg.batch_size,shuffle=False,num_workers=cfg.num_workers,collate_fn=lambda b: collate(b,proc))
     device=torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model=Counter(cfg).to(device)
     opt=torch.optim.AdamW([p for p in model.parameters() if p.requires_grad],lr=cfg.lr,weight_decay=cfg.weight_decay)
