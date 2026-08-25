@@ -21,14 +21,15 @@ class UOTConfig:
     ope_heads: int = 8
     ope_reduction: int = 16                       # S / feature_map_size
 
-    # unbalanced OT  (KL-relaxed, log-domain Sinkhorn)
+    # unbalanced OT  (KL-relaxed, log-domain Sinkhorn, v8)
     transport_weight: float = 1.0                 # α
     entropy_reg: float = 0.08                     # ε
-    supply_tau: float = 0.5                       # τ_supply (row, surplus regularizer)
-    demand_tau: float = 1.0                       # τ_demand (col, ↔ β)
-    sinkhorn_iters: int = 10                      # K
+    supply_tau: float = 0.5                       # τ_supply
+    demand_tau: float = 1.0                       # τ_demand
+    sinkhorn_iters: int = 200                     # max K (convergence-checked at every 20)
     repulsion_weight: float = 1e-3                # λ
     repulsion_sigma_scale: float = 1.0            # σ
+    tv_weight: float = 0.1                        # DM-Count TV stabilizer
 
     # P1 direct count-mass supervision |Σw − N|
     count_mass_weight: float = 1.0

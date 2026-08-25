@@ -2,7 +2,7 @@ import torch, torch.nn as nn, torch.nn.functional as F
 from .backbone.dinov3 import DINOv3HFBackbone
 from .prompt.ope_prototype import OPEModule, PositionalEncodingsFixed as OPEPosEmb, ope_response_maps
 from .heads.pile_predictor import PilePredictor, grid_centers
-from .losses.unbalanced_ot import unbalanced_ot_loss
+from .losses.unbalanced_ot import unbalanced_ot_v8
 from .losses.repulsion import repulsion
 from .losses.uw import UncertaintyWeighting
 
@@ -42,10 +42,7 @@ class UOTCounter(nn.Module):
         if points is None:
             return {"w": w, "p": p, "pred_counts": w.sum(1), "counts_sumw": w.sum(1)}
         wh = (bboxes3[:,:,2:4]-bboxes3[:,:,0:2]).clamp_min(1); sigma = wh.mean().item() * self.cfg.repulsion_sigma_scale
-        loss_uot, met, cnt_open = unbalanced_ot_loss(p, w, points,
-            transport_weight=self.cfg.transport_weight, supply_tau=self.cfg.supply_tau,
-            demand_tau=self.cfg.demand_tau, entropy_reg=self.cfg.entropy_reg,
-            S=self.S, sinkhorn_iters=self.cfg.sinkhorn_iters)
+        loss_uot, met, cnt_open = unbalanced_ot_v8(p, w, points, vars(self.cfg))
         rep = sum(repulsion(p[b:b+1], w[b:b+1], self.cfg.repulsion_weight, max(sigma,8), self.S) for b in range(w.shape[0])) / w.shape[0]
         # P1 direct count-mass supervision |Σw − N|
         n_gt = torch.tensor([len(g) for g in points], dtype=torch.float32, device=w.device)
