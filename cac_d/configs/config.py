@@ -13,21 +13,8 @@ class Config:
     # fine grid / matching
     d_fine: int = 128
     cond_dim: int = 64
-    gauss_sigma: float = 1.5                # cells at 96x96 grid
-    sim_weight: float = 0.8
+    gauss_sigma: float = 1.5
     # heads
-    pile_hidden: int = 128
-    uot_topk: int = 2048
-    # UOT minimal: transport + demand KL (legacy, used when use_ot_coverage=False)
-    transport_weight: float = 0.5
-    entropy_reg: float = 0.08
-    demand_tau: float = 1.0
-    sinkhorn_iters: int = 32
-    # OT coverage regularizer (Proto4DME-inspired Sinkhorn balanced assignment)
-    use_ot_coverage: bool = True
-    ot_weight: float = 0.13
-    ot_epsilon: float = 0.1
-    ot_iters: int = 10
     # density & count calibration
     density_weight: float = 1.0
     cnt_weight: float = 1.0
@@ -40,9 +27,9 @@ class Config:
     num_workers: int = 8
     seed: int = 0
     warmup_epochs: int = 2
-    stable_epochs: int = 10                 # constant 1.0× after warmup
-    eta_min_ratio: float = 0.1              # cosine floor = lr * ratio (0.05太激进→末段5e-5步长过小)
-    ema_decay: float = 0.999                # per-step shadow weights
+    stable_epochs: int = 10
+    eta_min_ratio: float = 0.1
+    ema_decay: float = 0.999
     # augmentation (geometric synced with boxes/points)
     flip_p: float = 0.5
     color_jitter: bool = False

@@ -34,15 +34,15 @@ def main():
     os.environ.setdefault("HF_HOME", "/data/asset/hf")
     sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
     from cac_d.common import hf_token
-    from configs.config import Config
+    from cac_d.configs.config import Config
 
     tok = hf_token()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # -- Load model (backbone + exemplar encoder) --
     cfg = Config()
-    from models.backbone.backbone import ConvNeXtBackbone
-    from models.prompt.prompt import ExemplarEncoder
+    from cac_d.models.backbone.backbone import ConvNeXtBackbone
+    from cac_d.models.prompt.prompt import ExemplarEncoder
     backbone = ConvNeXtBackbone(cfg).to(device).eval()
     exemplar = ExemplarEncoder(
         backbone.out_channels[1], cfg.embed_dim, cfg.exemplar_layers, roi_size=cfg.roi_size

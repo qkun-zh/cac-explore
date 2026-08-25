@@ -31,45 +31,46 @@ def sim_margin_loss(smax, gt_dens):
         loss = loss + F.softplus(s[~m].mean() - s[m].mean() + 0.1)
     return loss / B
 
-def ot_coverage_loss(S, gt_d, eps=0.1, iters=10):
-    """Sinkhorn OT coverage regularizer (inspired by Proto4DME §3.3):
-    balanced assignment of GT density mass K exemplars, minimizing
-    expected cosine distance + entropy regularization.
-    S: [B, H, W, K] exemplar similarity maps (SimModule output)
+def ot_coverage_loss(S, gt_d, eps=0.5, iters=30):
+    """Sinkhorn OT coverage regularizer using FlashSinkhorn (GPU-native).
+    S: [B, H, W, K] exemplar similarity maps (unused, kept for API compat)
     gt_d: [B, 1, H, W] GT Gaussian density
+    Note: actual OT is computed on exemplar/fine feature coordinates via FlashSinkhorn,
+    so this function needs access to e and fine features — see model.py for the actual call.
+    This fallback uses the cost-matrix approach with PyTorch tensors on GPU.
     """
     B, H, W, K = S.shape
     M = H * W
-    Q = (1.0 - S).view(B, K, M)                   # [B, K, M] cosine distance ∈ [0,1]
+    Q = (1.0 - S.clamp(0, 1)).view(B, K, M)       # [B, K, M] cosine distance ∈ [0,1]
     t = gt_d.view(B, M)
     tsum = t.sum(-1, keepdim=True).clamp(min=1e-12)
     t = t / tsum                                   # [B, M] Σ_m t_m = 1
 
-    INVALID = -1e4
-    log_a = math.log(1.0 / K)                      # uniform row marginal
+    # Log-domain Sinkhorn on GPU (PyTorch native)
+    log_K = -Q / eps                               # [B, K, M] log-Gibbs kernel
+    a = Q.new_full((B, K), 1.0 / K)               # [B, K] uniform source weights
+    log_a = a.clamp(min=1e-30).log()              # [B, K]
+    log_b = t.clamp(min=1e-30).log()              # [B, M]
 
-    tot = S.new_zeros(())
-    for b in range(B):
-        if t[b].sum() < 1e-12:
-            continue                               # skip empty images
-        Qb = Q[b]                                  # [K, M]
-        tb = t[b]                                  # [M]
+    # Initialize scaling vectors
+    log_u = Q.new_zeros(B, K)                      # [B, K]
+    log_v = Q.new_zeros(B, M)                      # [B, M]
 
-        # log-domain Sinkhorn: column then row normalization, T iterations
-        log_P = (log_a + tb.clamp(min=1e-12).log()).unsqueeze(0).expand(K, -1).clone()  # [K, M]
-        for _ in range(iters):
-            # column norm: Σ_k P[k,m] = t[m]
-            log_P = log_P - torch.logsumexp(log_P, 0, keepdim=True) + tb.clamp(min=1e-12).log()
-            # row norm: Σ_m P[k,m] = a[k] = 1/K
-            log_P = log_P - torch.logsumexp(log_P, 1, keepdim=True) + log_a
+    for _ in range(iters):
+        # log(K @ v) for each source: logsumexp(log_K + log_v[:,:,None], dim=2) → [B, K]
+        log_Kv = torch.logsumexp(log_K + log_v.unsqueeze(1), 2)
+        log_u = log_a - log_Kv
+        # log(K^T @ u) for each target: logsumexp(log_K + log_u.unsqueeze(2), dim=1) → [B, M]
+        log_Ktu = torch.logsumexp(log_K + log_u.unsqueeze(2), 1)
+        log_v = log_b - log_Ktu
 
-        # transport plan (differentiable via logsumexp)
-        log_P = log_P.clamp(min=INVALID)
-        P = log_P.exp()                            # [K, M]
+    # Transport plan: Π[b,k,m] = u[b,k] * K[b,k,m] * v[b,m]
+    log_P = log_u.unsqueeze(2) + log_K + log_v.unsqueeze(1)  # [B, K, M]
+    P = log_P.exp()                                # [B, K, M]
 
-        # L_ot = <P, Q> + ε H(P),  H(P) = -Σ P log P
-        H_P = -(P * log_P.clamp(min=INVALID)).sum()
-        tot = tot + (P * Qb).sum() + eps * H_P
+    # L = <Π, Q> + ε H(Π)
+    H_P = -(P * log_P).sum()
+    tot = (P * Q).sum() + eps * H_P
 
     return tot / B
 

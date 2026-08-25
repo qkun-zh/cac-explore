@@ -8,11 +8,11 @@ from torch.optim.swa_utils import AveragedModel
 from cac_d.configs.config import Config
 from cac_d.models.model import Counter
 
-def lr_lambda(e):                                       # e: 0-based epoch
+def lr_lambda(e):
     c = Config()
-    if e < c.warmup_epochs:                             # warmup 0.5×→1.0×
+    if e < c.warmup_epochs:
         return (e + 1) / c.warmup_epochs
-    if e < c.warmup_epochs + c.stable_epochs:           # stable 1.0×
+    if e < c.warmup_epochs + c.stable_epochs:
         return 1.0
     t = (e - c.warmup_epochs - c.stable_epochs) / max(1, c.epochs - c.warmup_epochs - c.stable_epochs)
     return c.eta_min_ratio + (1 - c.eta_min_ratio) * 0.5 * (1 + math.cos(math.pi * t))
@@ -40,13 +40,13 @@ def evaluate(m, va, device, cached=False):
 def main():
     cfg = Config()
     import json
-    ov = os.environ.get("CAC_D_OVERRIDE")                   # ablation overrides
+    ov = os.environ.get("CAC_D_OVERRIDE")
     if ov:
         for k, v in json.loads(ov).items():
             assert hasattr(cfg, k), f"unknown override {k}"
             setattr(cfg, k, v)
     cached = cfg.use_cached_features
-    snap = os.path.join(os.path.dirname(cfg.best_ckpt), f"cfg_{cfg.transport_weight}_{cfg.sim_weight}.json")
+    snap = os.path.join(os.path.dirname(cfg.best_ckpt), f"cfg.json")
     with open(snap, "w") as f:
         json.dump({**cfg.__dict__, "override": ov}, f, indent=1)
     torch.manual_seed(cfg.seed)
@@ -91,6 +91,7 @@ def main():
     best = float("inf")
     for ep in range(1, cfg.epochs+1):
         t0 = time.time(); model.train(); tot = 0.0
+        s_den = s_cnt = 0.0
         for batch in tr:
             opt.zero_grad(set_to_none=True)
             with torch.autocast("cuda", torch.float16, enabled=use_amp):
@@ -111,11 +112,17 @@ def main():
             scaler.unscale_(opt); torch.nn.utils.clip_grad_norm_(params, 1.0)
             scaler.step(opt); scaler.update()
             ema.update_parameters(model); tot += loss.item()
+            s_den += out["loss_den"].item()
+            s_cnt += out["loss_cnt"].item()
+            if ep == 1 and tot == loss.item():
+                print(f"  [debug] loss={loss.item():.4f} isnan={torch.isnan(loss).item()} "
+                      f"min={loss.detach().min().item():.4f} dtype={loss.dtype}", flush=True)
         sched.step()
         mae_raw, rmse_raw = evaluate(model, va, device, cached=cached)
         ema.eval(); mae_ema, rmse_ema = evaluate(ema, va, device, cached=cached)
-        print(f"Ep{ep} loss={tot/len(tr):.3f} [{time.time()-t0:.0f}s] "
-              f"MAE={mae_raw:.2f}/{mae_ema:.2f} RMSE={rmse_raw:.1f}/{rmse_ema:.1f} best={best:.2f}", flush=True)
+        nbatch = len(tr)
+        print(f"Ep{ep} loss={tot/nbatch:.3f} den={s_den/nbatch:.4f} cnt={s_cnt/nbatch:.4f} "
+              f"[{time.time()-t0:.0f}s] MAE={mae_raw:.2f}/{mae_ema:.2f} RMSE={rmse_raw:.1f}/{rmse_ema:.1f} best={best:.2f}", flush=True)
         if min(mae_raw, mae_ema) < best:
             best = min(mae_raw, mae_ema)
             src = ema if mae_ema <= mae_raw else model
