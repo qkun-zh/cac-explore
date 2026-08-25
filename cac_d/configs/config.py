@@ -29,3 +29,4 @@ class Config:
     epochs: int = 40
     lr: float = 1e-3
     weight_decay: float = 0.05
+    amp: bool = True
