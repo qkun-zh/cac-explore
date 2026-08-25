@@ -39,5 +39,5 @@ class Config:
     ema_decay: float = 0.999                # per-step shadow weights
     # augmentation (geometric synced with boxes/points)
     flip_p: float = 0.5
-    color_jitter: bool = True
+    color_jitter: bool = False
     best_ckpt: str = "/tmp/cac_d_best.pth"
