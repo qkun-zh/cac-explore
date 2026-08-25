@@ -71,6 +71,8 @@ class GODHead(nn.Module):
         # init p head to zero so p = grid_center at step 0
         nn.init.zeros_(self.mlp_p[-1].weight)
         nn.init.zeros_(self.mlp_p[-1].bias)
+        # init w head bias to -3.5 so softplus(-3.5)=0.03, sum~17 for M=576 (avoids initial 270 overcount seen in smoke)
+        nn.init.constant_(self.mlp_w[-1].bias, -3.5)
 
     def forward(self, T, gate, grid_centers):
         """
@@ -277,6 +279,7 @@ class DinoGODHf(nn.Module):
                     if gb is None or gb.numel()==0:
                         pred_c = 0.0
                     else:
+                        gb = gb.to(pb.device)
                         N = gb.shape[0]
                         d2 = ((pb.unsqueeze(1)-gb.unsqueeze(0))**2).sum(-1)/(self.S*self.S)
                         logits = torch.cat([-d2/self.epsilon, torch.zeros(pb.shape[0],1, device=pb.device)], dim=1)
