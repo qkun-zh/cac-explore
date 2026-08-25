@@ -104,6 +104,10 @@ def god_loss(p, w, g_list, alpha=1.0, beta=0.5, gamma=0.1, epsilon=0.05, lam=1e-
     total_rep = 0.0
     total_count_err = 0.0
     total_over = 0.0
+    total_trans = 0.0
+    total_def = 0.0
+    total_sur = 0.0
+    total_ent = 0.0
     for b in range(B):
         pb = p[b]  # [M,2]
         wb = w[b]  # [M]
@@ -144,11 +148,14 @@ def god_loss(p, w, g_list, alpha=1.0, beta=0.5, gamma=0.1, epsilon=0.05, lam=1e-
         overflow = torch.clamp(R - 1, min=0)  # [N] pit capacity violated
         lot_over = beta_over * (overflow**2).sum()
         lot_sur = gamma * (s**2).sum()
-        # entropy term (optional, for stability, small weight)
-        # ε * Σ π log π (with dustbin mass included as s log s)
-        # we include it as part of Lot to keep Sinkhorn differentiable; weight epsilon already in logits, but add explicit
-        ent = epsilon * ( (pi.clamp_min(1e-8) * torch.log(pi.clamp_min(1e-8))).sum() + (s.clamp_min(1e-8) * torch.log(s.clamp_min(1e-8))).sum() )
+        ent_raw = ( (pi.clamp_min(1e-8) * torch.log(pi.clamp_min(1e-8))).sum() + (s.clamp_min(1e-8) * torch.log(s.clamp_min(1e-8))).sum() )
+        ent = epsilon * ent_raw
         lot = transport + lot_def + lot_over + lot_sur + ent * 0.1  # scale entropy small
+        total_trans += transport.item()
+        total_def += lot_def.item()
+        total_over += lot_over.item()
+        total_sur += lot_sur.item()
+        total_ent += ent.item() * 0.1
         # Lrep: mass-weighted Gaussian
         # pairwise distance between piles in normalized coords
         pb_n = pb / S  # [M,2] in [0,1]
@@ -167,7 +174,8 @@ def god_loss(p, w, g_list, alpha=1.0, beta=0.5, gamma=0.1, epsilon=0.05, lam=1e-
         total_over = total_over + lot_over.item()
     # average over batch
     total = (total_lot + total_rep) / B
-    return total, {"lot": total_lot.item()/B, "rep": total_rep.item()/B, "cnt_err": total_count_err/B, "over": total_over/B}
+    return total, {"lot": total_lot.item()/B, "rep": total_rep.item()/B, "cnt_err": total_count_err/B, "over": total_over/B,
+                   "trans": total_trans/B, "def": total_def/B, "sur": total_sur/B, "ent": total_ent/B}
 
 class DinoGODHf(nn.Module):
     def __init__(self, cfg):

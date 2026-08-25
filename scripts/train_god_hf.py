@@ -144,8 +144,10 @@ def train_one_epoch(model, loader, optimizer, device, cfg, ep=0, log_every=50):
             g = out["gate"].detach().float()
             met = out["metrics"]
             lr_now = optimizer.param_groups[0]["lr"]
+            # detailed sub-losses: trans/def/over/sur/ent are per-image means
             print(f"ep{ep} it{nb}/{len(loader)} loss={loss.item():.3f} "
-                  f"[lot={met['lot']:.3f} rep={met['rep']:.4f} cnt_err={met['cnt_err']:.2f}] "
+                  f"[lot={met['lot']:.3f} (trans={met.get('trans',0):.3f} def={met.get('def',0):.3f} over={met.get('over',0):.3f} sur={met.get('sur',0):.3f} ent={met.get('ent',0):.4f}) "
+                  f"rep={met['rep']:.4f} cnt_err={met['cnt_err']:.2f}] "
                   f"w_sum(mean/p10/p90)={ws.mean().item():.1f}/{torch.quantile(ws,0.1).item():.1f}/{torch.quantile(ws,0.9).item():.1f} "
                   f"w(min/max)={w.min().item():.3f}/{w.max().item():.3f} "
                   f"gate_mean={g.mean().item():.3f} gate(p10/p90)={torch.quantile(g.flatten(),0.1).item():.3f}/{torch.quantile(g.flatten(),0.9).item():.3f} "
@@ -204,7 +206,7 @@ def main():
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument("--epochs", type=int, default=40)
-    parser.add_argument("--batch_size", type=int, default=4)
+    parser.add_argument("--batch_size", type=int, default=8)
     parser.add_argument("--lr", type=float, default=1e-3)
     parser.add_argument("--size", type=int, default=384)
     args = parser.parse_args()
