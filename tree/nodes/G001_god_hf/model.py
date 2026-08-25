@@ -104,7 +104,7 @@ def god_loss_uot(p, w, g_list, alpha=1.0, tau_row=1.0, tau_col=1.0, epsilon=0.05
     device = p.device
     tot = {"uot": 0.0, "trans": 0.0, "kl_row": 0.0, "kl_col": 0.0,
            "res_row": 0.0, "res_col": 0.0, "cnt_err": 0.0, "rep": 0.0}
-    cnt_list = []
+    cnt_list, loss_list = [], []
     r1 = tau_row / (tau_row + epsilon)
     r2 = tau_col / (tau_col + epsilon)
     for b in range(B):
@@ -116,10 +116,12 @@ def god_loss_uot(p, w, g_list, alpha=1.0, tau_row=1.0, tau_col=1.0, epsilon=0.05
         sig_n = max(sigma, 8.0) / S
         Ker_rep = torch.exp(-dist2_p / (2 * sig_n ** 2 + 1e-12)) * (1 - torch.eye(M, device=device))
         rep = lam * (wb.unsqueeze(1) * wb.unsqueeze(0) * Ker_rep).sum() * 0.5
-        tot["rep"] += rep.item()
         if gb is None or gb.numel() == 0:
+            loss_list.append(rep)
             cnt_list.append(wb.sum().detach())
+            tot["rep"] += rep.item()
             continue
+        tot["rep"] += rep.item()
         gb = gb.to(pb.device)
         N = gb.shape[0]
         d2 = ((pb.unsqueeze(1) - gb.unsqueeze(0)) ** 2).sum(-1) / (S * S)   # [M,N]
@@ -142,7 +144,7 @@ def god_loss_uot(p, w, g_list, alpha=1.0, tau_row=1.0, tau_col=1.0, epsilon=0.05
         ones = torch.ones_like(colsum)
         kl_col = (colsum * torch.log(colsum.clamp_min(1e-8)) - colsum + ones).sum()
         loss_img = trans + tau_row * kl_row + tau_col * kl_col + rep
-        tot["uot"] += loss_img.item()
+        loss_list.append(loss_img)
         tot["trans"] += trans.item()
         tot["kl_row"] += tau_row * kl_row.item()
         tot["kl_col"] += tau_col * kl_col.item()
@@ -151,8 +153,9 @@ def god_loss_uot(p, w, g_list, alpha=1.0, tau_row=1.0, tau_col=1.0, epsilon=0.05
         cnt = P.sum()
         tot["cnt_err"] += abs(cnt.item() - N)
         cnt_list.append(cnt.detach())
-    total = tot["uot"] / B
-    metrics = {"lot": tot["uot"] / B, "rep": tot["rep"] / B, "cnt_err": tot["cnt_err"] / B,
+    total = sum(loss_list) / B
+    tot["uot"] = total.item()
+    metrics = {"lot": tot["uot"], "rep": tot["rep"] / B, "cnt_err": tot["cnt_err"] / B,
                "trans": tot["trans"] / B, "klr": tot["kl_row"] / B, "klc": tot["kl_col"] / B,
                "resr": tot["res_row"] / B, "resc": tot["res_col"] / B,
                "def": 0.0, "over": 0.0, "sur": 0.0, "ent": 0.0}
