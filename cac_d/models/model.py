@@ -1,60 +1,65 @@
-import math, torch, torch.nn as nn
+import torch, torch.nn as nn
 import torch.nn.functional as F
 from .backbone.backbone import ConvNeXtBackbone
 from .prompt.prompt import ExemplarEncoder
-from .heads.heads import PileHead, DensityHead, grid_centers
-from .losses.losses import uot_loss
+from .heads.heads import FineFuser, SimModule, Condenser, DensityDecoder, PileHead, grid_centers
+from .losses.losses import gaussian_density, sim_margin_loss, uot_loss
 
 class Counter(nn.Module):
-    """Frozen HF backbone -> ROI exemplar embeddings + token projection ->
-    similarity field drives pile (UOT) and density branches."""
+    """Frozen HF backbone (multi-scale) -> fine token map @1/4 + explicit
+    exemplar similarity (supervised) + exemplar->cell cross-attention ->
+    density map at 96x96 (primary count); top-K UOT point branch auxiliary."""
     def __init__(self, cfg):
         super().__init__()
-        self.cfg = cfg; self.S = cfg.image_size; D = cfg.embed_dim
+        self.cfg = cfg; self.S = cfg.image_size
         self.backbone = ConvNeXtBackbone(cfg)
-        C = self.backbone.out_channels
-        self.exemplar = ExemplarEncoder(C, D, cfg.exemplar_layers, roi_size=cfg.roi_size)
-        self.tproj = nn.Linear(C, D)
-        self.norm_t = nn.LayerNorm(D); self.norm_e = nn.LayerNorm(D)
-        self.pile = PileHead(D, cfg.pile_hidden)
-        self.density = DensityHead(D, cfg.density_hidden)
-        centers, _ = grid_centers(self.S, cfg.patch_stride)
+        ch_mid, ch_coarse = self.backbone.out_channels              # [192, 384]
+        D = cfg.d_fine
+        self.fuser = FineFuser(ch_coarse, ch_mid, d_fine=D)
+        self.exemplar = ExemplarEncoder(ch_coarse, cfg.embed_dim,
+                                        cfg.exemplar_layers, roi_size=cfg.roi_size)
+        self.sim = SimModule(d_fine=D, d_sim=cfg.embed_dim)
+        self.cond = Condenser(d_sim=cfg.embed_dim, d_out=cfg.cond_dim)
+        self.cell = self.S // (cfg.image_size // 4)                 # fine cell px (=4)
+        centers, _ = grid_centers(self.S, self.cell)
         self.register_buffer("centers", centers)
+        self.pile = PileHead(D, cfg.pile_hidden)
+        self.density = DensityDecoder(in_ch=D + 2 + cfg.cond_dim, hidden=2*D)
 
-    def train(self, mode=True):     # backbone stays eval: no dropout/BN drift
-        super().train(mode)
-        self.backbone.eval()
-        return self
+    def train(self, mode=True):                                     # backbone stays eval
+        super().train(mode); self.backbone.eval(); return self
 
     def forward(self, x, bboxes, points=None):
-        feat = self.backbone.forward_feature_map(x)                # [B,C,h,w]
-        B, _, H, W = feat.shape
-        e = self.norm_e(self.exemplar(feat, bboxes, self.S))       # [B,K,D]
-        t = self.norm_t(self.tproj(feat.flatten(2).transpose(1, 2)))  # [B,M,D]
-        sim = torch.einsum('bmd,bkd->bmk', t, e) / math.sqrt(t.shape[-1])  # [B,M,K]
-        sstats = torch.stack([sim.max(-1).values, sim.mean(-1)], -1)       # [B,M,2]
-        w, p = self.pile(t, sim, self.centers)
-        dens = self.density(t.view(B, H, W, -1), sstats.view(B, H, W, 2))  # [B,1,H,W]
+        h2, h3 = self.backbone.forward_feature_map(x)
+        B, _, Hh, _ = h3.shape
+        Hf = Wf = Hh * 4                                            # 96 @ 384 input
+        fine = self.fuser(h2, h3)                                   # [B,D,96,96]
+        e = self.exemplar(h3, bboxes, self.S)                       # [B,K,256]
+        S, smax, smean, tok256 = self.sim(fine.permute(0, 2, 3, 1), e)
+        cond = self.cond(tok256, e)                                 # [B,M,cond_dim]
+        dens = self.density(torch.cat([fine, smax, smean,
+                                       cond.transpose(1, 2).reshape(B, -1, Hf, Wf)], 1))
+        counts = dens.sum((1, 2, 3))
         if points is None:
-            return {"pred_counts": dens.sum((1, 2, 3)), "pile_count": w.sum(1),
-                    "w": w, "p": p, "density": dens}
-        gt = self._gt_density(points, B, H, W)
-        loss_uot, _ = uot_loss(p, w, points, S=self.S, eps=self.cfg.entropy_reg,
-                               tau=self.cfg.demand_tau, alpha=self.cfg.transport_weight,
-                               iters=self.cfg.sinkhorn_iters)
-        loss_den = F.mse_loss(dens, gt)
-        loss_consist = F.mse_loss((w.sum(1)+1).log(), (dens.sum((1,2,3))+1).log())
-        loss = loss_uot + self.cfg.density_weight*loss_den + self.cfg.consist_weight*loss_consist
-        return {"loss": loss, "pred_counts": dens.sum((1,2,3)).detach(),
-                "pile_count": w.sum(1).detach(), "w": w, "density": dens}
+            return {"pred_counts": counts, "density": dens}
+        sstats = torch.stack([smax.squeeze(1), smean.squeeze(1)], -1).flatten(1, 2)  # [B,M,2]
+        w, p = self.pile(fine.flatten(2).transpose(1, 2), sstats, self.centers, self.cell)
+        gt_d = gaussian_density(points, B, Hf, Wf, self.S, sigma=self.cfg.gauss_sigma)
+        loss_den = F.mse_loss(dens, gt_d)
+        N = torch.tensor([len(q) for q in points], device=dens.device, dtype=torch.float32)
+        loss_cnt = F.smooth_l1_loss((counts+1).log(), (N+1).log())
+        loss_sim = sim_margin_loss(smax, gt_d)
+        loss_uot = self._uot_topk(w, p, points)
+        loss = (self.cfg.density_weight*loss_den + self.cfg.cnt_weight*loss_cnt +
+                self.cfg.sim_weight*loss_sim + self.cfg.transport_weight*loss_uot)
+        return {"loss": loss, "pred_counts": counts.detach(), "density": dens}
 
-    def _gt_density(self, points, B, H, W):
-        dev = next(self.parameters()).device
-        flat = torch.zeros(B, H*W, device=dev)
-        scale = W / float(self.S)
-        for b, pts in enumerate(points):
-            if pts.numel() == 0: continue
-            idx = (pts.to(dev) * scale).long()
-            xi = idx[:, 0].clamp(0, W-1); yi = idx[:, 1].clamp(0, H-1)
-            flat[b].index_add_(0, yi*W+xi, torch.ones(len(idx), device=dev))
-        return flat.view(B, 1, H, W)
+    def _uot_topk(self, w, p, points):
+        K = min(self.cfg.uot_topk, w.shape[1])
+        idx = w.detach().topk(K, dim=1).indices                     # most-mass cells
+        ws = torch.gather(w, 1, idx)
+        ps = torch.gather(p, 1, idx.unsqueeze(-1).expand(-1, -1, 2))
+        out, _ = uot_loss(ps, ws, points, S=self.S, eps=self.cfg.entropy_reg,
+                          tau=self.cfg.demand_tau, alpha=1.0,
+                          iters=self.cfg.sinkhorn_iters)
+        return out

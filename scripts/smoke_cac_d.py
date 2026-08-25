@@ -7,13 +7,16 @@ import cac_d.models.model as mm
 from cac_d.configs.config import Config
 
 class StubBackbone(torch.nn.Module):
-    out_channels = 384
+    out_channels = [192, 384]
     def __init__(self, cfg=None):
         super().__init__()
-        self.conv = torch.nn.Conv2d(3, 384, 16, stride=16)
-        for p in self.conv.parameters(): p.requires_grad_(False)
+        self.conv8 = torch.nn.Conv2d(3, 192, 8, stride=8)
+        self.conv16 = torch.nn.Conv2d(3, 384, 16, stride=16)
+        for m in (self.conv8, self.conv16):
+            for p in m.parameters(): p.requires_grad_(False)
     def forward_feature_map(self, x):
-        return torch.nn.functional.gelu(self.conv(x))
+        return torch.nn.functional.gelu(self.conv8(x)), \
+               torch.nn.functional.gelu(self.conv16(x))
 
 mm.ConvNeXtBackbone = StubBackbone
 Counter = mm.Counter
@@ -44,9 +47,8 @@ def main():
         if step in (0, 40): print(f"step {step} loss={out['loss'].item():.4f}")
         if step == 0: first = out["loss"].item()
     ev = m(x, b)
-    assert ev["pred_counts"].shape == (2,) and ev["pile_count"].shape == (2,)
-    assert ev["density"].shape == (2, 1, 24, 24)
-    print(f"eval pred_counts={ev['pred_counts'].tolist()} pile_count={ev['pile_count'].tolist()}")
+    assert ev["pred_counts"].shape == (2,) and ev["density"].shape == (2, 1, 96, 96)
+    print(f"eval pred_counts={ev['pred_counts'].tolist()}")
     drop = first - out["loss"].item()
     print(f"SMOKE {'GREEN' if torch.isfinite(out['loss']).all() and drop > 0 else 'RED'} (drop={drop:.4f})")
 

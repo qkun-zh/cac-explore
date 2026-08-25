@@ -4,30 +4,32 @@ from dataclasses import dataclass
 class Config:
     # data (HF dataset isentropic/FSC147; HF model+processor dinov3-convnext-tiny)
     image_size: int = 384
-    patch_stride: int = 16
     hf_model: str = "facebook/dinov3-convnext-tiny-pretrain-lvd1689m"
-    # backbone feature
-    backbone_dim: int = 384
-    # post-backbone redesign
+    backbone_dims: tuple = (192, 384)       # stage2@1/8, stage3@1/16
+    # exemplar bank
     embed_dim: int = 256
     exemplar_layers: int = 2
     roi_size: int = 7
+    # fine grid / matching
+    d_fine: int = 128
+    cond_dim: int = 64
+    gauss_sigma: float = 1.5                # cells at 96x96 grid
+    sim_weight: float = 0.25
     # heads
     pile_hidden: int = 128
-    density_hidden: int = 128
-    # count consistency between pile and density branches
-    consist_weight: float = 0.5
+    uot_topk: int = 2048
     # UOT minimal: transport + demand KL
-    transport_weight: float = 1.0
+    transport_weight: float = 0.5
     entropy_reg: float = 0.08
     demand_tau: float = 1.0
     sinkhorn_iters: int = 32
-    # density
+    # density & count calibration
     density_weight: float = 1.0
-    # training
+    cnt_weight: float = 1.0
+    # training (torch.optim.AdamW)
     batch_size: int = 32
     epochs: int = 40
-    lr: float = 2e-3
+    lr: float = 1e-3
     weight_decay: float = 0.05
     amp: bool = True
     num_workers: int = 8
