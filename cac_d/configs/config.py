@@ -6,11 +6,17 @@ class Config:
     image_size: int = 384
     hf_model: str = "facebook/dinov3-convnext-tiny-pretrain-lvd1689m"
     hf_processor: str = "facebook/dinov3-convnext-tiny-pretrain-lvd1689m"
-    # prompt
-    prompt_hidden: int = 256
+    # backbone feature
+    backbone_dim: int = 384
+    # post-backbone redesign
+    embed_dim: int = 256
+    exemplar_layers: int = 2
+    roi_size: int = 7
     # heads
     pile_hidden: int = 128
     density_hidden: int = 128
+    # count consistency between pile and density branches
+    consist_weight: float = 0.5
     # UOT minimal: transport + demand KL
     transport_weight: float = 1.0
     entropy_reg: float = 0.08
