@@ -156,37 +156,44 @@ def train_one_epoch(model, loader, optimizer, device, cfg, ep=0, log_every=50):
 @torch.no_grad()
 def evaluate(model, loader, device, ep=0):
     model.eval()
-    gts, preds = [], []
+    gts, preds, preds_open = [], [], []   # closed-book Σw / open-book transported
     gates, wsums = [], []
     for batch in loader:
         pixel_values = batch["pixel_values"].to(device)
         bboxes3 = batch["bboxes3"].to(device)
         points = [p.to(device) for p in batch["points"]]
-        out = model(pixel_values, bboxes3=bboxes3, points=points)  # transported count
-        pred = out["pred_counts"].float().cpu()
+        out = model(pixel_values, bboxes3=bboxes3, points=points)
+        pred_open = out["pred_counts"].float().cpu()      # uses GT pits (upper bound)
+        pred_closed = out["counts_sumw"].float().cpu()    # GT-free: Σw (deployable)
         gt = torch.tensor([p.shape[0] for p in points], dtype=torch.float32)
-        gts.append(gt); preds.append(pred)
+        gts.append(gt); preds.append(pred_closed); preds_open.append(pred_open)
         gates.append(out["gate"].float().mean().item())
         wsums += out["w"].float().sum(dim=1).cpu().tolist()
-    gt = torch.cat(gts); pred = torch.cat(preds)
-    err = pred - gt
+    gt = torch.cat(gts); pred = torch.cat(preds); pred_o = torch.cat(preds_open)
+    err = pred - gt; err_o = pred_o - gt
     mae = err.abs().mean().item(); rmse = err.pow(2).mean().sqrt().item()
+    mae_o = err_o.abs().mean().item(); rmse_o = err_o.pow(2).mean().sqrt().item()
     bias = err.mean().item()
-    rho = _spearman(gt, pred).item()
+    rho = _spearman(gt, pred).item(); rho_o = _spearman(gt, pred_o).item()
     ws = torch.tensor(wsums)
-    print(f"== Ep{ep:02d} VAL n={gt.numel()} MAE={mae:.3f} RMSE={rmse:.3f} bias(median signed)={bias:+.2f}/{err.median().item():+.2f} "
-          f"Spearman={rho:.3f} w_sum(mean/p10/p90)={ws.mean().item():.1f}/{torch.quantile(ws,0.1).item():.1f}/{torch.quantile(ws,0.9).item():.1f} "
+    print(f"== Ep{ep:02d} VAL n={gt.numel()} "
+          f"[closed-book Σw] MAE={mae:.3f} RMSE={rmse:.3f} ρ={rho:.3f} | "
+          f"[open-book OT] MAE={mae_o:.3f} RMSE={rmse_o:.3f} ρ={rho_o:.3f} | gap={mae_o-mae:+.3f}", flush=True)
+    print(f"   overall bias(median signed)={bias:+.2f}/{err.median().item():+.2f} "
+          f"w_sum(mean/p10/p90)={ws.mean().item():.1f}/{torch.quantile(ws,0.1).item():.1f}/{torch.quantile(ws,0.9).item():.1f} "
           f"gate_mean={(sum(gates)/len(gates)):.3f} a={model.prompt.alpha.item():+.3f} b={model.prompt.beta.item():+.3f}", flush=True)
     for lo, hi in BUCKETS:
         m = (gt >= lo) & (gt < hi)
         if m.sum() == 0:
             continue
-        bm = err[m]
+        bm = err[m]; bo = err_o[m]
         hi_lab = "inf" if hi == float("inf") else str(int(hi))
         print(f"   bucket[{int(lo):>3},{hi_lab:>4}) n={int(m.sum()):4d} "
-              f"MAE={bm.abs().mean().item():8.2f} medSigned={bm.median().item():+9.2f} "
-              f"under%= {(bm < 0).float().mean().item()*100:5.1f}", flush=True)
-    hist = {"ep": ep, "mae": mae, "rmse": rmse, "bias": bias, "spearman": rho,
+              f"cMAE={bm.abs().mean().item():8.2f}(med{bm.median().item():+8.1f}) "
+              f"oMAE={bo.abs().mean().item():8.2f}(med{bo.median().item():+8.1f}) "
+              f"under%={(bo < 0).float().mean().item()*100:5.1f}", flush=True)
+    hist = {"ep": ep, "mae": mae, "rmse": rmse, "mae_open": mae_o, "bias": bias,
+            "spearman": rho, "spearman_open": rho_o,
             "gate": sum(gates)/len(gates),
             "alpha": model.prompt.alpha.item(), "beta": model.prompt.beta.item()}
     with open("/tmp/god_hist.jsonl", "a") as f:

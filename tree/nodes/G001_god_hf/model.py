@@ -88,20 +88,22 @@ class GODHead(nn.Module):
         p = grid_centers.unsqueeze(0).to(T.device) + dp  # [B,M,2] in S-space
         return w, p
 
-def god_loss(p, w, g_list, alpha=1.0, beta=0.5, gamma=0.1, epsilon=0.05, lam=1e-3, sigma=20.0, S=384):
+def god_loss(p, w, g_list, alpha=1.0, beta=0.5, gamma=0.1, epsilon=0.05, lam=1e-3, sigma=20.0, S=384, beta_over=0.5):
     """
     p: [B,M,2] in S-space
     w: [B,M]
     g_list: list of [N_i,2] tensors in S-space (variable N)
     Returns total loss, dict metrics
     Dustbin single-step entropy assignment: logits = [-d/ε, 0] -> π = w * softmax
-    Then Lot + Lrep.
+    Then Lot + Lrep + overflow penalty β_over·Σmax(0,R−1)² (restores doc's removed overflow guard;
+    needed because single-step row-independent softmax does not inherit balanced-OT no-overflow property).
     """
     B, M, _ = p.shape
     device = p.device
     total_lot = 0.0
     total_rep = 0.0
     total_count_err = 0.0
+    total_over = 0.0
     for b in range(B):
         pb = p[b]  # [M,2]
         wb = w[b]  # [M]
@@ -139,12 +141,14 @@ def god_loss(p, w, g_list, alpha=1.0, beta=0.5, gamma=0.1, epsilon=0.05, lam=1e-
         transport = alpha * (pi * d2).sum()
         deficit = torch.clamp(1 - R, min=0)  # [N]
         lot_def = beta * (deficit**2).sum()
+        overflow = torch.clamp(R - 1, min=0)  # [N] pit capacity violated
+        lot_over = beta_over * (overflow**2).sum()
         lot_sur = gamma * (s**2).sum()
         # entropy term (optional, for stability, small weight)
         # ε * Σ π log π (with dustbin mass included as s log s)
         # we include it as part of Lot to keep Sinkhorn differentiable; weight epsilon already in logits, but add explicit
         ent = epsilon * ( (pi.clamp_min(1e-8) * torch.log(pi.clamp_min(1e-8))).sum() + (s.clamp_min(1e-8) * torch.log(s.clamp_min(1e-8))).sum() )
-        lot = transport + lot_def + lot_sur + ent * 0.1  # scale entropy small
+        lot = transport + lot_def + lot_over + lot_sur + ent * 0.1  # scale entropy small
         # Lrep: mass-weighted Gaussian
         # pairwise distance between piles in normalized coords
         pb_n = pb / S  # [M,2] in [0,1]
@@ -160,9 +164,10 @@ def god_loss(p, w, g_list, alpha=1.0, beta=0.5, gamma=0.1, epsilon=0.05, lam=1e-
         pred_c = pi.sum()
         true_c = float(N)
         total_count_err = total_count_err + abs(pred_c.item() - true_c)
+        total_over = total_over + lot_over.item()
     # average over batch
     total = (total_lot + total_rep) / B
-    return total, {"lot": total_lot.item()/B, "rep": total_rep.item()/B, "cnt_err": total_count_err/B}
+    return total, {"lot": total_lot.item()/B, "rep": total_rep.item()/B, "cnt_err": total_count_err/B, "over": total_over/B}
 
 class DinoGODHf(nn.Module):
     def __init__(self, cfg):
@@ -210,6 +215,7 @@ class DinoGODHf(nn.Module):
         self.epsilon = float(cfg.get("god_epsilon", 0.05))
         self.lam = float(cfg.get("god_lambda", 1e-3))
         self.sigma_scale = float(cfg.get("god_sigma_scale", 1.0))
+        self.beta_over = float(cfg.get("god_beta_overflow", 0.5))
         # for param_groups
         self.is_frozen = True
 
@@ -267,7 +273,7 @@ class DinoGODHf(nn.Module):
                 msize = wh.mean().item() if wh.numel() else 20.0
                 sigma = msize * self.sigma_scale
                 sigma = max(sigma, 8.0)
-            loss, metrics = god_loss(p, w, g_list, alpha=self.alpha, beta=self.beta, gamma=self.gamma, epsilon=self.epsilon, lam=self.lam, sigma=sigma, S=self.S)
+            loss, metrics = god_loss(p, w, g_list, alpha=self.alpha, beta=self.beta, gamma=self.gamma, epsilon=self.epsilon, lam=self.lam, sigma=sigma, S=self.S, beta_over=self.beta_over)
             # count prediction via transported mass (for MAE)
             # need to recompute pi for metrics: reuse dustbin prob logic quickly
             # For inference we also need counts
@@ -288,14 +294,15 @@ class DinoGODHf(nn.Module):
                         pred_c = pi.sum().item()
                     pred_counts.append(pred_c)
                 pred_counts = torch.tensor(pred_counts, device=imgs.device)
-            return {"p": p, "w": w, "loss": loss, "pred_counts": pred_counts, "metrics": metrics}
+            return {"p": p, "w": w, "loss": loss, "pred_counts": pred_counts,
+                    "counts_sumw": w.sum(dim=1).detach(), "metrics": metrics, "gate": gate}
         else:
             # inference without GT: count = sum w * gate? Actually need dustbin prob without GT: we can't compute pi without g. Fallback sum w
             # For eval, we need points to compute pi; if no points, just sum w*gate as count
             # But for FSC147 eval, points not available; we should return sum(w) as count proxy or use w*gate sum
             # The true GOD count is Σ(w - s) which needs GT; without GT we approximate Σw
             pred_counts = w.sum(dim=1)
-            return {"p": p, "w": w, "pred_counts": pred_counts}
+            return {"p": p, "w": w, "pred_counts": pred_counts, "gate": gate}
 
 def build_model(cfg):
     return DinoGODHf(cfg)
