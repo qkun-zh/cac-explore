@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader
 from transformers import AutoImageProcessor
 from cac_uot.configs.uot_config import UOTConfig
 from cac_uot.models.counter import UOTCounter
-from cac_uot.datasets.fsc147 import FSC147HF, collate_hf
+from cac_uot.data.fsc147 import FSC147HF, collate_hf
 from cac_uot.training.trainer import train_one_epoch, evaluate
 
 def main():
