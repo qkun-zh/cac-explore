@@ -1,11 +1,9 @@
 import torch, torch.nn as nn, torch.nn.functional as F
 from .backbone.dinov3 import DINOv3HFBackbone
-from .prompt.cosine_gate import CosineGate, StandardizedCosineGate
 from .prompt.ope_prototype import OPEModule, PositionalEncodingsFixed as OPEPosEmb, ope_response_maps
 from .heads.pile_predictor import PilePredictor, grid_centers
 from .losses.unbalanced_ot import unbalanced_ot_loss
 from .losses.repulsion import repulsion
-from .losses.anchor import box_mass_anchor
 
 class UOTCounter(nn.Module):
     """Counter via unbalanced OT. Assembled via dependency injection."""
@@ -14,22 +12,14 @@ class UOTCounter(nn.Module):
         self.cfg = cfg
         self.S, self.patch = cfg.image_size, cfg.patch_size
         self.backbone = DINOv3HFBackbone(cfg)
-        self.prompt_type = cfg.prompt_type
-        Gate = StandardizedCosineGate if cfg.use_standardized_gate else CosineGate
-        self.cond_dim = 0
-        if self.prompt_type == "ope":
-            g = self.S // self.patch
-            self.ope_input_proj = nn.Linear(C, cfg.ope_emb_dim)
-            self.ope = OPEModule(
-                num_iterative_steps=cfg.ope_iters, emb_dim=cfg.ope_emb_dim,
-                kernel_dim=cfg.ope_kernel_dim, num_objects=3, num_heads=cfg.ope_heads,
-                reduction=cfg.ope_reduction)
-            self.pos_emb_ope = OPEPosEmb(cfg.ope_emb_dim)
-            self.cond_dim = cfg.ope_emb_dim
-            # scalar gate kept only for logging compat; conditioning carries the signal
-            self.gate = Gate(cfg.hidden_dim)
-        else:
-            self.gate = Gate(cfg.hidden_dim)
+        g = self.S // self.patch
+        self.ope_input_proj = nn.Linear(cfg.hidden_dim, cfg.ope_emb_dim)
+        self.ope = OPEModule(
+            num_iterative_steps=cfg.ope_iters, emb_dim=cfg.ope_emb_dim,
+            kernel_dim=cfg.ope_kernel_dim, num_objects=3, num_heads=cfg.ope_heads,
+            reduction=cfg.ope_reduction)
+        self.pos_emb_ope = OPEPosEmb(cfg.ope_emb_dim)
+        self.cond_dim = cfg.ope_emb_dim
         self.head = PilePredictor(cfg.hidden_dim, cfg.head_hidden, cond_dim=self.cond_dim)
         centers,_ = grid_centers(self.S, self.patch)
         self.register_buffer("centers", centers)
@@ -37,35 +27,26 @@ class UOTCounter(nn.Module):
     def forward(self, pixel_values, bboxes3, points=None):
         tokens = self.backbone.forward_tokens(pixel_values)   # [B,M,C]
         B, M, C = tokens.shape
-        cond = None
-        if self.prompt_type == "ope":
-            fm_raw = tokens.transpose(1, 2).reshape(B, C, self.S // self.patch, self.S // self.patch)
-            fm = self.ope_input_proj(fm_raw)                  # project to ope_emb_dim
-            pos = self.pos_emb_ope(B, fm.shape[2], fm.shape[3], fm.device).flatten(2).permute(2, 0, 1)
-            protos = self.ope(fm, pos, bboxes3)[-1]           # last iteration [k^2*n, B, D]
-            resp = ope_response_maps(fm, protos, self.cfg.ope_kernel_dim, 3)  # [B,D,h,w]
-            cond = resp.flatten(2).permute(2, 0, 1)           # [B,M,D]
-            gate = self.gate(tokens, bboxes3, self.S, self.patch)
-        else:
-            gate = self.gate(tokens, bboxes3, self.S, self.patch)
-        w, p = self.head(tokens, gate, self.centers, cond=cond)  # [B,M], [B,M,2]
+        fm_raw = tokens.transpose(1, 2).reshape(B, C, self.S // self.patch, self.S // self.patch)
+        fm = self.ope_input_proj(fm_raw)                      # project to ope_emb_dim
+        pos = self.pos_emb_ope(B, fm.shape[2], fm.shape[3], fm.device).flatten(2).permute(2, 0, 1)
+        protos = self.ope(fm, pos, bboxes3)[-1]               # last iteration [k^2*n, B, D]
+        resp = ope_response_maps(fm, protos, self.cfg.ope_kernel_dim, 3)  # [B,D,h,w]
+        cond = resp.flatten(2).permute(2, 0, 1)               # [B,M,D]
+        w, p = self.head(tokens, cond, self.centers)          # [B,M], [B,M,2]
         if points is None:
-            return {"w": w, "p": p, "gate": gate, "pred_counts": w.sum(1), "counts_sumw": w.sum(1)}
+            return {"w": w, "p": p, "pred_counts": w.sum(1), "counts_sumw": w.sum(1)}
         wh = (bboxes3[:,:,2:4]-bboxes3[:,:,0:2]).clamp_min(1); sigma = wh.mean().item() * self.cfg.repulsion_sigma_scale
         loss_uot, met, cnt_open = unbalanced_ot_loss(p, w, points,
             transport_weight=self.cfg.transport_weight, supply_tau=self.cfg.supply_tau,
             demand_tau=self.cfg.demand_tau, entropy_reg=self.cfg.entropy_reg,
             S=self.S, sinkhorn_iters=self.cfg.sinkhorn_iters)
         rep = sum(repulsion(p[b:b+1], w[b:b+1], self.cfg.repulsion_weight, max(sigma,8), self.S) for b in range(w.shape[0])) / w.shape[0]
-        anchor = box_mass_anchor(w, p, bboxes3, self.cfg.box_anchor_weight)
-        # count-mass auxiliary: |Σw − N| direct supervision (P1 fix)
+        # P1 direct count-mass supervision |Σw − N|
         n_gt = torch.tensor([len(g) for g in points], dtype=torch.float32, device=w.device)
         count_mass = (w.sum(1) - n_gt).abs().mean() * self.cfg.count_mass_weight
-        loss = loss_uot + rep + anchor + count_mass
-        if self.cfg.loss_normalize == "demand_size":
-            avg_n = sum(len(g) for g in points) / max(len(points),1)
-            loss = loss / max(avg_n, 1)
-        return {"w": w, "p": p, "gate": gate, "loss": loss, "pred_counts": cnt_open,
-                "counts_sumw": w.sum(1).detach(), "metrics": {**met, "rep": rep.item(), "anchor": anchor.item() if torch.is_tensor(anchor) else anchor, "cnt_mass": count_mass.item()}}
+        loss = loss_uot + rep + count_mass
+        return {"w": w, "p": p, "loss": loss, "pred_counts": cnt_open,
+                "counts_sumw": w.sum(1).detach(), "metrics": {**met, "rep": rep.item(), "cnt_mass": count_mass.item()}}
 
 def build_model(cfg): return UOTCounter(cfg)

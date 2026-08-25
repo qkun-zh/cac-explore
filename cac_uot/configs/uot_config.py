@@ -14,30 +14,24 @@ class UOTConfig:
     hidden_dim: int = 384
     head_hidden: int = 128
 
+    # prompt: LOCA OPE (shape+appearance queries, iterative cross-attn adaptation)
+    ope_emb_dim: int = 256
+    ope_kernel_dim: int = 3                       # prototype kernel size s×s
+    ope_iters: int = 3                            # L adaptation steps
+    ope_heads: int = 8
+    ope_reduction: int = 16                       # S / feature_map_size
+
     # unbalanced OT  (KL-relaxed, log-domain Sinkhorn)
     transport_weight: float = 1.0                 # α
-    entropy_reg: float = 0.08                     # ε (raised: widen support radius, fix dead-zone)
-    supply_tau: float = 1.0                       # τ_supply (row,  ↔ γ)
+    entropy_reg: float = 0.08                     # ε
+    supply_tau: float = 0.5                       # τ_supply (row, surplus regularizer)
     demand_tau: float = 1.0                       # τ_demand (col, ↔ β)
     sinkhorn_iters: int = 10                      # K
     repulsion_weight: float = 1e-3                # λ
     repulsion_sigma_scale: float = 1.0            # σ
 
-    # count-mass auxiliary: |Σw − N| direct supervision (P1)
+    # P1 direct count-mass supervision |Σw − N|
     count_mass_weight: float = 1.0
-
-    # three fixes  F1 / F3 / F4  — off; current experiment = cnt_mass(P1) + eps widen(P2) only
-    box_anchor_weight: float = 0.0                # F1: off (failed single test)
-    loss_normalize: str = "none"                  # F3: off
-    use_standardized_gate: bool = False           # F4: off
-
-    # prompt encoder: "cosine" (scalar gate) | "ope" (LOCA Object Prototype Extraction)
-    prompt_type: str = "cosine"
-    ope_emb_dim: int = 256
-    ope_kernel_dim: int = 3                       # prototype kernel size s×s
-    ope_iters: int = 3                            # L iterative adaptation steps
-    ope_heads: int = 8
-    ope_reduction: int = 16                       # S / feature_map_size
 
     # training
     batch_size: int = 8
