@@ -26,8 +26,8 @@ class UOTCounter(nn.Module):
         self.register_buffer("centers", centers)
         self.use_uw = bool(getattr(cfg, "use_uw", False))
         if self.use_uw:
-            # terms: [uot, cnt_mass, rep]
-            self.uw = UncertaintyWeighting(3, init=cfg.uw_init)
+            # terms: [uot, rep]
+            self.uw = UncertaintyWeighting(2, init=cfg.uw_init)
 
     def forward(self, pixel_values, bboxes3, points=None):
         tokens = self.backbone.forward_tokens(pixel_values)   # [B,M,C]
@@ -44,16 +44,12 @@ class UOTCounter(nn.Module):
         wh = (bboxes3[:,:,2:4]-bboxes3[:,:,0:2]).clamp_min(1); sigma = wh.mean().item() * self.cfg.repulsion_sigma_scale
         loss_uot, met, cnt_open = unbalanced_ot_v8(p, w, points, vars(self.cfg))
         rep = sum(repulsion(p[b:b+1], w[b:b+1], self.cfg.repulsion_weight, max(sigma,8), self.S) for b in range(w.shape[0])) / w.shape[0]
-        # P1 direct count-mass supervision |Σw − N|
-        n_gt = torch.tensor([len(g) for g in points], dtype=torch.float32, device=w.device)
-        count_mass = (w.sum(1) - n_gt).abs().mean() * self.cfg.count_mass_weight
         if self.use_uw:
-            loss, uw_w = self.uw([loss_uot, count_mass, rep])
-            met = {**met, "rep": rep.item(), "cnt_mass": count_mass.item(),
-                   "uw_uot": uw_w["w0"], "uw_cnt": uw_w["w1"], "uw_rep": uw_w["w2"]}
+            loss, uw_w = self.uw([loss_uot, rep])
+            met = {**met, "rep": rep.item(), "uw_uot": uw_w["w0"], "uw_rep": uw_w["w1"]}
         else:
-            loss = loss_uot + rep + count_mass
+            loss = loss_uot + rep
         return {"w": w, "p": p, "loss": loss, "pred_counts": cnt_open,
-                "counts_sumw": w.sum(1).detach(), "metrics": {**met, "cnt_mass": count_mass.item()}}
+                "counts_sumw": w.sum(1).detach(), "metrics": met}
 
 def build_model(cfg): return UOTCounter(cfg)
