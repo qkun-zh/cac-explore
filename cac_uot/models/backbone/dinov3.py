@@ -28,7 +28,7 @@ class DINOv3HFBackbone(Backbone):
         unfreeze_n = int(getattr(cfg, "unfreeze_last_n_blocks", 0))
         backbone_lr_mult = float(getattr(cfg, "backbone_lr_mult", 0.1))
         if unfreeze_n > 0:
-            blocks = self.net.encoder.layer
+            blocks = self.net.model.layer
             total = len(blocks)
             for blk in blocks[total - unfreeze_n:]:
                 for p in blk.parameters(): p.requires_grad_(True)
