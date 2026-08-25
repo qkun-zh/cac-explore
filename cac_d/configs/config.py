@@ -34,4 +34,10 @@ class Config:
     amp: bool = True
     num_workers: int = 8
     seed: int = 0
+    warmup_epochs: int = 2                  # linear 0.5->1.0 of lr, then cosine
+    eta_min_ratio: float = 0.05             # cosine floor = lr * ratio
+    ema_decay: float = 0.999                # per-step shadow weights
+    # augmentation (geometric synced with boxes/points)
+    flip_p: float = 0.5
+    color_jitter: bool = True
     best_ckpt: str = "/tmp/cac_d_best.pth"

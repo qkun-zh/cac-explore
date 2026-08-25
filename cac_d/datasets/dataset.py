@@ -1,6 +1,8 @@
 import json, os
 import torch
+from PIL import Image as PILImage
 from torch.utils.data import Dataset
+from torchvision.transforms import ColorJitter
 from datasets import load_dataset, Image          # HF datasets
 from huggingface_hub import hf_hub_download       # HF hub (annotation files)
 
@@ -28,14 +30,17 @@ def _load_json(fname, token):
     return _cache[fname]
 
 class FSC147(Dataset):
-    """FSC-147 via HF; exemplar boxes/points pre-scaled to size x size at init."""
-    def __init__(self, split, size=384):
+    """FSC-147 via HF; exemplar boxes/points pre-scaled to size x size at init.
+    augment=True applies h-flip (coords mirrored identically -> no misalignment)
+    and color jitter (label-invariant)."""
+    def __init__(self, split, size=384, augment=False, flip_p=0.5, color_jitter=True):
         from cac_d.common import hf_token
         tok = hf_token()
         img, paths = _load_images(tok)
         anno = _load_json(ANNO_FILE, tok)
         ids = set(_load_json(SPLIT_FILE, tok)[split])
-        self.size = size
+        self.size = size; self.augment = augment; self.flip_p = flip_p
+        self.jitter = ColorJitter(0.4, 0.4, 0.4, 0.1) if (augment and color_jitter) else None
         self.index = []
         for row, im_id in enumerate(paths):
             if im_id not in ids: continue
@@ -53,7 +58,16 @@ class FSC147(Dataset):
 
     def __getitem__(self, i):
         row, boxes, pts = self.index[i]
-        return {"image": _cache["img"][row]["image"], "bboxes": boxes, "points": pts}
+        img = _cache["img"][row]["image"]
+        if self.augment and torch.rand(()) < self.flip_p:
+            img = img.transpose(PILImage.Transpose.FLIP_LEFT_RIGHT)
+            S = float(self.size)
+            boxes = boxes.clone()
+            boxes[:, [0, 2]] = torch.stack([S - boxes[:, 2], S - boxes[:, 0]], 1)
+            pts = pts.clone(); pts[:, 0] = S - pts[:, 0]
+        if self.jitter is not None:
+            img = self.jitter(img)
+        return {"image": img, "bboxes": boxes, "points": pts}
 
 def collate(batch, proc):
     pix = proc(images=[b["image"] for b in batch], return_tensors="pt")["pixel_values"]
