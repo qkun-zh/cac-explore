@@ -31,6 +31,14 @@ class UOTConfig:
     loss_normalize: str = "none"                  # F3: off
     use_standardized_gate: bool = False           # F4: off
 
+    # prompt encoder: "cosine" (scalar gate) | "ope" (LOCA Object Prototype Extraction)
+    prompt_type: str = "cosine"
+    ope_emb_dim: int = 256
+    ope_kernel_dim: int = 3                       # prototype kernel size s×s
+    ope_iters: int = 3                            # L iterative adaptation steps
+    ope_heads: int = 8
+    ope_reduction: int = 16                       # S / feature_map_size
+
     # training
     batch_size: int = 8
     epochs: int = 40

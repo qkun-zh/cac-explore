@@ -1,6 +1,7 @@
 import torch, torch.nn as nn, torch.nn.functional as F
 from .backbone.dinov3 import DINOv3HFBackbone
 from .prompt.cosine_gate import CosineGate, StandardizedCosineGate
+from .prompt.ope_prototype import OPEModule, PositionalEncodingsFixed as OPEPosEmb, ope_response_maps
 from .heads.pile_predictor import PilePredictor, grid_centers
 from .losses.unbalanced_ot import unbalanced_ot_loss
 from .losses.repulsion import repulsion
@@ -13,16 +14,39 @@ class UOTCounter(nn.Module):
         self.cfg = cfg
         self.S, self.patch = cfg.image_size, cfg.patch_size
         self.backbone = DINOv3HFBackbone(cfg)
+        self.prompt_type = cfg.prompt_type
         Gate = StandardizedCosineGate if cfg.use_standardized_gate else CosineGate
-        self.gate = Gate(cfg.hidden_dim)
-        self.head = PilePredictor(cfg.hidden_dim, cfg.head_hidden)
+        self.cond_dim = 0
+        if self.prompt_type == "ope":
+            g = self.S // self.patch
+            self.ope = OPEModule(
+                num_iterative_steps=cfg.ope_iters, emb_dim=cfg.ope_emb_dim,
+                kernel_dim=cfg.ope_kernel_dim, num_objects=3, num_heads=cfg.ope_heads,
+                reduction=cfg.ope_reduction)
+            self.pos_emb_ope = OPEPosEmb(cfg.ope_emb_dim)
+            self.cond_dim = cfg.ope_emb_dim
+            # scalar gate kept only for logging compat; conditioning carries the signal
+            self.gate = Gate(cfg.hidden_dim)
+        else:
+            self.gate = Gate(cfg.hidden_dim)
+        self.head = PilePredictor(cfg.hidden_dim, cfg.head_hidden, cond_dim=self.cond_dim)
         centers,_ = grid_centers(self.S, self.patch)
         self.register_buffer("centers", centers)
 
     def forward(self, pixel_values, bboxes3, points=None):
         tokens = self.backbone.forward_tokens(pixel_values)   # [B,M,C]
-        gate = self.gate(tokens, bboxes3, self.S, self.patch)  # [B,M,1]
-        w, p = self.head(tokens, gate, self.centers)           # [B,M], [B,M,2]
+        B, M, C = tokens.shape
+        cond = None
+        if self.prompt_type == "ope":
+            fm = tokens.transpose(1, 2).reshape(B, C, self.S // self.patch, self.S // self.patch)
+            pos = self.pos_emb_ope(B, fm.shape[2], fm.shape[3], fm.device).flatten(2).permute(2, 0, 1)
+            protos = self.ope(fm, pos, bboxes3)[-1]           # last iteration [k^2*n, B, D]
+            resp = ope_response_maps(fm, protos, self.cfg.ope_kernel_dim, 3)  # [B,D,h,w]
+            cond = resp.flatten(2).permute(2, 0, 1)           # [B,M,D]
+            gate = self.gate(tokens, bboxes3, self.S, self.patch)
+        else:
+            gate = self.gate(tokens, bboxes3, self.S, self.patch)
+        w, p = self.head(tokens, gate, self.centers, cond=cond)  # [B,M], [B,M,2]
         if points is None:
             return {"w": w, "p": p, "gate": gate, "pred_counts": w.sum(1), "counts_sumw": w.sum(1)}
         wh = (bboxes3[:,:,2:4]-bboxes3[:,:,0:2]).clamp_min(1); sigma = wh.mean().item() * self.cfg.repulsion_sigma_scale
