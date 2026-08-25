@@ -19,6 +19,7 @@ class UOTCounter(nn.Module):
         self.cond_dim = 0
         if self.prompt_type == "ope":
             g = self.S // self.patch
+            self.ope_input_proj = nn.Linear(C, cfg.ope_emb_dim)
             self.ope = OPEModule(
                 num_iterative_steps=cfg.ope_iters, emb_dim=cfg.ope_emb_dim,
                 kernel_dim=cfg.ope_kernel_dim, num_objects=3, num_heads=cfg.ope_heads,
@@ -38,7 +39,8 @@ class UOTCounter(nn.Module):
         B, M, C = tokens.shape
         cond = None
         if self.prompt_type == "ope":
-            fm = tokens.transpose(1, 2).reshape(B, C, self.S // self.patch, self.S // self.patch)
+            fm_raw = tokens.transpose(1, 2).reshape(B, C, self.S // self.patch, self.S // self.patch)
+            fm = self.ope_input_proj(fm_raw)                  # project to ope_emb_dim
             pos = self.pos_emb_ope(B, fm.shape[2], fm.shape[3], fm.device).flatten(2).permute(2, 0, 1)
             protos = self.ope(fm, pos, bboxes3)[-1]           # last iteration [k^2*n, B, D]
             resp = ope_response_maps(fm, protos, self.cfg.ope_kernel_dim, 3)  # [B,D,h,w]
