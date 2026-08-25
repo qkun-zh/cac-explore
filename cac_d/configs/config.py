@@ -28,14 +28,15 @@ class Config:
     cnt_weight: float = 1.0
     # training (torch.optim.AdamW)
     batch_size: int = 32
-    epochs: int = 40
+    epochs: int = 42
     lr: float = 1e-3
     weight_decay: float = 0.05
     amp: bool = True
     num_workers: int = 8
     seed: int = 0
-    warmup_epochs: int = 2                  # linear 0.5->1.0 of lr, then cosine
-    eta_min_ratio: float = 0.05             # cosine floor = lr * ratio
+    warmup_epochs: int = 2
+    stable_epochs: int = 10                 # constant 1.0× after warmup
+    eta_min_ratio: float = 0.1              # cosine floor = lr * ratio (0.05太激进→末段5e-5步长过小)
     ema_decay: float = 0.999                # per-step shadow weights
     # augmentation (geometric synced with boxes/points)
     flip_p: float = 0.5

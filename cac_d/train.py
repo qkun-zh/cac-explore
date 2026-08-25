@@ -12,9 +12,11 @@ from cac_d.datasets.dataset import FSC147, collate
 
 def lr_lambda(e):                                       # e: 0-based epoch
     c = Config()
-    if e < c.warmup_epochs:                             # linear warmup -> full lr
+    if e < c.warmup_epochs:                             # warmup 0.5×→1.0×
         return (e + 1) / c.warmup_epochs
-    t = (e - c.warmup_epochs) / max(1, c.epochs - c.warmup_epochs)
+    if e < c.warmup_epochs + c.stable_epochs:           # stable 1.0×
+        return 1.0
+    t = (e - c.warmup_epochs - c.stable_epochs) / max(1, c.epochs - c.warmup_epochs - c.stable_epochs)
     return c.eta_min_ratio + (1 - c.eta_min_ratio) * 0.5 * (1 + math.cos(math.pi * t))
 
 @torch.no_grad()
