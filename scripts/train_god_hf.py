@@ -6,7 +6,9 @@ Example usage per user spec:
   model = AutoModel.from_pretrained("facebook/dinov3-vits16-pretrain-lvd1689m")
 Here wrapped into build_model for engine compat.
 """
-import os
+import os, sys
+sys.path.insert(0, "/data/repo")
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))) if "__file__" in globals() else "/data/repo")
 import json
 import math
 import torch
