@@ -19,17 +19,28 @@ def lr_lambda(e):                                       # e: 0-based epoch
 
 @torch.no_grad()
 def evaluate(m, va, device):
-    err = n = 0.0
+    err = n = sq = 0.0
     for batch in va:
         pv = batch["pixel_values"].to(device, non_blocking=True)
         bb = batch["bboxes"].to(device, non_blocking=True)
         pred = m(pv, bb)["pred_counts"].cpu()
         gt = torch.tensor([len(p) for p in batch["points"]], dtype=torch.float32)
-        err += (pred-gt).abs().sum().item(); n += len(gt)
-    return err/n
+        err += (pred-gt).abs().sum().item()
+        sq += ((pred-gt)**2).sum().item()
+        n += len(gt)
+    return err/n, (sq/n)**0.5
 
 def main():
     cfg = Config()
+    import json
+    ov = os.environ.get("CAC_D_OVERRIDE")                   # ablation overrides
+    if ov:
+        for k, v in json.loads(ov).items():
+            assert hasattr(cfg, k), f"unknown override {k}"
+            setattr(cfg, k, v)
+    snap = os.path.join(os.path.dirname(cfg.best_ckpt), f"cfg_{cfg.transport_weight}_{cfg.sim_weight}.json")
+    with open(snap, "w") as f:
+        json.dump({**cfg.__dict__, "override": ov}, f, indent=1)
     torch.manual_seed(cfg.seed)
     proc = AutoImageProcessor.from_pretrained(cfg.hf_model, token=hf_token(),
                                               trust_remote_code=True,
@@ -67,10 +78,10 @@ def main():
             scaler.step(opt); scaler.update()
             ema.update_parameters(model); tot += loss.item()
         sched.step()
-        mae_raw = evaluate(model, va, device)
-        ema.eval(); mae_ema = evaluate(ema, va, device)
+        mae_raw, rmse_raw = evaluate(model, va, device)
+        ema.eval(); mae_ema, rmse_ema = evaluate(ema, va, device)
         print(f"Ep{ep} loss={tot/len(tr):.3f} [{time.time()-t0:.0f}s] "
-              f"MAE={mae_raw:.2f} EMA={mae_ema:.2f} best={best:.2f}", flush=True)
+              f"MAE={mae_raw:.2f}/{mae_ema:.2f} RMSE={rmse_raw:.1f}/{rmse_ema:.1f} best={best:.2f}", flush=True)
         if min(mae_raw, mae_ema) < best:
             best = min(mae_raw, mae_ema)
             src = ema if mae_ema <= mae_raw else model
