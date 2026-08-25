@@ -172,11 +172,13 @@ def main():
     model = build_model(cfg).to(device)
     print(f"model params {sum(p.numel() for p in model.parameters())/1e6:.2f}M, trainable {sum(p.numel() for p in model.parameters() if p.requires_grad)/1e6:.2f}M")
 
-    # HF AdamW per spec
-    from transformers import AdamW as HFAdamW
-    # HF AdamW signature: AdamW(params, lr, betas, eps, weight_decay)
+    # HF AdamW per spec (transformers 5.15 moved to torch.optim, fallback)
+    try:
+        from transformers import AdamW as HFAdamW
+    except ImportError:
+        import torch.optim as _topt
+        HFAdamW = _topt.AdamW
     optimizer = HFAdamW([p for p in model.parameters() if p.requires_grad], lr=args.lr, weight_decay=0.05, betas=(0.9,0.999), eps=1e-8)
-    # or torch AdamW is similar; we use HF per spec
     print(f"optimizer HF AdamW lr={args.lr}")
 
     best = float("inf")
