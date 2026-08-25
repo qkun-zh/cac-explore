@@ -49,7 +49,7 @@ def tv_loss(w_normalized):
     return 0.5 * torch.norm(w_normalized - w_normalized / w_normalized.sum(), p=1)
 
 
-def unbalanced_ot_v8(w, p, points_list, cfg):
+def unbalanced_ot_v8(p, w, points_list, cfg):
     """
     Standard-formula UOT counting loss (v8).
 
