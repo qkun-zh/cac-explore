@@ -56,7 +56,7 @@ def ot_coverage_loss(S, gt_d, eps=0.1, iters=10):
         tb = t[b]                                  # [M]
 
         # log-domain Sinkhorn: column then row normalization, T iterations
-        log_P = log_a + tb.clamp(min=1e-12).log()  # [K, M] init
+        log_P = (log_a + tb.clamp(min=1e-12).log()).unsqueeze(0).expand(K, -1).clone()  # [K, M]
         for _ in range(iters):
             # column norm: Σ_k P[k,m] = t[m]
             log_P = log_P - torch.logsumexp(log_P, 0, keepdim=True) + tb.clamp(min=1e-12).log()
@@ -64,11 +64,11 @@ def ot_coverage_loss(S, gt_d, eps=0.1, iters=10):
             log_P = log_P - torch.logsumexp(log_P, 1, keepdim=True) + log_a
 
         # transport plan (differentiable via logsumexp)
-        log_P = torch.clamp(log_P, min=INVALID)
+        log_P = log_P.clamp(min=INVALID)
         P = log_P.exp()                            # [K, M]
 
         # L_ot = <P, Q> + ε H(P),  H(P) = -Σ P log P
-        H_P = -(P * (log_P - INVALID).clamp(min=0)).sum()
+        H_P = -(P * log_P.clamp(min=INVALID)).sum()
         tot = tot + (P * Qb).sum() + eps * H_P
 
     return tot / B
