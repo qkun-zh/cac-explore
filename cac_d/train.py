@@ -1,9 +1,15 @@
-import os, torch
+import os, sys
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import torch
 from torch.utils.data import DataLoader
-from transformers import AutoImageProcessor
-from configs.config import Config
-from models.model import Counter
-from datasets.dataset import FSC147, collate
+from transformers import AutoImageProcessor, AutoModel
+try:
+    from transformers import AdamW as HFAdamW
+except ImportError:
+    from transformers.optimization import AdamW as HFAdamW
+from cac_d.configs.config import Config
+from cac_d.models.model import Counter
+from cac_d.datasets.dataset import FSC147, collate
 def main():
     cfg=Config()
     tok=open("/tmp/hf_token.txt").read().strip() if os.path.exists("/tmp/hf_token.txt") else None
@@ -13,7 +19,8 @@ def main():
     va=DataLoader(val,batch_size=cfg.batch_size,shuffle=False,num_workers=2,collate_fn=lambda b: collate(b,proc))
     device=torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model=Counter(cfg).to(device)
-    opt=torch.optim.AdamW([p for p in model.parameters() if p.requires_grad],lr=cfg.lr,weight_decay=cfg.weight_decay)
+    # HF AdamW per spec (transformers)
+    opt=HFAdamW([p for p in model.parameters() if p.requires_grad],lr=cfg.lr,weight_decay=cfg.weight_decay, betas=(0.9,0.999), eps=1e-8)
     best=float("inf")
     for ep in range(1,cfg.epochs+1):
         model.train(); tot=0
