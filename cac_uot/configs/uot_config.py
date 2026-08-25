@@ -26,17 +26,13 @@ class UOTConfig:
     entropy_reg: float = 0.08                     # ε
     supply_tau: float = 0.5                       # τ_supply
     demand_tau: float = 1.0                       # τ_demand
-    sinkhorn_iters: int = 200                     # max K (convergence-checked at every 20)
+    sinkhorn_iters: int = 30                      # fixed K (replaces convergence-checked 200)
     repulsion_weight: float = 1e-3                # λ
     repulsion_sigma_scale: float = 1.0            # σ
     tv_weight: float = 0.1                        # DM-Count TV stabilizer
 
     # P1 direct count-mass supervision |Σw − N|
     count_mass_weight: float = 1.0
-
-    # UW: Kendall & Gal learnable loss balancing (off by default)
-    use_uw: bool = False
-    uw_init: float = 0.0
 
     # training
     batch_size: int = 8
