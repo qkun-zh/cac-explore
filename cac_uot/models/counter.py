@@ -13,7 +13,7 @@ class UOTCounter(nn.Module):
         self.S, self.patch = cfg.image_size, cfg.patch_size
         self.backbone = DINOv3HFBackbone(cfg)
         g = self.S // self.patch
-        self.ope_input_proj = nn.Linear(cfg.hidden_dim, cfg.ope_emb_dim)
+        self.ope_input_proj = nn.Conv2d(cfg.hidden_dim, cfg.ope_emb_dim, kernel_size=1)
         self.ope = OPEModule(
             num_iterative_steps=cfg.ope_iters, emb_dim=cfg.ope_emb_dim,
             kernel_dim=cfg.ope_kernel_dim, num_objects=3, num_heads=cfg.ope_heads,
