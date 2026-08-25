@@ -144,9 +144,10 @@ def train_one_epoch(model, loader, optimizer, device, cfg, ep=0, log_every=50):
             g = out["gate"].detach().float()
             met = out["metrics"]
             lr_now = optimizer.param_groups[0]["lr"]
-            # detailed sub-losses: trans/def/over/sur/ent are per-image means
+            # detailed sub-losses: solver-aware (sinkhorn: trans/klr/klc/resr/resc; router: def/over/sur)
             print(f"ep{ep} it{nb}/{len(loader)} loss={loss.item():.3f} "
-                  f"[lot={met['lot']:.3f} (trans={met.get('trans',0):.3f} def={met.get('def',0):.3f} over={met.get('over',0):.3f} sur={met.get('sur',0):.3f} ent={met.get('ent',0):.4f}) "
+                  f"[lot={met['lot']:.3f} (trans={met.get('trans',0):.3f} klr={met.get('klr',0):.3f} klc={met.get('klc',0):.3f} "
+                  f"resr={met.get('resr',0):.2f} resc={met.get('resc',0):.2f}) "
                   f"rep={met['rep']:.4f} cnt_err={met['cnt_err']:.2f}] "
                   f"w_sum(mean/p10/p90)={ws.mean().item():.1f}/{torch.quantile(ws,0.1).item():.1f}/{torch.quantile(ws,0.9).item():.1f} "
                   f"w(min/max)={w.min().item():.3f}/{w.max().item():.3f} "

@@ -88,7 +88,77 @@ class GODHead(nn.Module):
         p = grid_centers.unsqueeze(0).to(T.device) + dp  # [B,M,2] in S-space
         return w, p
 
-def god_loss(p, w, g_list, alpha=1.0, beta=0.5, gamma=0.1, epsilon=0.05, lam=1e-3, sigma=20.0, S=384, beta_over=0.5):
+def god_loss_uot(p, w, g_list, alpha=1.0, tau_row=1.0, tau_col=1.0, epsilon=0.05,
+                 lam=1e-3, sigma=20.0, S=384, sinkhorn_K=10):
+    """Standard KL-relaxed unbalanced OT (Chizat et al. 2018) as training loss.
+
+        min_{pi>=0} <pi,C> + tau_row*KL(pi^T 1 | a) + tau_col*KL(pi 1 | b) + eps*reg
+        a = w (pile masses), b = 1 (pit capacities)
+
+    Inner problem solved by log-domain generalized Sinkhorn scaling (K steps,
+    fully unrolled into autograd graph). Loss = value functional evaluated at pi_K
+    (+ Lrep). Gradients reach {w,p} both through the iterations and the explicit
+    evaluation — value-function/envelope gradients, not router gradients.
+    """
+    B, M, _ = p.shape
+    device = p.device
+    tot = {"uot": 0.0, "trans": 0.0, "kl_row": 0.0, "kl_col": 0.0,
+           "res_row": 0.0, "res_col": 0.0, "cnt_err": 0.0, "rep": 0.0}
+    cnt_list = []
+    r1 = tau_row / (tau_row + epsilon)
+    r2 = tau_col / (tau_col + epsilon)
+    for b in range(B):
+        pb, wb, gb = p[b], w[b], g_list[b]
+        # Lrep (mass-weighted Gaussian repulsion) — identical to v6/v7 spec
+        pb_n = pb / S
+        diff_p = pb_n.unsqueeze(1) - pb_n.unsqueeze(0)
+        dist2_p = (diff_p ** 2).sum(-1)
+        sig_n = max(sigma, 8.0) / S
+        Ker_rep = torch.exp(-dist2_p / (2 * sig_n ** 2 + 1e-12)) * (1 - torch.eye(M, device=device))
+        rep = lam * (wb.unsqueeze(1) * wb.unsqueeze(0) * Ker_rep).sum() * 0.5
+        tot["rep"] += rep.item()
+        if gb is None or gb.numel() == 0:
+            cnt_list.append(wb.sum().detach())
+            continue
+        gb = gb.to(pb.device)
+        N = gb.shape[0]
+        d2 = ((pb.unsqueeze(1) - gb.unsqueeze(0)) ** 2).sum(-1) / (S * S)   # [M,N]
+        # fp32 log-domain generalized Sinkhorn scaling
+        with torch.autocast(device_type="cuda", enabled=False):
+            lk = (-d2 / epsilon).float()                       # log kernel
+            la = torch.log(wb.clamp_min(1e-8)).float()         # log a (=w)
+            lb = torch.zeros(N, device=device)                 # log b (=1)
+            lu = torch.zeros(M, device=device)
+            lv = torch.zeros(N, device=device)
+            for _ in range(sinkhorn_K):
+                lu = r1 * (la - torch.logsumexp(lk + lv[None, :], dim=1))
+                lv = r2 * (lb - torch.logsumexp(lk + lu[:, None], dim=0))
+            P = torch.exp(lu[:, None] + lk + lv[None, :])      # [M,N]
+        rowsum = P.sum(dim=1)                                  # soft-matched to w
+        colsum = P.sum(dim=0)                                  # soft-matched to 1
+        trans = alpha * (P * d2).sum()
+        kl_row = (rowsum * torch.log(rowsum.clamp_min(1e-8) / wb.clamp_min(1e-8))
+                  - rowsum + wb).sum()
+        ones = torch.ones_like(colsum)
+        kl_col = (colsum * torch.log(colsum.clamp_min(1e-8)) - colsum + ones).sum()
+        loss_img = trans + tau_row * kl_row + tau_col * kl_col + rep
+        tot["uot"] += loss_img.item()
+        tot["trans"] += trans.item()
+        tot["kl_row"] += tau_row * kl_row.item()
+        tot["kl_col"] += tau_col * kl_col.item()
+        tot["res_row"] += (rowsum - wb).abs().sum().item()
+        tot["res_col"] += (colsum - 1).abs().sum().item()
+        cnt = P.sum()
+        tot["cnt_err"] += abs(cnt.item() - N)
+        cnt_list.append(cnt.detach())
+    total = tot["uot"] / B
+    metrics = {"lot": tot["uot"] / B, "rep": tot["rep"] / B, "cnt_err": tot["cnt_err"] / B,
+               "trans": tot["trans"] / B, "klr": tot["kl_row"] / B, "klc": tot["kl_col"] / B,
+               "resr": tot["res_row"] / B, "resc": tot["res_col"] / B,
+               "def": 0.0, "over": 0.0, "sur": 0.0, "ent": 0.0}
+    return total, metrics, torch.stack(cnt_list) if cnt_list else torch.zeros(B, device=device)
+
+
     """
     p: [B,M,2] in S-space
     w: [B,M]
@@ -224,6 +294,11 @@ class DinoGODHf(nn.Module):
         self.lam = float(cfg.get("god_lambda", 1e-3))
         self.sigma_scale = float(cfg.get("god_sigma_scale", 1.0))
         self.beta_over = float(cfg.get("god_beta_overflow", 0.5))
+        # v7 solver: standard KL-relaxed UOT via log-domain Sinkhorn scaling
+        self.solver = str(cfg.get("god_solver", "sinkhorn"))
+        self.sinkhorn_K = int(cfg.get("sinkhorn_K", 10))
+        self.tau_row = float(cfg.get("god_tau_row", 1.0))   # row/supply side (↔ γ)
+        self.tau_col = float(cfg.get("god_tau_col", 1.0))   # col/demand side (↔ β)
         # for param_groups
         self.is_frozen = True
 
@@ -281,27 +356,38 @@ class DinoGODHf(nn.Module):
                 msize = wh.mean().item() if wh.numel() else 20.0
                 sigma = msize * self.sigma_scale
                 sigma = max(sigma, 8.0)
-            loss, metrics = god_loss(p, w, g_list, alpha=self.alpha, beta=self.beta, gamma=self.gamma, epsilon=self.epsilon, lam=self.lam, sigma=sigma, S=self.S, beta_over=self.beta_over)
+            if self.solver == "sinkhorn":
+                loss, metrics, cnt_open = god_loss_uot(p, w, g_list, alpha=self.alpha,
+                    tau_row=self.tau_row, tau_col=self.tau_col, epsilon=self.epsilon,
+                    lam=self.lam, sigma=sigma, S=self.S, sinkhorn_K=self.sinkhorn_K)
+            else:
+                loss, metrics = god_loss_router(p, w, g_list, alpha=self.alpha, beta=self.beta,
+                    gamma=self.gamma, epsilon=self.epsilon, lam=self.lam, sigma=sigma, S=self.S,
+                    beta_over=self.beta_over)
+                cnt_open = None
             # count prediction via transported mass (for MAE)
             # need to recompute pi for metrics: reuse dustbin prob logic quickly
             # For inference we also need counts
             with torch.no_grad():
-                # compute pred counts per image
-                pred_counts = []
-                for b in range(B):
-                    pb = p[b]; wb = w[b]; gb = g_list[b] if g_list is not None else None
-                    if gb is None or gb.numel()==0:
-                        pred_c = 0.0
-                    else:
-                        gb = gb.to(pb.device)
-                        N = gb.shape[0]
-                        d2 = ((pb.unsqueeze(1)-gb.unsqueeze(0))**2).sum(-1)/(self.S*self.S)
-                        logits = torch.cat([-d2/self.epsilon, torch.zeros(pb.shape[0],1, device=pb.device)], dim=1)
-                        prob = F.softmax(logits, dim=1)
-                        pi = wb.unsqueeze(1)*prob[:,:N]
-                        pred_c = pi.sum().item()
-                    pred_counts.append(pred_c)
-                pred_counts = torch.tensor(pred_counts, device=imgs.device)
+                if cnt_open is None:
+                    # router fallback: recompute transported count
+                    pred_counts = []
+                    for b in range(B):
+                        pb = p[b]; wb = w[b]; gb = g_list[b] if g_list is not None else None
+                        if gb is None or gb.numel()==0:
+                            pred_c = 0.0
+                        else:
+                            gb = gb.to(pb.device)
+                            N = gb.shape[0]
+                            d2 = ((pb.unsqueeze(1)-gb.unsqueeze(0))**2).sum(-1)/(self.S*self.S)
+                            logits = torch.cat([-d2/self.epsilon, torch.zeros(pb.shape[0],1, device=pb.device)], dim=1)
+                            prob = F.softmax(logits, dim=1)
+                            pi = wb.unsqueeze(1)*prob[:,:N]
+                            pred_c = pi.sum().item()
+                        pred_counts.append(pred_c)
+                    pred_counts = torch.tensor(pred_counts, device=imgs.device)
+                else:
+                    pred_counts = cnt_open
             return {"p": p, "w": w, "loss": loss, "pred_counts": pred_counts,
                     "counts_sumw": w.sum(dim=1).detach(), "metrics": metrics, "gate": gate}
         else:
