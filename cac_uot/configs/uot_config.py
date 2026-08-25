@@ -33,6 +33,10 @@ class UOTConfig:
     # P1 direct count-mass supervision |Σw − N|
     count_mass_weight: float = 1.0
 
+    # UW: Kendall & Gal learnable loss balancing (off by default)
+    use_uw: bool = False
+    uw_init: float = 0.0
+
     # training
     batch_size: int = 8
     epochs: int = 40

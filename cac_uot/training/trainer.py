@@ -26,10 +26,11 @@ def train_one_epoch(model, loader, optimizer, device, cfg, ep, log_every=50):
         total += loss.item(); nb+=1
         if nb % log_every == 0:
             met = out["metrics"]; ws = out["w"].detach().float().sum(1)
+            uw_s = f" uw[{met.get('uw_uot',0):.2f}/{met.get('uw_cnt',0):.2f}/{met.get('uw_rep',0):.2f}]" if "uw_uot" in met else ""
             print(f"ep{ep} it{nb}/{len(loader)} loss={loss.item():.3f} "
                   f"[trans={met.get('trans',0):.2f} klr={met.get('klr',0):.2f} klc={met.get('klc',0):.2f} "
-                  f"resr={met.get('resr',0):.1f} resc={met.get('resc',0):.1f} cnt_mass={met.get('cnt_mass',0):.3f} rep={met.get('rep',0):.4f}] "
-                  f"w_sum={ws.mean().item():.1f} gnorm={gn.item():.1f} [{time.time()-t0:.0f}s]", flush=True)
+                  f"resr={met.get('resr',0):.1f} resc={met.get('resc',0):.1f} cnt_mass={met.get('cnt_mass',0):.3f} rep={met.get('rep',0):.4f}]"
+                  f"{uw_s} w_sum={ws.mean().item():.1f} gnorm={gn.item():.1f} [{time.time()-t0:.0f}s]", flush=True)
     return total/max(nb,1)
 
 @torch.no_grad()
