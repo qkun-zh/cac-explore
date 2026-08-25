@@ -14,7 +14,7 @@ class Config:
     d_fine: int = 128
     cond_dim: int = 64
     gauss_sigma: float = 1.5                # cells at 96x96 grid
-    sim_weight: float = 0.35
+    sim_weight: float = 0.8
     # heads
     pile_hidden: int = 128
     uot_topk: int = 2048
@@ -25,7 +25,7 @@ class Config:
     sinkhorn_iters: int = 32
     # OT coverage regularizer (Proto4DME-inspired Sinkhorn balanced assignment)
     use_ot_coverage: bool = True
-    ot_weight: float = 0.35
+    ot_weight: float = 0.13
     ot_epsilon: float = 0.1
     ot_iters: int = 10
     # density & count calibration
