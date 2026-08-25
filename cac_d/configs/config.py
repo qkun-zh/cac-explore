@@ -2,10 +2,10 @@ from dataclasses import dataclass
 
 @dataclass
 class Config:
-    # data
+    # data (HF dataset isentropic/FSC147; HF model+processor dinov3-convnext-tiny)
     image_size: int = 384
+    patch_stride: int = 16
     hf_model: str = "facebook/dinov3-convnext-tiny-pretrain-lvd1689m"
-    hf_processor: str = "facebook/dinov3-convnext-tiny-pretrain-lvd1689m"
     # backbone feature
     backbone_dim: int = 384
     # post-backbone redesign
@@ -31,3 +31,5 @@ class Config:
     weight_decay: float = 0.05
     amp: bool = True
     num_workers: int = 8
+    seed: int = 0
+    best_ckpt: str = "/tmp/cac_d_best.pth"

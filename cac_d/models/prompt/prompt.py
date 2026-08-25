@@ -14,7 +14,7 @@ class ExemplarEncoder(nn.Module):
         self.shape_mlp = nn.Sequential(nn.Linear(2,64), nn.ReLU(), nn.Linear(64,d_model))
         layer = nn.TransformerEncoderLayer(d_model, n_heads, d_model*4, dropout=0.0,
                                            batch_first=True, norm_first=True)
-        self.tr = nn.TransformerEncoder(layer, n_layers)
+        self.tr = nn.TransformerEncoder(layer, n_layers, enable_nested_tensor=False)
         self.attn = nn.Linear(d_model, 1)
 
     def forward(self, feat, bboxes, img_size):  # feat [B,C,h,w], bboxes [B,K,4] in img coords

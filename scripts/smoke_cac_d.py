@@ -7,6 +7,7 @@ import cac_d.models.model as mm
 from cac_d.configs.config import Config
 
 class StubBackbone(torch.nn.Module):
+    out_channels = 384
     def __init__(self, cfg=None):
         super().__init__()
         self.conv = torch.nn.Conv2d(3, 384, 16, stride=16)

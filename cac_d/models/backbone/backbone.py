@@ -1,24 +1,27 @@
-import os, torch
+import torch
 from abc import ABC, abstractmethod
 
 class Backbone(ABC, torch.nn.Module):
+    out_channels: int
     @abstractmethod
     def forward_feature_map(self, x): ...
 
 class ConvNeXtBackbone(Backbone):
+    """Fully frozen HF AutoModel (dinov3-convnext-tiny); stage-3 feature map [B,C,h,w].
+    Env/token handled by cac_d.common; weights cached under HF_HOME."""
+    stage = 3
     def __init__(self, cfg):
         super().__init__()
-        os.environ.setdefault("HF_HOME","/data/asset/hf")
-        os.environ.setdefault("HF_ENDPOINT","https://hf-mirror.com")
-        tok=None
-        for p in ["/tmp/hf_token.txt","/root/.cache/huggingface/token"]:
-            if os.path.exists(p): tok=open(p).read().strip(); break
-        from transformers import AutoModel
-        self.net = AutoModel.from_pretrained(cfg.hf_model, token=tok, trust_remote_code=True)
+        from transformers import AutoModel          # lazy: keeps stub-swappable
+        from cac_d.common import hf_token
+        self.net = AutoModel.from_pretrained(cfg.hf_model, token=hf_token(), trust_remote_code=True)
+        self.net.eval()
         for p in self.net.parameters(): p.requires_grad_(False)
-        self.out_channels = self.net.config.hidden_sizes[2] if hasattr(self.net.config,"hidden_sizes") else 384
+        hs = getattr(self.net.config, "hidden_sizes", None)
+        self.out_channels = hs[self.stage] if hs and len(hs) > self.stage else cfg.backbone_dim
 
+    @torch.no_grad()
     def forward_feature_map(self, x):
         out = self.net(pixel_values=x, output_hidden_states=True)
-        # stage3 is index 2
-        return out.hidden_states[3] if len(out.hidden_states)>3 else out.last_hidden_state
+        hs = out.hidden_states
+        return hs[self.stage] if len(hs) > self.stage else out.last_hidden_state
