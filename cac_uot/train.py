@@ -1,13 +1,13 @@
 """cac_uot entry — HF-only, standard UOT as loss (K-step Sinkhorn)."""
 import os, sys
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)) + "/..")
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import torch
 from torch.utils.data import DataLoader
 from transformers import AutoImageProcessor
-from configs.uot_config import UOTConfig
-from models.counter import UOTCounter
-from datasets.fsc147 import FSC147HF, collate_hf
-from training.trainer import train_one_epoch, evaluate
+from cac_uot.configs.uot_config import UOTConfig
+from cac_uot.models.counter import UOTCounter
+from cac_uot.datasets.fsc147 import FSC147HF, collate_hf
+from cac_uot.training.trainer import train_one_epoch, evaluate
 
 def main():
     cfg = UOTConfig()
