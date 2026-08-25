@@ -96,6 +96,30 @@ def collate_hf(batch, processor):
     points = [b["points"] for b in batch]  # list [N,2]
     return {"pixel_values": pixel_values, "bboxes3": bboxes3, "points": points}
 
+BUCKETS = [(0, 25), (25, 75), (75, 200), (200, 500), (500, float("inf"))]
+
+def _rankdata(x):
+    """Average-rank transform (ties -> mean rank), torch only."""
+    order = x.argsort()
+    ranks = torch.empty_like(x)
+    sx = x[order]
+    i = 0
+    r = torch.arange(1, x.numel() + 1, dtype=x.dtype)
+    while i < x.numel():
+        j = i
+        while j + 1 < x.numel() and sx[j + 1] == sx[i]:
+            j += 1
+        avg = r[i:j + 1].mean()
+        ranks[order[i:j + 1]] = avg
+        i = j + 1
+    return ranks
+
+def _spearman(a, b):
+    ra, rb = _rankdata(a), _rankdata(b)
+    ra = ra - ra.mean(); rb = rb - rb.mean()
+    denom = (ra.norm() * rb.norm()).clamp_min(1e-12)
+    return (ra * rb).sum() / denom
+
 def train_one_epoch(model, loader, optimizer, device, cfg, ep=0, log_every=50):
     model.train()
     total_loss = 0
@@ -111,38 +135,63 @@ def train_one_epoch(model, loader, optimizer, device, cfg, ep=0, log_every=50):
             out = model(pixel_values, bboxes3=bboxes3, points=points)
             loss = out["loss"]
         loss.backward()
-        torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+        gn = torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
         optimizer.step()
         total_loss += loss.item(); nb += 1
         if nb % log_every == 0:
-            ws = out["w"].sum(dim=1).detach().float().mean().item()
-            print(f"ep{ep} it{nb}/{len(loader)} loss={loss.item():.3f} w_sum~{ws:.1f} [{_t.time()-t0:.0f}s]", flush=True)
+            w = out["w"].detach().float()
+            ws = w.sum(dim=1)
+            g = out["gate"].detach().float()
+            met = out["metrics"]
+            lr_now = optimizer.param_groups[0]["lr"]
+            print(f"ep{ep} it{nb}/{len(loader)} loss={loss.item():.3f} "
+                  f"[lot={met['lot']:.3f} rep={met['rep']:.4f} cnt_err={met['cnt_err']:.2f}] "
+                  f"w_sum(mean/p10/p90)={ws.mean().item():.1f}/{torch.quantile(ws,0.1).item():.1f}/{torch.quantile(ws,0.9).item():.1f} "
+                  f"w(min/max)={w.min().item():.3f}/{w.max().item():.3f} "
+                  f"gate_mean={g.mean().item():.3f} gate(p10/p90)={torch.quantile(g.flatten(),0.1).item():.3f}/{torch.quantile(g.flatten(),0.9).item():.3f} "
+                  f"a={model.prompt.alpha.item():+.3f} b={model.prompt.beta.item():+.3f} "
+                  f"gnorm={gn.item():.2f} lr={lr_now:.1e} [{_t.time()-t0:.0f}s]", flush=True)
     return total_loss / max(len(loader),1)
 
 @torch.no_grad()
-def evaluate(model, loader, device):
+def evaluate(model, loader, device, ep=0):
     model.eval()
-    mae = 0; mse=0; n=0
+    gts, preds = [], []
+    gates, wsums = [], []
     for batch in loader:
         pixel_values = batch["pixel_values"].to(device)
         bboxes3 = batch["bboxes3"].to(device)
-        points = batch["points"]
-        out = model(pixel_values, bboxes3=bboxes3, points=None)  # inference uses sum w
-        # for eval we need GT counts
-        gt_counts = torch.tensor([p.shape[0] for p in points], dtype=torch.float32, device=device)
-        pred = out["pred_counts"].float()
-        # handle case where model returned pi-based count vs sum w: during eval points=None, pred = sum w
-        # If points available, we could compute transported count, but for val we want consistent
-        # For fair eval, we compute transported count using same dustbin logic with GT available? Use points for eval too
-        # So call again with points to get transported count
-        out2 = model(pixel_values, bboxes3=bboxes3, points=points)
-        pred2 = out2["pred_counts"].float()
-        # Use transported count (more accurate)
-        pred = pred2
-        mae += (pred - gt_counts).abs().sum().item()
-        mse += ((pred - gt_counts)**2).sum().item()
-        n += gt_counts.numel()
-    return mae/max(n,1), math.sqrt(mse/max(n,1))
+        points = [p.to(device) for p in batch["points"]]
+        out = model(pixel_values, bboxes3=bboxes3, points=points)  # transported count
+        pred = out["pred_counts"].float().cpu()
+        gt = torch.tensor([p.shape[0] for p in points], dtype=torch.float32)
+        gts.append(gt); preds.append(pred)
+        gates.append(out["gate"].float().mean().item())
+        wsums += out["w"].float().sum(dim=1).cpu().tolist()
+    gt = torch.cat(gts); pred = torch.cat(preds)
+    err = pred - gt
+    mae = err.abs().mean().item(); rmse = err.pow(2).mean().sqrt().item()
+    bias = err.mean().item()
+    rho = _spearman(gt, pred).item()
+    ws = torch.tensor(wsums)
+    print(f"== Ep{ep:02d} VAL n={gt.numel()} MAE={mae:.3f} RMSE={rmse:.3f} bias(median signed)={bias:+.2f}/{err.median().item():+.2f} "
+          f"Spearman={rho:.3f} w_sum(mean/p10/p90)={ws.mean().item():.1f}/{torch.quantile(ws,0.1).item():.1f}/{torch.quantile(ws,0.9).item():.1f} "
+          f"gate_mean={(sum(gates)/len(gates)):.3f} a={model.prompt.alpha.item():+.3f} b={model.prompt.beta.item():+.3f}", flush=True)
+    for lo, hi in BUCKETS:
+        m = (gt >= lo) & (gt < hi)
+        if m.sum() == 0:
+            continue
+        bm = err[m]
+        hi_lab = "inf" if hi == float("inf") else str(int(hi))
+        print(f"   bucket[{int(lo):>3},{hi_lab:>4}) n={int(m.sum()):4d} "
+              f"MAE={bm.abs().mean().item():8.2f} medSigned={bm.median().item():+9.2f} "
+              f"under%= {(bm < 0).float().mean().item()*100:5.1f}", flush=True)
+    hist = {"ep": ep, "mae": mae, "rmse": rmse, "bias": bias, "spearman": rho,
+            "gate": sum(gates)/len(gates),
+            "alpha": model.prompt.alpha.item(), "beta": model.prompt.beta.item()}
+    with open("/tmp/god_hist.jsonl", "a") as f:
+        f.write(json.dumps(hist) + "\n")
+    return mae, rmse
 
 def main():
     import argparse
@@ -181,7 +230,7 @@ def main():
     best = float("inf")
     for ep in range(1, args.epochs+1):
         loss = train_one_epoch(model, train_loader, optimizer, device, cfg, ep=ep)
-        mae, rmse = evaluate(model, val_loader, device)
+        mae, rmse = evaluate(model, val_loader, device, ep=ep)
         print(f"Ep {ep:02d} loss={loss:.4f} val MAE={mae:.3f} RMSE={rmse:.3f} best={best:.3f}")
         if mae < best:
             best = mae
