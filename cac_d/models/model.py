@@ -8,16 +8,22 @@ from .losses.losses import gaussian_density, sim_margin_loss, uot_loss, ot_cover
 class Counter(nn.Module):
     """Frozen HF backbone (multi-scale) -> fine token map @1/4 + explicit
     exemplar similarity (supervised) + exemplar->cell cross-attention ->
-    density map at 96x96 (primary count); top-K UOT point branch auxiliary."""
-    def __init__(self, cfg):
+    density map at 96x96 (primary count); top-K UOT point branch auxiliary.
+    Supports cached mode: pass precomputed h2/h3/e to skip backbone."""
+    def __init__(self, cfg, cached=False):
         super().__init__()
-        self.cfg = cfg; self.S = cfg.image_size
-        self.backbone = ConvNeXtBackbone(cfg)
-        ch_mid, ch_coarse = self.backbone.out_channels              # [192, 384]
+        self.cfg = cfg; self.S = cfg.image_size; self.cached = cached
+        ch_mid, ch_coarse = cfg.backbone_dims                       # [192, 384]
         D = cfg.d_fine
         self.fuser = FineFuser(ch_coarse, ch_mid, d_fine=D)
-        self.exemplar = ExemplarEncoder(ch_coarse, cfg.embed_dim,
-                                        cfg.exemplar_layers, roi_size=cfg.roi_size)
+        if not cached:
+            self.backbone = ConvNeXtBackbone(cfg)
+            ch_mid, ch_coarse = self.backbone.out_channels
+            self.exemplar = ExemplarEncoder(ch_coarse, cfg.embed_dim,
+                                            cfg.exemplar_layers, roi_size=cfg.roi_size)
+        else:
+            self.backbone = None
+            self.exemplar = None
         self.sim = SimModule(d_fine=D, d_sim=cfg.embed_dim)
         self.cond = Condenser(d_sim=cfg.embed_dim, d_out=cfg.cond_dim)
         self.cell = self.S // (cfg.image_size // 4)                 # fine cell px (=4)
@@ -27,14 +33,20 @@ class Counter(nn.Module):
         self.density = DensityDecoder(in_ch=D + 2 + cfg.cond_dim, hidden=2*D)
 
     def train(self, mode=True):                                     # backbone stays eval
-        super().train(mode); self.backbone.eval(); return self
+        super().train(mode)
+        if self.backbone is not None:
+            self.backbone.eval()
+        return self
 
-    def forward(self, x, bboxes, points=None):
-        h2, h3 = self.backbone.forward_feature_map(x)
+    def forward(self, x, bboxes, points=None, h2=None, h3=None, e=None):
+        if self.cached:
+            assert h2 is not None and h3 is not None and e is not None
+        else:
+            h2, h3 = self.backbone.forward_feature_map(x)
+            e = self.exemplar(h3, bboxes, self.S)
         B, _, Hh, _ = h3.shape
         Hf = Wf = Hh * 4                                            # 96 @ 384 input
         fine = self.fuser(h2, h3)                                   # [B,D,96,96]
-        e = self.exemplar(h3, bboxes, self.S)                       # [B,K,256]
         S, smax, smean, tok256 = self.sim(fine.permute(0, 2, 3, 1), e)
         cond = self.cond(tok256, e)                                 # [B,M,cond_dim]
         dens = self.density(torch.cat([fine, smax, smean,

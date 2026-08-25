@@ -47,3 +47,6 @@ class Config:
     flip_p: float = 0.5
     color_jitter: bool = False
     best_ckpt: str = "/tmp/cac_d_best.pth"
+    # precomputed feature cache (skip backbone during training)
+    use_cached_features: bool = False
+    cache_dir: str = "/data/cache/fsc147_features"
