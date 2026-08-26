@@ -27,6 +27,48 @@ class SICounter(nn.Module):
         self.uncertainty_weight = bool(getattr(cfg, "uncertainty_weight", False))
         if self.uncertainty_weight:
             self.log_s = nn.Parameter(torch.zeros(2))    # [den, cnt]
+        # 2D sincos positional encoding on attention tokens (DETR-style)
+        self.pos_enc = bool(getattr(cfg, "pos_enc", False))
+        if self.pos_enc:
+            self.register_buffer("pe", self._build_2d_sincos(H0, W0, C))
+
+    @staticmethod
+    def _build_2d_sincos(H, W, dim):
+        import math
+        assert dim % 4 == 0, "pos-enc dim must be divisible by 4"
+        d = dim // 2                                     # half for y, half for x
+        pe = torch.zeros(H * W, dim)
+        gy, gx = torch.meshgrid(torch.arange(H, dtype=torch.float32),
+                                torch.arange(W, dtype=torch.float32), indexing="ij")
+        gy = gy.flatten(); gx = gx.flatten()
+        div = torch.exp(torch.arange(0, d, 2).float() * (-math.log(10000.0) / d))
+        pe[:, 0:d:2] = torch.sin(gy.unsqueeze(1) * div)
+        pe[:, 1:d:2] = torch.cos(gy.unsqueeze(1) * div)
+        pe[:, d::2] = torch.sin(gx.unsqueeze(1) * div)
+        pe[:, d + 1::2] = torch.cos(gx.unsqueeze(1) * div)
+        return pe
+
+    def _sample_xs(self, points, B, dev):
+        """Mixed sampling: (1-fg) uniform + fg near GT points (jitter 3sigma)."""
+        cfg = self.cfg
+        n_fg = int(cfg.n_samples * float(cfg.fg_sampling))
+        n_uni = cfg.n_samples - n_fg
+        xs_uni = torch.rand(max(n_uni, 1), 2, device=dev)
+        if n_fg == 0:
+            return xs_uni                                # [M,2] shared
+        fg = []
+        for p in points:
+            if p.numel() == 0:
+                fg.append(torch.rand(n_fg, 2, device=dev))
+            else:
+                idx = torch.randint(0, p.shape[0], (n_fg,), device=dev)
+                base = p.to(dev)[idx] / float(cfg.image_size)
+                jit = torch.randn(n_fg, 2, device=dev) * (3.0 * cfg.inr_sigma)
+                fg.append((base + jit).clamp(0.0, 1.0))
+        xs = torch.stack(fg, 0)                          # [B,n_fg,2]
+        if n_uni > 0:
+            xs = torch.cat([xs_uni.unsqueeze(0).expand(B, -1, -1), xs], 1)
+        return xs                                        # [B,M,2] per-image
 
     def _regular_grid(self, g, device):
         c = (torch.arange(g, device=device, dtype=torch.float32) + 0.5) / g
@@ -40,7 +82,12 @@ class SICounter(nn.Module):
         bp = self.enc_pmt(img, bboxes)                   # [B,K,C,H0,W0]
         B, K, C, H0, W0 = bp.shape
         q = a.flatten(2).transpose(1, 2)                 # [B,M,C]  M=H0*W0
+        if self.pos_enc:
+            q = q + self.pe.unsqueeze(0)
         kv = bp.permute(0, 1, 3, 4, 2).reshape(B, K * H0 * W0, C)
+        if self.pos_enc:
+            kv = kv + self.pe.repeat(K, 1).unsqueeze(0)  # same grid per exemplar
+        kv = self.kv_proj(kv)                            # [B,K*M,C_sim]
         kv = self.kv_proj(kv)                            # [B,K*M,C_sim]
         cond = self.cond(q, kv)                          # [B,M,cond_dim]
         c = torch.cat([q, cond], -1)                     # [B,M,C+cond]
@@ -58,11 +105,12 @@ class SICounter(nn.Module):
         if points is None:
             return {"pred_counts": count, "density_map": cmap}
 
-        xs = torch.rand(cfg.n_samples, 2, device=dev)    # shared across batch
+        xs = self._sample_xs(points, B, dev)             # [M,2] or [B,M,2]
         # paper §3.4: D_gt(x) via interpolation from the DISCRETE density map
         # (standard DME convention: kernel sums to 1/point, map sums to N),
         # NOT the analytic pdf — value scale ~1e-3 keeps losses balanced.
         with torch.autocast("cuda", enabled=False):
+            cmap32 = cmap.float()
             u = self.inr(sample_map(cmap32, xs).reshape(-1, cmap32.shape[1])).view(B, -1)
             gt_maps = gaussian_density([p.float() for p in points], B,
                                        cfg.image_size, cfg.image_size,

@@ -21,6 +21,8 @@ class Config:
     fourier_freqs: tuple = (1, 2, 4, 8)
     inr_sigma: float = 0.02          # GT gaussian sigma, normalized coords
     n_samples: int = 256             # random x per training step
+    fg_sampling: float = 0.0         # fraction of samples drawn near GT points (0=uniform)
+    pos_enc: bool = False            # 2D sincos positional encoding on attention tokens
     quad_grid: int = 32              # count quadrature grid (train)
     eval_grid: int = 64              # count quadrature grid (eval)
     # loss weights
