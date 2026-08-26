@@ -119,7 +119,7 @@ def main():
                "mae_raw": round(mae_raw, 2), "mae_ema": round(mae_ema, 2),
                "rmse_raw": round(rmse_raw, 1), "rmse_ema": round(rmse_ema, 1)}
         print(f"Ep{ep} [{rec['t_total']}s tr {rec['t_train']} ev {rec['t_val']}] lr={lr_now:.2e} "
-              f"g={rec['grad_norm']:.2f} loss={tot_avg:.4f} (den {pct_den:.0f}% | cnt {100-pct_den:.0f}%) "
+              f"g={rec['grad_norm']:.2e} loss={tot_avg:.3e} (den {pct_den:.0f}% | cnt {100-pct_den:.0f}%) "
               f"MAE={mae_raw:.2f}/{mae_ema:.2f} RMSE={rmse_raw:.1f}/{rmse_ema:.1f} best={best:.2f}", flush=True)
         is_best = False
         if min(mae_raw, mae_ema) < best:
