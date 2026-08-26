@@ -14,4 +14,5 @@
 ## Gotchas
 - pkill -f cac_d self-kills the ssh shell (cmdline match) → separate cleanup/launch calls
 - precompute MUST pass explicit size override (model default 224); HF_ENDPOINT must be exported before python starts
+- **Two caches**: `/data/cache/fsc147_features` = true-384 reference; `_224` = FAST-EXPERIMENT (~30s/ep, 3-4 concurrent, override cache_dir+image_size together, not comparable to 384)
 - Server env: POT/triton removed, cv2 headless only; /data/runs = cac_d_redesign + N0027_norm_flip_swa + cac_d_baseline384
