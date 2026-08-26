@@ -1,20 +1,42 @@
 # STATE — Session 2026-08-26 (Lead=qkun-local)
 
-**Mode**: 用户指导模式 (User-Guided) — confirmed at session start per user request
-**Preflight**: git up-to-date · creds fresh (mtime 08:26 today) · SERVER_OK · RTX3060 idle, no tmux
-**Champion**: CAC-D simplified — val MAE **19.15**; eval-routed effective best **19.18/66.37** (N0021_dino_partialft + resolution routing)
-**Baseline 384**: DONE Ep32/32 best val **22.38** TEST 18.33-18.88 (see /tmp/cac_d_384_baseline.log, ckpt /data/runs/cac_d_baseline384/best.pth)
-**Queue prompt encoder**: DONE screening @224 — q_mse 20.41 / q_ada 21.45 / q_bl 23.60 (all WORSE than 19.15 no-queue control; queue parked)
-**CAC-SI line (SI-INR)**: RUNNING tmux si_224 — dual-stream frozen DINOv3 + B_H/S scale-invariant encoding + cross-attn + INR continuous decoding; 32ep @224 ~108s/ep; log /tmp/cac_si_224.log, ckpt /data/runs/cac_si_224/best.pth; 28.65M total 0.83M trainable
-**Tree**: champion lineage N0027_norm_flip_swa done; children N0028–N0032 all failed/timeout
+**Mode**: 用户指导模式 (User-Guided)
+**Preflight**: git up-to-date · SERVER_OK · RTX3060 idle, no tmux
+
+## Champion
+
+**CAC-D simplified** (frozen DINOv3-ConvNeXt-L + FineFuser + Condenser + DensityDecoder)
+- 224 fast lane: val MAE **19.15**
+- 384 full res: val best 22.38, TEST **18.33** (384 lane, ckpt `/data/runs/cac_d_baseline384/best.pth`)
+- 28.74M total / 3.38M trainable · ~50s/ep @224 · ~70s/ep @384
+
+## Negative Lines (archived)
+
+**CAC-SI (SI-INR) — NEGATIVE** (3 variants, 4 runs total)
+
+| Variant | TEST | Δ vs cac_d 224 | Δ vs cac_d 384 |
+|---|---|---|---|
+| Base (multi-scale B_H, uw, cnt_w=1) | 24.89 | +5.7 | +6.6 |
+| + fg_sampling p_s=0.5 | 24.81 | +5.7 | +6.5 |
+| + pos_enc 2D sincos | 25.62 | +6.5 | +7.3 |
+| Single-scale (B_H→[1.0]) | 25.16 | +6.0 | +6.8 |
+
+**消融结论**: B_H 多尺度无显著贡献（0.3 噪声级），砍掉节省 38% 时间。前景采样、位置编码均阴性。INR 解码器系统性弱于卷积解码器 ~6 点，非超参问题。Line 已 archive。
+
+**Queue prompt (MFU) — NEGATIVE**: q_mse 20.41 / q_ada 21.45 / q_bl 23.60 (all WORSE than 19.15 no-queue control at 224 lane)。Parked。
+
+**Density variants (ada/bl) — INCONCLUSIVE**: 无干净控制组。
+
+## Completed Experiments
+
+- 384 baseline: 32ep, TEST 18.33-18.88 (Ep24-32)
+- 224 fast lane queue screening: 3 runs
+- cac_si base 32ep: 24.89/24.52
+- cac_si fg_sampling 32ep: 24.81/25.31
+- cac_si pos_enc 32ep: 25.62/27.45
+- cac_si single-scale B_H ablation 32ep: 25.16/25.29
 
 ## Awaiting user direction
-- cac_si 32ep in flight (~58min); compare vs 19.15 (224 lane control)
-- Queue line parked (negative result); density variants ada/bl inconclusive without clean control
-- Next: cac_si result -> if positive, promote to 384; resolution-shift eval (SI-INR's selling point)
 
-## Gotchas
-- pkill -f cac_d self-kills the ssh shell (cmdline match) → separate cleanup/launch calls
-- precompute MUST pass explicit size override (model default 224); HF_ENDPOINT must be exported before python starts
-- **Two caches**: `/data/cache/fsc147_features` = true-384 reference; `_224` = FAST-EXPERIMENT (~30s/ep, 3-4 concurrent, override cache_dir+image_size together, not comparable to 384)
-- Server env: POT/triton removed, cv2 headless only; /data/runs = cac_d_redesign + N0027_norm_flip_swa + cac_d_baseline384
+- cac_d 主线下一步方向（384 全分辨率 vs 224 快车道 vs 新方向）
+- 384 baseline best ckpt 尚未单独重新评估
