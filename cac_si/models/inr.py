@@ -13,25 +13,24 @@ def fourier(x, freqs):                               # x [M,2] -> [M,4*len(freqs
 
 
 class INRDecoder(nn.Module):
-    """u(x) = softplus(MLP([z_x, fourier(x), x])). 4 linear layers, residual on middle."""
-    def __init__(self, z_dim, hidden=128, layers=4, freqs=(1, 2, 4, 8)):
+    """Eq.9 exact: u(x) = phi_L(W_L(...phi_1(W_1 z_x + b_1)...) + b_L).
+    Input is z_x ONLY (spatial variation comes from the sampled feature).
+    4 FC layers with residual + additional output FC = 5 Linears (paper §4.2).
+    Raw output (no softplus). Init N(0, 0.01^2) (paper §4.2). No LayerNorm."""
+    def __init__(self, z_dim, hidden=128, layers=4):
         super().__init__()
-        self.freqs = tuple(freqs)
-        in_dim = z_dim + 2 + 4 * len(self.freqs)
-        self.inp = nn.Linear(in_dim, hidden)
-        self.blocks = nn.ModuleList([nn.Linear(hidden, hidden) for _ in range(layers - 2)])
-        self.norms = nn.ModuleList([nn.LayerNorm(hidden) for _ in range(layers - 2)])
+        self.inp = nn.Linear(z_dim, hidden)
+        self.blocks = nn.ModuleList([nn.Linear(hidden, hidden) for _ in range(layers - 1)])
         self.out = nn.Linear(hidden, 1)
         for m in [self.inp, *self.blocks, self.out]:
             nn.init.normal_(m.weight, 0.0, 0.01)
             nn.init.zeros_(m.bias)
 
-    def forward(self, z_x, x):                        # z_x [M,D], x [M,2] in [0,1]^2
-        h = torch.cat([z_x, fourier(x, self.freqs), x], -1)
-        h = F.gelu(self.inp(h))
-        for lin, ln in zip(self.blocks, self.norms):
-            h = F.gelu(ln(h + lin(h)))
-        return F.softplus(self.out(h)).squeeze(-1)    # [M] >= 0
+    def forward(self, z_x):                          # z_x [M,D]
+        h = F.gelu(self.inp(z_x))
+        for lin in self.blocks:
+            h = F.gelu(h + lin(h))
+        return self.out(h).squeeze(-1)               # [M], raw density
 
 
 def gt_density_at(points, S, x, sigma):

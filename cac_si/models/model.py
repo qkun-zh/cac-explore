@@ -47,15 +47,13 @@ class SICounter(nn.Module):
         # whose integral over the unit square is N/S^2 -> count = int(u) * S^2
         g = cfg.quad_grid if self.training else cfg.eval_grid
         xq = self._regular_grid(g, dev)
-        uq = self.inr(sample_map(cmap, xq).reshape(-1, c.shape[-1]),
-                      xq.repeat(B, 1))
-        count = uq.view(B, -1).mean(1) * float(cfg.image_size) ** 2
+        uq = self.inr(sample_map(cmap, xq).reshape(-1, c.shape[-1])).view(B, -1)
+        count = uq.mean(1) * float(cfg.image_size) ** 2
         if points is None:
             return {"pred_counts": count, "density_map": cmap}
 
         xs = torch.rand(cfg.n_samples, 2, device=dev)    # shared across batch
-        u = self.inr(sample_map(cmap, xs).reshape(-1, c.shape[-1]),
-                     xs.repeat(B, 1)).view(B, -1)        # [B,M]
+        u = self.inr(sample_map(cmap, xs).reshape(-1, c.shape[-1])).view(B, -1)        # [B,M]
         # paper §3.4: D_gt(x) via interpolation from the DISCRETE density map
         # (standard DME convention: kernel sums to 1/point, map sums to N),
         # NOT the analytic pdf — value scale ~1e-3 keeps losses balanced.
