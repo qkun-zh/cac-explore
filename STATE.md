@@ -6,10 +6,12 @@
 **Tree**: champion lineage N0027_norm_flip_swa done; children N0028–N0032 all failed/timeout
 
 ## Awaiting user direction
-- User-Guided mode: next experiment follows user's directive
-- Candidate directions from prior session Next-list: clean baseline of simplified model / count-loss variants / backbone fine-tuning
-- Gates unchanged: novelty_check → check_hypothesis → calibration_report
+- **Baseline RUNNING**: cac_d @ true 384px cache, 32ep (2w+10s+20c), val/ep + test/4ep, ~89s/ep, 7.6GiB → 12G card fits only 1 concurrent run
+- Log `/tmp/cac_d_384_baseline.log` · ckpt `/data/runs/cac_d_baseline384/best.pth`
+- Today's fixes: Condenser input proj (latent crash), FFN direction typo; dead code removed (-109 lines)
+- Old 19.15 (224px cache) not comparable to new baseline — new reference point
 
 ## Gotchas
-- Server env trimmed 08:46: POT/triton removed, cv2 = opencv-python-headless 5.0.0.93 only
-- /data/runs holds only cac_d_redesign + N0027_norm_flip_swa after cleanup
+- pkill -f cac_d self-kills the ssh shell (cmdline match) → separate cleanup/launch calls
+- precompute MUST pass explicit size override (model default 224); HF_ENDPOINT must be exported before python starts
+- Server env: POT/triton removed, cv2 headless only; /data/runs = cac_d_redesign + N0027_norm_flip_swa + cac_d_baseline384
