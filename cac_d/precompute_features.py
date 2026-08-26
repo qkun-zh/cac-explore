@@ -69,9 +69,11 @@ def main():
     anno = json.load(open(hf_hub_download(REPO, ANNO_FILE, repo_type="dataset", token=tok)))
     ids = set(json.load(open(hf_hub_download(REPO, SPLIT_FILE, repo_type="dataset", token=tok)))[args.split])
 
-    # -- Load HF processor --
+    # -- Load HF processor (explicit size override: model default is 224!) --
     from transformers import AutoImageProcessor
-    processor = AutoImageProcessor.from_pretrained(cfg.hf_model, token=tok)
+    processor = AutoImageProcessor.from_pretrained(
+        cfg.hf_model, token=tok,
+        size={"height": args.image_size, "width": args.image_size})
 
     # -- Prepare output dir --
     out_dir = Path(args.cache_dir) / args.split
@@ -101,15 +103,15 @@ def main():
             h2, h3 = backbone.forward_feature_map(pixel)     # [1,192,48,48], [1,384,24,24]
             e = exemplar(h3, boxes.unsqueeze(0).to(device), args.image_size)  # [1,K,256]
 
-        # Save as CPU tensors (float32 for precision)
+        # Save as CPU tensors (float32 for precision); named after source image
         sample = {
-            "h2": h2.squeeze(0).cpu(),          # [192,48,48]
+            "h2": h2.squeeze(0).cpu(),          # [192,48,48] @384px input
             "h3": h3.squeeze(0).cpu(),          # [384,24,24]
             "e": e.squeeze(0).cpu(),            # [K,256]
             "bboxes": boxes,                     # [3,4]
             "points": pts,                       # [N,2]
         }
-        torch.save(sample, out_dir / f"{count:05d}.pt")
+        torch.save(sample, out_dir / f"{os.path.splitext(im_id)[0]}.pt")
         count += 1
         if count % 500 == 0:
             print(f"  {count} samples done...")
