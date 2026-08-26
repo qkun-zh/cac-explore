@@ -8,7 +8,7 @@ class Config:
     backbone_dims: tuple = (192, 384)
     prompt_size: int = 112
     prompt_margin: float = 0.25
-    # scale-invariant encoder
+    # scale-invariant encoder (nominal; sizes snapped to /16 multiples internally)
     scales: tuple = (0.75, 1.0, 1.25)
     # condenser (cross-attention)
     d_sim: int = 256

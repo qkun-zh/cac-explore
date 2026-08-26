@@ -6,23 +6,29 @@ import torch.nn.functional as F
 
 
 class ScaleInvariantEncoder(nn.Module):
-    """Image path: forward frozen backbone at |H| scales, align to base grid, mean."""
+    """Image path: forward frozen backbone at |H| scales, align to base grid, mean.
+    Input sizes are snapped to multiples of 16 so h3 grids divide exactly —
+    otherwise stride-2 flooring drops edge rows/cols and B_H branches misalign
+    by up to ~5% (e.g. 0.75*224=168 -> grid 10 covers only 95.2% of the image).
+    Effective scales become grid_ratios (e.g. 10/14, 1.0, 18/14 for 224 base)."""
     def __init__(self, backbone, scales, feat_grid):
         super().__init__()
         self.bb = backbone
-        self.scales = tuple(scales)
+        H0 = tuple(feat_grid)[0]
+        self.sizes = [max(16, int(round(H0 * float(s))) * 16) for s in scales]
         self.grid = tuple(feat_grid)
 
     @torch.no_grad()
     def forward(self, img):                          # img [B,3,S,S]
         acc = None
-        for s in self.scales:
-            xi = img if s == 1.0 else F.interpolate(
-                img, scale_factor=float(s), mode="bilinear", align_corners=False)
-            h = self.bb.forward_feature_map(xi)[-1]  # h3 @1/16
+        for size in self.sizes:
+            xi = img if size == img.shape[-1] else F.interpolate(
+                img, size=(size, size), mode="bilinear",
+                align_corners=False, antialias=True)
+            h = self.bb.forward_feature_map(xi)[-1]  # h3, grid = size//16 exact
             h = F.interpolate(h, size=self.grid, mode="bilinear", align_corners=False)
             acc = h if acc is None else acc + h
-        return acc / len(self.scales)
+        return acc / len(self.sizes)
 
 
 class PromptEncoder(nn.Module):
