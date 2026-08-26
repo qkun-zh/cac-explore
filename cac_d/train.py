@@ -87,6 +87,12 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     use_amp = cfg.amp and device.type == "cuda"
     model = Counter(cfg, cached=cached).to(device)
+    # queue for prompt augmentation (VQCounter MFU) — lives on same device as model
+    queue = None
+    if cfg.use_queue:
+        from cac_d.models.queue import MFUQueue
+        queue = MFUQueue(capacity=cfg.queue_capacity, dim=cfg.embed_dim, device=device)
+        print(f"MFU Queue enabled: E={cfg.queue_capacity} m={cfg.queue_m}")
     params = [p for p in model.parameters() if p.requires_grad]
     print(f"Trainable params: {sum(p.numel() for p in params)/1e6:.2f}M")
     opt = torch.optim.AdamW(params, lr=cfg.lr, weight_decay=cfg.weight_decay)
@@ -105,10 +111,23 @@ def main():
                 if cached:
                     h2 = batch["h2"].to(device, non_blocking=True)
                     h3 = batch["h3"].to(device, non_blocking=True)
-                    e_ = batch["e"].to(device, non_blocking=True)
                     bb = batch["bboxes"].to(device, non_blocking=True)
                     pts = [p.to(device, non_blocking=True) for p in batch["points"]]
-                    out = model(None, bb, pts, h2=h2, h3=h3, e=e_)
+                    cids = batch["class_ids"]
+                    if cfg.use_queue:
+                        # semi-cached: recompute e from h3/bb, augment via queue
+                        e_cur = model.exemplar(h3, bb, model.S)  # [B,K,D]
+                        if len(queue) > 0:
+                            e_q = queue.sample(cids, cfg.queue_m, device=device)
+                            e_ = torch.cat([e_cur, e_q], dim=1)
+                        else:
+                            e_ = e_cur
+                        out = model(None, bb, pts, h2=h2, h3=h3, e=e_)
+                        # enqueue after forward (detach)
+                        queue.enqueue(cids, e_cur.detach())
+                    else:
+                        e_ = batch["e"].to(device, non_blocking=True)
+                        out = model(None, bb, pts, h2=h2, h3=h3, e=e_)
                 else:
                     pv = batch["pixel_values"].to(device, non_blocking=True)
                     bb = batch["bboxes"].to(device, non_blocking=True)

@@ -15,9 +15,16 @@ class Counter(nn.Module):
         ch_mid, ch_coarse = cfg.backbone_dims
         D = cfg.d_fine
         self.fuser = FineFuser(ch_coarse, ch_mid, d_fine=D)
+        # exemplar encoder needed when not cached OR when queue augments prompts
+        need_exemplar = (not cached) or cfg.use_queue
         if not cached:
             self.backbone = ConvNeXtBackbone(cfg)
             ch_mid, ch_coarse = self.backbone.out_channels
+            self.exemplar = ExemplarEncoder(ch_coarse, cfg.embed_dim,
+                                            cfg.exemplar_layers, roi_size=cfg.roi_size)
+        elif need_exemplar:
+            # semi-cached: h2/h3 from cache, e recomputed online (queue needs fresh embs)
+            self.backbone = None
             self.exemplar = ExemplarEncoder(ch_coarse, cfg.embed_dim,
                                             cfg.exemplar_layers, roi_size=cfg.roi_size)
         else:
@@ -34,7 +41,12 @@ class Counter(nn.Module):
 
     def forward(self, x, bboxes, points=None, h2=None, h3=None, e=None):
         if self.cached:
-            assert h2 is not None and h3 is not None and e is not None
+            assert h2 is not None and h3 is not None
+            # when queue is on, e is recomputed online; otherwise must be provided
+            if self.exemplar is not None:
+                e = self.exemplar(h3, bboxes, self.S)
+            else:
+                assert e is not None
         else:
             h2, h3 = self.backbone.forward_feature_map(x)
             e = self.exemplar(h3, bboxes, self.S)

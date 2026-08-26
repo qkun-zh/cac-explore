@@ -41,6 +41,10 @@ class Config:
     flip_p: float = 0.5
     color_jitter: bool = False
     best_ckpt: str = "/tmp/cac_d_best.pth"
+    # queue prompt augmentation (VQCounter MFU)
+    use_queue: bool = False
+    queue_capacity: int = 32        # E per class
+    queue_m: int = 2                # m sampled per image
     # precomputed feature cache (skip backbone during training)
     use_cached_features: bool = False
     cache_dir: str = "/data/cache/fsc147_features"       # true-384px reference cache
