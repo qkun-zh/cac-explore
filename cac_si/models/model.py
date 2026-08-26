@@ -4,8 +4,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 from cac_d.models.backbone.backbone import ConvNeXtBackbone
 from cac_d.models.heads.heads import Condenser
+from cac_d.models.losses.losses import gaussian_density
 from .encoder import ScaleInvariantEncoder, PromptEncoder
-from .inr import INRDecoder, gt_density_at, sample_map
+from .inr import INRDecoder, sample_map
 
 
 class SICounter(nn.Module):
@@ -54,12 +55,17 @@ class SICounter(nn.Module):
         xs = torch.rand(cfg.n_samples, 2, device=dev)    # shared across batch
         u = self.inr(sample_map(cmap, xs).reshape(-1, c.shape[-1]),
                      xs.repeat(B, 1)).view(B, -1)        # [B,M]
-        # continuous GT in fp32: pdf peak ~ N*norm can overflow fp16 on dense images
+        # paper §3.4: D_gt(x) via interpolation from the DISCRETE density map
+        # (standard DME convention: kernel sums to 1/point, map sums to N),
+        # NOT the analytic pdf — value scale ~1e-3 keeps losses balanced.
         with torch.autocast("cuda", enabled=False):
             u32 = u.float()
             xs32 = xs.float()
-            gt = gt_density_at([p.float() for p in points],
-                               cfg.image_size, xs32, cfg.inr_sigma)
+            gt_maps = gaussian_density([p.float() for p in points], B,
+                                       cfg.image_size, cfg.image_size,
+                                       cfg.image_size,
+                                       sigma=cfg.inr_sigma * cfg.image_size)
+            gt = sample_map(gt_maps, xs32).squeeze(-1)   # [B,M] bilinear interp
             loss_den = F.mse_loss(u32, gt)
         N = torch.tensor([len(p) for p in points], device=dev, dtype=torch.float32)
         loss_cnt = F.smooth_l1_loss((count + 1).log(), (N + 1).log())

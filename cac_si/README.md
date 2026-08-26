@@ -20,3 +20,13 @@ DISPROVED IF [val MAE @224 not better than cac_d q_mse line (20.41) after 32ep].
 - Backbone frozen; trainable = Condenser + INR (~1M). Total incl backbone ~30M <= 32M budget.
 - No feature cache (multi-scale online forward). Fast screening at image_size=224.
 - S(.) is identity-by-construction at fixed square input; kept explicit for variable-size inference.
+
+## Paper deviations (documented)
+- No Equi-Tuning stage (Eq.3): backbone stays frozen per mission constraint; B_H is a
+  multi-scale ensemble mean, not a tuned equivariant map.
+- Dual-stream prompt + cross-attention is OUR extension (paper has no exemplar branch).
+- lr 1e-3 vs paper 1e-4 (32-epoch budget vs paper 300; Adam is loss-scale invariant).
+- softplus output head vs paper's "raw" maps (nonneg prior; aids count integration).
+- GT sigma 0.02 normalized (~4.5px@224) vs paper 8/15px on larger RSOC images.
+- Multi-scale sizes snapped to /16 multiples (0.714/1.0/1.286 effective at 224) for
+  exact B_H alignment (grid flooring otherwise drops edges).
