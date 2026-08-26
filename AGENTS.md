@@ -14,8 +14,7 @@ Implements [HypoExplore (arXiv:2604.12999)](https://arxiv.org/abs/2604.12999) ad
    - OK → proceed; timeout → check `local/address_and_password.md` (mtime) for fresh creds and re-onboard: `python3 scripts/install_key.py`, then retry
    - Still down → degraded mode (Idea/research/eval-lab only, tell user to rotate server)
    - ALWAYS treat `local/address_and_password.md` as the source of truth for host/port/password — never assume the old address works
-4. `git log -1 --format=%ci -- docs/inspiration_from_GOD.txt` → if recent, read it (user hints)
-5. Read on demand: `docs/PROTOCOL.md`, `tail journal/events.jsonl`, `memory/failure_modes.md`
+4. Read on demand: `docs/PROTOCOL.md`, `tail journal/events.jsonl`, `memory/failure_modes.md`
 
 ## 1. WHO DOES WHAT (the most important section)
 
@@ -46,7 +45,7 @@ Retry once. If fails again → Lead may perform the work directly BUT must:
 ## 2. The Research Cycle (per iteration)
 
 ### Step 0: Research Phase (before root bootstrap or when stuck)
-Dispatch websearch subagents IN PARALLEL to investigate latest SOTA, techniques from `docs/inspiration_from_GOD.txt`, unfamiliar concepts or error patterns. Fold findings into idea.md grounding sections and STATE.md verified facts.
+Dispatch websearch subagents IN PARALLEL to investigate latest SOTA, unfamiliar concepts or error patterns. Fold findings into idea.md grounding sections and STATE.md verified facts.
 
 ### Step 1: Root Bootstrap (generation 0 only)
 Generate K=4 fundamentally different paradigms from research_direction.md. Each root explores a DIFFERENT corner of design space. Register all K in tree.json with `parent: null, status: "proposed"`.
