@@ -26,13 +26,26 @@ class ScaleInvariantEncoder(nn.Module):
 
 
 class PromptEncoder(nn.Module):
-    """Prompt path: crop each exemplar box (+margin), single-scale forward, S(.) to grid."""
+    """Prompt path: crop each exemplar box (+margin), single-scale forward, S(.) to grid.
+    FSC147 has ~3.7% boxes partially/fully outside the frame (annotation inconsistency);
+    roi_align clamped them silently in the cac_d line — we clamp explicitly + min-size."""
     def __init__(self, backbone, feat_grid, prompt_size, margin=0.25):
         super().__init__()
         self.bb = backbone
         self.grid = tuple(feat_grid)
         self.ps = int(prompt_size)
         self.margin = float(margin)
+
+    @staticmethod
+    def _clamp_span(v1, v2, S, min_size=4.0):
+        v1 = min(max(v1, 0.0), float(S))
+        v2 = min(max(v2, 0.0), float(S))
+        if v2 - v1 < min_size:
+            c = (v1 + v2) / 2.0
+            v1 = max(c - min_size / 2.0, 0.0)
+            v2 = min(v1 + min_size, float(S))
+            v1 = max(v2 - min_size, 0.0)
+        return v1, v2
 
     @torch.no_grad()
     def forward(self, img, bboxes):                  # img [B,3,S,S], bboxes [B,K,4]
@@ -44,10 +57,11 @@ class PromptEncoder(nn.Module):
                 x1, y1, x2, y2 = bboxes[b, k].tolist()
                 w, h = max(x2 - x1, 1.0), max(y2 - y1, 1.0)
                 mx, my = w * self.margin, h * self.margin
-                x1 = max(x1 - mx, 0.0); y1 = max(y1 - my, 0.0)
-                x2 = min(x2 + mx, float(S)); y2 = min(y2 + my, float(S))
-                c = img[b:b+1, :, int(y1):max(int(y2), int(y1) + 1),
-                                        int(x1):max(int(x2), int(x1) + 1)]
+                x1, x2 = self._clamp_span(x1 - mx, x2 + mx, S)
+                y1, y2 = self._clamp_span(y1 - my, y2 + my, S)
+                ix1, ix2 = max(0, int(x1)), max(int(x1) + 1, min(int(x2) + 1, S))
+                iy1, iy2 = max(0, int(y1)), max(int(y1) + 1, min(int(y2) + 1, S))
+                c = img[b:b+1, :, iy1:iy2, ix1:ix2]
                 crops.append(F.interpolate(c, size=(self.ps, self.ps),
                                            mode="bilinear", align_corners=False))
         x = torch.cat(crops, 0)                      # [B*K,3,ps,ps]
