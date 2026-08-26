@@ -3,13 +3,14 @@
 **Mode**: 用户指导模式 (User-Guided) — confirmed at session start per user request
 **Preflight**: git up-to-date · creds fresh (mtime 08:26 today) · SERVER_OK · RTX3060 idle, no tmux
 **Champion**: CAC-D simplified — val MAE **19.15**; eval-routed effective best **19.18/66.37** (N0021_dino_partialft + resolution routing)
+**Baseline 384**: DONE Ep32/32 best val **22.38** TEST 18.33-18.88 (see /tmp/cac_d_384_baseline.log, ckpt /data/runs/cac_d_baseline384/best.pth)
+**Queue prompt encoder**: MFU feature queue (E=32,m=2, per-class 147) semi-cached; 3×224-fast trainings RUNNING in tmux: q_mse/q_ada/q_bl — 6.9GiB total
 **Tree**: champion lineage N0027_norm_flip_swa done; children N0028–N0032 all failed/timeout
 
 ## Awaiting user direction
-- **Baseline RUNNING**: cac_d @ true 384px cache, 32ep (2w+10s+20c), val/ep + test/4ep, ~89s/ep, 7.6GiB → 12G card fits only 1 concurrent run
-- Log `/tmp/cac_d_384_baseline.log` · ckpt `/data/runs/cac_d_baseline384/best.pth`
-- Today's fixes: Condenser input proj (latent crash), FFN direction typo; dead code removed (-109 lines)
-- Old 19.15 (224px cache) not comparable to new baseline — new reference point
+- Queue改造已上线，3训练并行中（tmux q_mse/q_ada/q_bl，各32ep）
+- Density variants: mse / ada_mse / bl (all +queue) screening vs 19.15 control
+- Next: monitor Ep4 TEST, promote winner to 384
 
 ## Gotchas
 - pkill -f cac_d self-kills the ssh shell (cmdline match) → separate cleanup/launch calls
