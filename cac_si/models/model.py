@@ -18,6 +18,7 @@ class SICounter(nn.Module):
         self.enc_img = ScaleInvariantEncoder(self.bb, cfg.scales, self.grid)
         self.enc_pmt = PromptEncoder(self.bb, self.grid, cfg.prompt_size, cfg.prompt_margin)
         C = cfg.backbone_dims[1]
+        self.kv_proj = nn.Linear(C, cfg.d_sim)       # b' 384 -> d_sim before MHA
         self.cond = Condenser(d_in=C, d_sim=cfg.d_sim, n_heads=cfg.n_heads,
                               ff=cfg.ff, d_out=cfg.cond_dim)
         self.inr = INRDecoder(C + cfg.cond_dim, cfg.inr_hidden,
@@ -34,14 +35,16 @@ class SICounter(nn.Module):
         a = self.enc_img(img)                            # [B,C,H0,W0]
         bp = self.enc_pmt(img, bboxes)                   # [B,K,C,H0,W0]
         B, K, C, H0, W0 = bp.shape
-        q = a.flatten(2).transpose(1, 2)                 # [B,M,C]
-        kv = bp.flatten(2).transpose(1, 2).reshape(B, K * H0 * W0, C)
+        q = a.flatten(2).transpose(1, 2)                 # [B,M,C]  M=H0*W0
+        kv = bp.permute(0, 1, 3, 4, 2).reshape(B, K * H0 * W0, C)
+        kv = self.kv_proj(kv)                            # [B,K*M,C_sim]
         cond = self.cond(q, kv)                          # [B,M,cond_dim]
         c = torch.cat([q, cond], -1)                     # [B,M,C+cond]
         cmap = c.transpose(1, 2).reshape(B, -1, H0, W0)
 
         # count via quadrature (integral of u over [0,1]^2)
-        xq = self._regular_grid(cfg.quad_grid, dev)
+        g = cfg.quad_grid if self.training else cfg.eval_grid
+        xq = self._regular_grid(g, dev)
         uq = self.inr(sample_map(cmap, xq).reshape(-1, c.shape[-1]),
                       xq.repeat(B, 1))
         count = uq.view(B, -1).mean(1)                   # ∫u ≈ mean on unit square
@@ -51,8 +54,13 @@ class SICounter(nn.Module):
         xs = torch.rand(cfg.n_samples, 2, device=dev)    # shared across batch
         u = self.inr(sample_map(cmap, xs).reshape(-1, c.shape[-1]),
                      xs.repeat(B, 1)).view(B, -1)        # [B,M]
-        gt = gt_density_at(points, cfg.image_size, xs, cfg.inr_sigma)
-        loss_den = F.mse_loss(u, gt)
+        # continuous GT in fp32: pdf peak ~ N*norm can overflow fp16 on dense images
+        with torch.autocast("cuda", enabled=False):
+            u32 = u.float()
+            xs32 = xs.float()
+            gt = gt_density_at([p.float() for p in points],
+                               cfg.image_size, xs32, cfg.inr_sigma)
+            loss_den = F.mse_loss(u32, gt)
         N = torch.tensor([len(p) for p in points], device=dev, dtype=torch.float32)
         loss_cnt = F.smooth_l1_loss((count + 1).log(), (N + 1).log())
         loss = cfg.density_weight * loss_den + cfg.cnt_weight * loss_cnt

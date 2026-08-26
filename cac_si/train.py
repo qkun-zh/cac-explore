@@ -9,14 +9,15 @@ from cac_si.configs.config import Config
 from cac_si.models.model import SICounter
 
 
-def lr_lambda(e):
-    c = Config()
-    if e < c.warmup_epochs:
-        return (e + 1) / c.warmup_epochs
-    if e < c.warmup_epochs + c.stable_epochs:
-        return 1.0
-    t = (e - c.warmup_epochs - c.stable_epochs) / max(1, c.epochs - c.warmup_epochs - c.stable_epochs)
-    return c.eta_min_ratio + (1 - c.eta_min_ratio) * 0.5 * (1 + math.cos(math.pi * t))
+def make_lr_lambda(cfg):
+    def lr_lambda(e):
+        if e < cfg.warmup_epochs:
+            return (e + 1) / cfg.warmup_epochs
+        if e < cfg.warmup_epochs + cfg.stable_epochs:
+            return 1.0
+        t = (e - cfg.warmup_epochs - cfg.stable_epochs) / max(1, cfg.epochs - cfg.warmup_epochs - cfg.stable_epochs)
+        return cfg.eta_min_ratio + (1 - cfg.eta_min_ratio) * 0.5 * (1 + math.cos(math.pi * t))
+    return lr_lambda
 
 
 @torch.no_grad()
@@ -74,7 +75,7 @@ def main():
     print(f"Params: total {total:.2f}M (budget 32M) | trainable {sum(p.numel() for p in params)/1e6:.2f}M")
     assert total <= 32.0, "mission budget exceeded"
     opt = torch.optim.AdamW(params, lr=cfg.lr, weight_decay=cfg.weight_decay)
-    sched = torch.optim.lr_scheduler.LambdaLR(opt, lr_lambda)
+    sched = torch.optim.lr_scheduler.LambdaLR(opt, make_lr_lambda(cfg))
     scaler = torch.amp.GradScaler(enabled=use_amp)
     ema = AveragedModel(model,
                         avg_fn=lambda avg, new, n: cfg.ema_decay * avg + (1 - cfg.ema_decay) * new

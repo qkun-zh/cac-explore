@@ -52,10 +52,11 @@ def gt_density_at(points, S, x, sigma):
 
 
 def sample_map(cmap, xs):
-    """Bilinear-sample feature map [B,D,H,W] at normalized coords xs [M,2] -> [B,M,D]."""
+    """Bilinear-sample feature map [B,D,H,W] at normalized coords xs [M,2] -> [B,M,D].
+    border padding: x=0/1 edges replicate instead of zeroing features."""
     B = cmap.shape[0]
     M = xs.shape[0]
-    grid = (xs.view(1, 1, M, 2) * 2.0 - 1.0).expand(B, 1, M, 2)   # note (x,y)=(col,row)
+    grid = (xs.view(1, 1, M, 2) * 2.0 - 1.0).expand(B, 1, M, 2)   # (x,y)=(col,row)
     out = F.grid_sample(cmap, grid, mode="bilinear",
-                        align_corners=False)          # [B,D,1,M]
+                        padding_mode="border", align_corners=False)  # [B,D,1,M]
     return out.squeeze(2).transpose(1, 2)             # [B,M,D]
