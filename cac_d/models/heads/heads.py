@@ -1,11 +1,5 @@
 import torch, torch.nn as nn, torch.nn.functional as F
 
-def grid_centers(S, patch=16):
-    g=S//patch
-    ys=(torch.arange(g)+0.5)*patch; xs=(torch.arange(g)+0.5)*patch
-    yy,xx=torch.meshgrid(ys,xs,indexing="ij")
-    return torch.stack([xx,yy],-1).reshape(-1,2), g
-
 class FineFuser(nn.Module):
     """Multi-scale fuse: hs3@24 upsampled + hs2 lateral @48 -> refined map @96."""
     def __init__(self, ch_coarse, ch_mid, d_fine=128):
@@ -20,19 +14,6 @@ class FineFuser(nn.Module):
         f = self.fuse(torch.cat([self.lat(h2), top], 1))
         f = F.gelu(self.refine(f) + f)
         return F.interpolate(f, scale_factor=2, mode="bilinear", align_corners=False)
-
-class SimModule(nn.Module):
-    """Explicit exemplar<->cell correlation (BMNet+/SAFECount style):
-    cosine sim maps per exemplar with learnable temperature; max/mean stats."""
-    def __init__(self, d_fine=128, d_sim=256, tau0=0.07):
-        super().__init__()
-        self.proj = nn.Linear(d_fine, d_sim)
-        self.log_tau = nn.Parameter(torch.log(torch.tensor(float(tau0))))
-    def forward(self, fmap, e):                      # fmap [B,H,W,d], e [B,K,D]
-        t = F.normalize(self.proj(fmap), dim=-1)     # [B,H,W,D_sim]
-        en = F.normalize(e, dim=-1)
-        S = torch.einsum('bhwd,bkd->bhwk', t, en) / self.log_tau.exp()  # [B,H,W,K]
-        return S, S.amax(-1).unsqueeze(1), S.mean(-1).unsqueeze(1), t.flatten(1, 2)
 
 class Condenser(nn.Module):
     """Exemplar->cell cross-attention: each cell queries the exemplar bank
@@ -63,19 +44,3 @@ class DensityDecoder(nn.Module):
             nn.init.kaiming_normal_(m.weight, nonlinearity="relu")
         nn.init.zeros_(self.head.bias)
     def forward(self, x): return F.softplus(self.head(self.block(x)))
-
-class PileHead(nn.Module):
-    """Aux UOT branch: masses+offsets per cell on [tok ‖ simstats ‖ gap];
-    loss applied on top-K cells only. Offsets bounded to half a fine cell."""
-    def __init__(self, d_fine=128, hidden=128):
-        super().__init__()
-        self.mlp_w = nn.Sequential(nn.Linear(d_fine+3, hidden), nn.GELU(), nn.Linear(hidden, 1))
-        self.mlp_p = nn.Sequential(nn.Linear(d_fine+3, hidden), nn.GELU(), nn.Linear(hidden, 2))
-        nn.init.zeros_(self.mlp_p[-1].weight); nn.init.zeros_(self.mlp_p[-1].bias)
-        nn.init.constant_(self.mlp_w[-1].bias, -3.5)
-    def forward(self, tok, sstats, centers, cell):   # tok [B,M,d], sstats [B,M,2]
-        gap = sstats[..., :1] - sstats[..., 1:2]
-        x = torch.cat([tok, sstats, gap], -1)
-        w = F.softplus(self.mlp_w(x)).squeeze(-1)
-        p = centers.to(tok.device).unsqueeze(0) + torch.tanh(self.mlp_p(x))*(cell/2)
-        return w, p                                  # w [B,M], p [B,M,2] in img px
