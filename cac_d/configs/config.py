@@ -37,4 +37,8 @@ class Config:
     best_ckpt: str = "/tmp/cac_d_best.pth"
     # precomputed feature cache (skip backbone during training)
     use_cached_features: bool = False
-    cache_dir: str = "/data/cache/fsc147_features"
+    cache_dir: str = "/data/cache/fsc147_features"       # true-384px reference cache
+    # FAST-EXPERIMENT profile (224px: ~30s/ep, fits 3-4 concurrent runs on RTX3060).
+    # Reduced spatial detail (grid 56x56) — NOT comparable with the 384px baseline.
+    # Usage: CAC_D_OVERRIDE='{"cache_dir":"/data/cache/fsc147_features_224","image_size":224}'
+    # NOTE: image_size must be overridden together with cache_dir (coords & sigma scale).
