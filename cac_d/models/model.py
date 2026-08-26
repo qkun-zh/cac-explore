@@ -22,7 +22,7 @@ class Counter(nn.Module):
         else:
             self.backbone = None
             self.exemplar = None
-        self.cond = Condenser(d_sim=cfg.embed_dim, d_out=cfg.cond_dim)
+        self.cond = Condenser(d_in=D, d_sim=cfg.embed_dim, d_out=cfg.cond_dim)
         self.density = DensityDecoder(in_ch=D + cfg.cond_dim, hidden=2*D)
 
     def train(self, mode=True):

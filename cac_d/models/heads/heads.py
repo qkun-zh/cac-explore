@@ -37,13 +37,15 @@ class SimModule(nn.Module):
 class Condenser(nn.Module):
     """Exemplar->cell cross-attention: each cell queries the exemplar bank
     (prompt-aware features without touching the frozen backbone) -> 64ch map."""
-    def __init__(self, d_sim=256, n_heads=4, ff=512, d_out=64):
+    def __init__(self, d_in, d_sim=256, n_heads=4, ff=512, d_out=64):
         super().__init__()
+        self.proj_in = nn.Linear(d_in, d_sim)
         self.attn = nn.MultiheadAttention(d_sim, n_heads, batch_first=True)
         self.norm1 = nn.LayerNorm(d_sim); self.norm2 = nn.LayerNorm(d_sim)
-        self.ffn = nn.Sequential(nn.Linear(d_sim, ff), nn.GELU(), nn.Linear(ff, d_sim))
+        self.ffn = nn.Sequential(nn.Linear(d_sim, ff), nn.GELU(), nn.Linear(d_sim, ff))
         self.out = nn.Linear(d_sim, d_out)
     def forward(self, tok, e):                       # tok [B,M,D], e [B,K,D]
+        tok = self.proj_in(tok)
         a, _ = self.attn(self.norm1(tok), e, e, need_weights=False)
         q = self.norm1(tok + a)
         return self.out(self.norm2(q + self.ffn(q)))                     # [B,M,d_out]
