@@ -18,9 +18,9 @@ class Config:
     # density & count calibration
     density_weight: float = 1.0
     cnt_weight: float = 1.0
-    # training (torch.optim.AdamW)
+    # training (torch.optim.AdamW) — schedule: warmup 2 + stable 10 + cosine 20 = 32
     batch_size: int = 32
-    epochs: int = 42
+    epochs: int = 32
     lr: float = 1e-3
     weight_decay: float = 0.05
     amp: bool = True
@@ -28,6 +28,7 @@ class Config:
     seed: int = 0
     warmup_epochs: int = 2
     stable_epochs: int = 10
+    test_every: int = 4
     eta_min_ratio: float = 0.1
     ema_decay: float = 0.999
     # augmentation (geometric synced with boxes/points)

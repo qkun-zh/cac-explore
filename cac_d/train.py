@@ -62,6 +62,9 @@ def main():
         va = DataLoader(CachedDataset(va_cache), batch_size=cfg.batch_size,
                         shuffle=False, num_workers=cfg.num_workers, pin_memory=True,
                         persistent_workers=cfg.num_workers > 0, collate_fn=cached_collate)
+        te = DataLoader(CachedDataset(os.path.join(cfg.cache_dir, "test")), batch_size=cfg.batch_size,
+                        shuffle=False, num_workers=cfg.num_workers, pin_memory=True,
+                        persistent_workers=cfg.num_workers > 0, collate_fn=cached_collate)
     else:
         from transformers import AutoImageProcessor
         from cac_d.datasets.dataset import FSC147, collate
@@ -74,6 +77,9 @@ def main():
                         pin_memory=True, persistent_workers=cfg.num_workers > 0,
                         collate_fn=lambda b: collate(b, proc))
         va = DataLoader(FSC147("val", cfg.image_size), batch_size=cfg.batch_size, shuffle=False,
+                        num_workers=cfg.num_workers, pin_memory=True,
+                        persistent_workers=cfg.num_workers > 0, collate_fn=lambda b: collate(b, proc))
+        te = DataLoader(FSC147("test", cfg.image_size), batch_size=cfg.batch_size, shuffle=False,
                         num_workers=cfg.num_workers, pin_memory=True,
                         persistent_workers=cfg.num_workers > 0, collate_fn=lambda b: collate(b, proc))
 
@@ -127,5 +133,9 @@ def main():
             best = min(mae_raw, mae_ema)
             src = ema if mae_ema <= mae_raw else model
             torch.save(src.state_dict(), cfg.best_ckpt); print(" best", flush=True)
+        if ep % cfg.test_every == 0:
+            ema.eval(); mae_te, rmse_te = evaluate(ema, te, device, cached=cached)
+            mae_te_raw, rmse_te_raw = evaluate(model, te, device, cached=cached)
+            print(f"  TEST Ep{ep}: MAE={mae_te_raw:.2f}/{mae_te:.2f} RMSE={rmse_te_raw:.1f}/{rmse_te:.1f}", flush=True)
 
 if __name__ == "__main__": main()
