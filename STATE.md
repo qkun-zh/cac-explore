@@ -1,32 +1,15 @@
-# STATE — Session 2026-08-25 (evening, Lead=qkun-local)
+# STATE — Session 2026-08-26 (Lead=qkun-local)
 
-**Mode**: 用户指导模式 (User-Guided)
-**Champion ckpt**: CAC-D simplified (cnt+density only) — best MAE **19.15** (no-OT ablation, Ep16)
-**GPU**: RTX3060 idle · creds `local/address_and_password.md`
+**Mode**: 用户指导模式 (User-Guided) — confirmed at session start per user request
+**Preflight**: git up-to-date · creds fresh (mtime 08:26 today) · SERVER_OK · RTX3060 idle, no tmux
+**Champion**: CAC-D simplified — val MAE **19.15**; eval-routed effective best **19.18/66.37** (N0021_dino_partialft + resolution routing)
+**Tree**: champion lineage N0027_norm_flip_swa done; children N0028–N0032 all failed/timeout
 
-## Loss Ablation Results (FSC147 val, cached 56×56, 40ep)
-
-| Experiment | Best MAE | Δ |
-|---|---|---|
-| Baseline (den+cnt+sim+ot) | 19.65 | — |
-| No OT | **19.15** | -0.5 |
-| No Sim | **19.22** | -0.4 |
-| No Density | 21.30 | +1.7 |
-| Count Only | 20.90 | +1.3 |
-| No Count | 47.09 |废了 |
-
-## Conclusions
-1. Count loss = sole core (MAE 20.9 alone)
-2. OT = useless (removing improves)
-3. Sim ≈ useless (removing barely changes)
-4. Density = weak help (+1.7 if removed)
-5. Architecture simplified: backbone → fuser → condenser → density decoder; loss = MSE(density) + smooth_L1(log(count))
-
-## Next
-1. Train simplified model (no sim, no OT) for clean baseline
-2. Try higher cnt_weight or different count loss formulations
-3. Consider backbone fine-tuning for further improvement
-
-## Rules
-- Probe scripts live in /data/asset/r0i_probe (server) + /tmp/opencode (local)
+## Awaiting user direction
+- User-Guided mode: next experiment follows user's directive
+- Candidate directions from prior session Next-list: clean baseline of simplified model / count-loss variants / backbone fine-tuning
 - Gates unchanged: novelty_check → check_hypothesis → calibration_report
+
+## Gotchas
+- Server env trimmed 08:46: POT/triton removed, cv2 = opencv-python-headless 5.0.0.93 only
+- /data/runs holds only cac_d_redesign + N0027_norm_flip_swa after cleanup
