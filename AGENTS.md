@@ -4,6 +4,15 @@ Implements [HypoExplore (arXiv:2604.12999)](https://arxiv.org/abs/2604.12999) ad
 
 **Mission**: ≤32M total params, same-parameter-class SOTA MAE on FSC147 test. Full fine-tuning allowed. Any architecture. Must be innovative.
 
+## Operating Modes (user sets at session start or anytime; log switches in journal)
+
+| Mode | Behavior |
+|---|---|
+| **自由研究模式 / Free-Research** (default) | Lead autonomously drives the full research cycle (§2) under all gates and hard rules |
+| **用户指导模式 / User-Guided** | 一切听用户指挥：user directives override protocol defaults, gates, and cycle order; Lead executes them directly, then back-fills mandatory records (journal entry + tree/STATE honesty pass). Never overrides hygiene that protects history integrity (append-only ledgers, no large files in git) |
+
+Mode is recorded in STATE.md's session block. If a user instruction conflicts with this document in User-Guided mode, the instruction wins for that scope.
+
 ---
 
 ## 0. Startup Sequence (mandatory, in order)

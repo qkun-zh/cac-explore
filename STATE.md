@@ -1,5 +1,6 @@
 # STATE — Session 2026-08-25 (evening, Lead=qkun-local)
 
+**Mode**: 用户指导模式 (User-Guided)
 **Champion ckpt**: CAC-D simplified (cnt+density only) — best MAE **19.15** (no-OT ablation, Ep16)
 **GPU**: RTX3060 idle · creds `local/address_and_password.md`
 
