@@ -43,28 +43,29 @@ class SICounter(nn.Module):
         cmap = c.transpose(1, 2).reshape(B, -1, H0, W0)
 
         # count via quadrature: u matches DISCRETE-map values (sum=N on S-grid),
-        # whose integral over the unit square is N/S^2 -> count = int(u) * S^2
+        # whose integral over the unit square is N/S^2 -> count = int(u) * S^2.
+        # INR runs in fp32: DINOv3 outlier features blow past fp16 range in u^2.
         g = cfg.quad_grid if self.training else cfg.eval_grid
         xq = self._regular_grid(g, dev)
-        uq = self.inr(sample_map(cmap, xq).reshape(-1, c.shape[-1])).view(B, -1)
-        count = uq.mean(1) * float(cfg.image_size) ** 2
+        with torch.autocast("cuda", enabled=False):
+            cmap32 = cmap.float()
+            uq = self.inr(sample_map(cmap32, xq).reshape(-1, cmap32.shape[1])).view(B, -1)
+            count = uq.mean(1) * float(cfg.image_size) ** 2
         if points is None:
             return {"pred_counts": count, "density_map": cmap}
 
         xs = torch.rand(cfg.n_samples, 2, device=dev)    # shared across batch
-        u = self.inr(sample_map(cmap, xs).reshape(-1, c.shape[-1])).view(B, -1)        # [B,M]
         # paper §3.4: D_gt(x) via interpolation from the DISCRETE density map
         # (standard DME convention: kernel sums to 1/point, map sums to N),
         # NOT the analytic pdf — value scale ~1e-3 keeps losses balanced.
         with torch.autocast("cuda", enabled=False):
-            u32 = u.float()
-            xs32 = xs.float()
+            u = self.inr(sample_map(cmap32, xs).reshape(-1, cmap32.shape[1])).view(B, -1)
             gt_maps = gaussian_density([p.float() for p in points], B,
                                        cfg.image_size, cfg.image_size,
                                        cfg.image_size,
                                        sigma=cfg.inr_sigma * cfg.image_size)
-            gt = sample_map(gt_maps, xs32).squeeze(-1)   # [B,M] bilinear interp
-            loss_den = F.mse_loss(u32, gt)
+            gt = sample_map(gt_maps, xs.float()).squeeze(-1)   # [B,M] bilinear interp
+            loss_den = F.mse_loss(u, gt)
         N = torch.tensor([len(p) for p in points], device=dev, dtype=torch.float32)
         loss_cnt = F.smooth_l1_loss((count + 1).log(), (N + 1).log())
         loss = cfg.density_weight * loss_den + cfg.cnt_weight * loss_cnt
