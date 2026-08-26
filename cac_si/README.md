@@ -26,7 +26,11 @@ DISPROVED IF [val MAE @224 not better than cac_d q_mse line (20.41) after 32ep].
   multi-scale ensemble mean, not a tuned equivariant map.
 - Dual-stream prompt + cross-attention is OUR extension (paper has no exemplar branch).
 - lr 1e-3 vs paper 1e-4 (32-epoch budget vs paper 300; Adam is loss-scale invariant).
-- softplus output head vs paper's "raw" maps (nonneg prior; aids count integration).
 - GT sigma 0.02 normalized (~4.5px@224) vs paper 8/15px on larger RSOC images.
 - Multi-scale sizes snapped to /16 multiples (0.714/1.0/1.286 effective at 224) for
   exact B_H alignment (grid flooring otherwise drops edges).
+- INR decoder now EXACT per Eq.9: input z_x only, 4 residual FC + 1 output FC (5
+  Linears), raw output, init N(0,0.01^2). Hidden width/activation (128/GELU) are our
+  choice (paper unspecified). Loss Eq.10 exact; GT via discrete-map interpolation
+  (paper §3.4 operational definition); count = integral(u)*S^2 (self-consistent with
+  the discrete-map convention).
