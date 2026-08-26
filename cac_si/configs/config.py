@@ -26,6 +26,7 @@ class Config:
     # loss weights
     density_weight: float = 1.0
     cnt_weight: float = 1.0
+    uncertainty_weight: bool = False   # Kendall&Gal learned balancing of L_den/L_cnt
     # training — schedule: warmup 2 + stable 10 + cosine 20 = 32
     batch_size: int = 16
     epochs: int = 32

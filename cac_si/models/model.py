@@ -23,6 +23,10 @@ class SICounter(nn.Module):
         self.cond = Condenser(d_in=C, d_sim=cfg.d_sim, n_heads=cfg.n_heads,
                               ff=cfg.ff, d_out=cfg.cond_dim)
         self.inr = INRDecoder(C + cfg.cond_dim, cfg.inr_hidden, cfg.inr_layers)
+        # Kendall&Gal uncertainty weighting: auto-balance L_den / L_cnt scales
+        self.uncertainty_weight = bool(getattr(cfg, "uncertainty_weight", False))
+        if self.uncertainty_weight:
+            self.log_s = nn.Parameter(torch.zeros(2))    # [den, cnt]
 
     def _regular_grid(self, g, device):
         c = (torch.arange(g, device=device, dtype=torch.float32) + 0.5) / g
@@ -67,10 +71,15 @@ class SICounter(nn.Module):
             gt = sample_map(gt_maps, xs.float()).squeeze(-1)   # [B,M] bilinear interp
             loss_den = F.mse_loss(u, gt)
         N = torch.tensor([len(p) for p in points], device=dev, dtype=torch.float32)
-        if cfg.cnt_weight > 0:
-            loss_cnt = F.smooth_l1_loss((count + 1).log(), (N + 1).log())
+        if self.uncertainty_weight:
+            loss_cnt = F.smooth_l1_loss((count + 1).clamp_min(1e-6).log(), (N + 1).log())
+            loss = (loss_den * torch.exp(-2 * self.log_s[0]) + 2 * self.log_s[0]
+                    + loss_cnt * torch.exp(-2 * self.log_s[1]) + 2 * self.log_s[1])
         else:
-            loss_cnt = torch.zeros((), device=dev)   # paper: no count term at all
-        loss = cfg.density_weight * loss_den + cfg.cnt_weight * loss_cnt
+            if cfg.cnt_weight > 0:
+                loss_cnt = F.smooth_l1_loss((count + 1).log(), (N + 1).log())
+            else:
+                loss_cnt = torch.zeros((), device=dev)   # paper: no count term at all
+            loss = cfg.density_weight * loss_den + cfg.cnt_weight * loss_cnt
         return {"loss": loss, "pred_counts": count.detach(),
                 "loss_den": loss_den.detach(), "loss_cnt": loss_cnt.detach()}
