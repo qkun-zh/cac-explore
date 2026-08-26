@@ -49,6 +49,7 @@ def main():
     snap = os.path.join(os.path.dirname(cfg.best_ckpt), f"cfg.json")
     with open(snap, "w") as f:
         json.dump({**cfg.__dict__, "override": ov}, f, indent=1)
+    metrics_path = os.path.join(os.path.dirname(cfg.best_ckpt), "metrics.jsonl")
     torch.manual_seed(cfg.seed)
 
     if cached:
@@ -97,7 +98,7 @@ def main():
     best = float("inf")
     for ep in range(1, cfg.epochs+1):
         t0 = time.time(); model.train(); tot = 0.0
-        s_den = s_cnt = 0.0
+        s_den = s_cnt = 0.0; gn_sum = 0.0
         for batch in tr:
             opt.zero_grad(set_to_none=True)
             with torch.autocast("cuda", torch.float16, enabled=use_amp):
@@ -115,7 +116,7 @@ def main():
                     out = model(pv, bb, pts)
                 loss = out["loss"]
             scaler.scale(loss).backward()
-            scaler.unscale_(opt); torch.nn.utils.clip_grad_norm_(params, 1.0)
+            scaler.unscale_(opt); gn_sum += float(torch.nn.utils.clip_grad_norm_(params, 1.0))
             scaler.step(opt); scaler.update()
             ema.update_parameters(model); tot += loss.item()
             s_den += out["loss_den"].item()
@@ -123,19 +124,40 @@ def main():
             if ep == 1 and tot == loss.item():
                 print(f"  [debug] loss={loss.item():.4f} isnan={torch.isnan(loss).item()} "
                       f"min={loss.detach().min().item():.4f} dtype={loss.dtype}", flush=True)
-        sched.step()
+        t_train = time.time() - t0
+        sched.step(); lr_now = sched.get_last_lr()[0]
+        t_ev = time.time()
         mae_raw, rmse_raw = evaluate(model, va, device, cached=cached)
         ema.eval(); mae_ema, rmse_ema = evaluate(ema, va, device, cached=cached)
+        t_eval = time.time() - t_ev
         nbatch = len(tr)
-        print(f"Ep{ep} loss={tot/nbatch:.3f} den={s_den/nbatch:.4f} cnt={s_cnt/nbatch:.4f} "
-              f"[{time.time()-t0:.0f}s] MAE={mae_raw:.2f}/{mae_ema:.2f} RMSE={rmse_raw:.1f}/{rmse_ema:.1f} best={best:.2f}", flush=True)
+        d_avg, c_avg = s_den/nbatch, s_cnt/nbatch
+        tot_avg = (s_den+s_cnt)/nbatch
+        pct_den = 100*d_avg/tot_avg if tot_avg > 0 else 0.0
+        rec = {"ep": ep, "t_total": round(t_train+t_eval,1), "t_train": round(t_train,1),
+               "t_val": round(t_eval,1), "lr": lr_now, "grad_norm": round(gn_sum/nbatch,3),
+               "loss": round(tot_avg,4), "loss_den": round(d_avg,5), "loss_cnt": round(c_avg,5),
+               "pct_den": round(pct_den,1), "pct_cnt": round(100-pct_den,1),
+               "mae_raw": round(mae_raw,2), "mae_ema": round(mae_ema,2),
+               "rmse_raw": round(rmse_raw,1), "rmse_ema": round(rmse_ema,1)}
+        print(f"Ep{ep} [{rec['t_total']}s tr {rec['t_train']} ev {rec['t_val']}] lr={lr_now:.2e} "
+              f"g={rec['grad_norm']:.2f} loss={tot_avg:.4f} (den {pct_den:.0f}% | cnt {100-pct_den:.0f}%) "
+              f"MAE={mae_raw:.2f}/{mae_ema:.2f} RMSE={rmse_raw:.1f}/{rmse_ema:.1f} best={best:.2f}", flush=True)
+        is_best = False
         if min(mae_raw, mae_ema) < best:
-            best = min(mae_raw, mae_ema)
+            best = min(mae_raw, mae_ema); is_best = True
             src = ema if mae_ema <= mae_raw else model
             torch.save(src.state_dict(), cfg.best_ckpt); print(" best", flush=True)
+        rec["best"] = round(best, 2); rec["is_best"] = is_best
         if ep % cfg.test_every == 0:
+            t_te = time.time()
             ema.eval(); mae_te, rmse_te = evaluate(ema, te, device, cached=cached)
             mae_te_raw, rmse_te_raw = evaluate(model, te, device, cached=cached)
+            rec.update(test_mae_raw=round(mae_te_raw,2), test_mae_ema=round(mae_te,2),
+                       test_rmse_raw=round(rmse_te_raw,1), test_rmse_ema=round(rmse_te,1),
+                       t_test=round(time.time()-t_te,1))
             print(f"  TEST Ep{ep}: MAE={mae_te_raw:.2f}/{mae_te:.2f} RMSE={rmse_te_raw:.1f}/{rmse_te:.1f}", flush=True)
+        with open(metrics_path, "a") as f:
+            f.write(json.dumps(rec) + "\n")
 
 if __name__ == "__main__": main()
