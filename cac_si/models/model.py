@@ -67,7 +67,10 @@ class SICounter(nn.Module):
             gt = sample_map(gt_maps, xs.float()).squeeze(-1)   # [B,M] bilinear interp
             loss_den = F.mse_loss(u, gt)
         N = torch.tensor([len(p) for p in points], device=dev, dtype=torch.float32)
-        loss_cnt = F.smooth_l1_loss((count + 1).log(), (N + 1).log())
+        if cfg.cnt_weight > 0:
+            loss_cnt = F.smooth_l1_loss((count + 1).log(), (N + 1).log())
+        else:
+            loss_cnt = torch.zeros((), device=dev)   # paper: no count term at all
         loss = cfg.density_weight * loss_den + cfg.cnt_weight * loss_cnt
         return {"loss": loss, "pred_counts": count.detach(),
                 "loss_den": loss_den.detach(), "loss_cnt": loss_cnt.detach()}
