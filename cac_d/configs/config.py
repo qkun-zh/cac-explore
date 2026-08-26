@@ -18,6 +18,12 @@ class Config:
     # density & count calibration
     density_weight: float = 1.0
     cnt_weight: float = 1.0
+    # density supervision: "mse"(baseline, fixed sigma) | "ada_mse"(per-image adaptive sigma) | "bl"(per-point, ICCV19-style)
+    density_loss: str = "mse"
+    gauss_knn: int = 3          # neighbors for adaptive sigma
+    sigma_beta: float = 1.0     # sigma_i = clamp(beta * mean_knn_dist_in_grid_units, sigma_min, sigma_max)
+    sigma_min: float = 1.0
+    sigma_max: float = 8.0
     # training (torch.optim.AdamW) — schedule: warmup 2 + stable 10 + cosine 20 = 32
     batch_size: int = 32
     epochs: int = 32

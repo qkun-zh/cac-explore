@@ -3,7 +3,8 @@ import torch.nn.functional as F
 from .backbone.backbone import ConvNeXtBackbone
 from .prompt.prompt import ExemplarEncoder
 from .heads.heads import FineFuser, Condenser, DensityDecoder
-from .losses.losses import gaussian_density
+from .losses.losses import (gaussian_density, adaptive_gaussian_density,
+                            bayesian_density_loss)
 
 class Counter(nn.Module):
     """Frozen backbone → fuser → exemplar cross-attention → density map.
@@ -46,8 +47,18 @@ class Counter(nn.Module):
         counts = dens.sum((1, 2, 3))
         if points is None:
             return {"pred_counts": counts, "density": dens}
-        gt_d = gaussian_density(points, B, Hf, Wf, self.S, sigma=self.cfg.gauss_sigma)
-        loss_den = F.mse_loss(dens, gt_d)
+        c = self.cfg
+        kw = dict(k=c.gauss_knn, smin=c.sigma_min, smax=c.sigma_max, beta=c.sigma_beta)
+        if c.density_loss == "mse":
+            gt_d = gaussian_density(points, B, Hf, Wf, self.S, sigma=c.gauss_sigma)
+            loss_den = F.mse_loss(dens, gt_d)
+        elif c.density_loss == "ada_mse":
+            gt_d = adaptive_gaussian_density(points, B, Hf, Wf, self.S, **kw)
+            loss_den = F.mse_loss(dens, gt_d)
+        elif c.density_loss == "bl":
+            loss_den = bayesian_density_loss(dens, points, Hf, Wf, self.S, **kw)
+        else:
+            raise ValueError(f"unknown density_loss {c.density_loss}")
         N = torch.tensor([len(q) for q in points], device=dens.device, dtype=torch.float32)
         loss_cnt = F.smooth_l1_loss((counts+1).log(), (N+1).log())
         loss = self.cfg.density_weight*loss_den + self.cfg.cnt_weight*loss_cnt
