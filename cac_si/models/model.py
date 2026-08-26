@@ -43,12 +43,13 @@ class SICounter(nn.Module):
         c = torch.cat([q, cond], -1)                     # [B,M,C+cond]
         cmap = c.transpose(1, 2).reshape(B, -1, H0, W0)
 
-        # count via quadrature (integral of u over [0,1]^2)
+        # count via quadrature: u matches DISCRETE-map values (sum=N on S-grid),
+        # whose integral over the unit square is N/S^2 -> count = int(u) * S^2
         g = cfg.quad_grid if self.training else cfg.eval_grid
         xq = self._regular_grid(g, dev)
         uq = self.inr(sample_map(cmap, xq).reshape(-1, c.shape[-1]),
                       xq.repeat(B, 1))
-        count = uq.view(B, -1).mean(1)                   # ∫u ≈ mean on unit square
+        count = uq.view(B, -1).mean(1) * float(cfg.image_size) ** 2
         if points is None:
             return {"pred_counts": count, "density_map": cmap}
 
