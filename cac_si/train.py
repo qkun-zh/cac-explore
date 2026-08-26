@@ -127,6 +127,18 @@ def main():
             src = ema if mae_ema <= mae_raw else model
             torch.save(src.state_dict(), cfg.best_ckpt); print(" best", flush=True)
         rec["best"] = round(best, 2); rec["is_best"] = is_best
+        if getattr(model, "uncertainty_weight", False):
+            import math as _m
+            ls = model.log_s.detach().float()
+            w_den = float(_m.exp(-2 * float(ls[0])))
+            w_cnt = float(_m.exp(-2 * float(ls[1])))
+            rec.update(sigma_den=round(float(ls[0].exp()), 6),
+                       sigma_cnt=round(float(ls[1].exp()), 6),
+                       w_den=w_den, w_cnt=w_cnt,
+                       wloss_den=float(w_den * d_avg), wloss_cnt=float(w_cnt * c_avg))
+            print(f"  uw: sigma_d={float(ls[0].exp()):.4f} sigma_c={float(ls[1].exp()):.4f} "
+                  f"w_d={w_den:.2e} w_c={w_cnt:.2e} "
+                  f"wL_den={w_den*d_avg:.3e} wL_cnt={w_cnt*c_avg:.3f}", flush=True)
         if ep % cfg.test_every == 0:
             t_te = time.time()
             ema.eval(); mae_te, rmse_te = evaluate(ema, te, device)
