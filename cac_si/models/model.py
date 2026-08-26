@@ -88,7 +88,6 @@ class SICounter(nn.Module):
         if self.pos_enc:
             kv = kv + self.pe.repeat(K, 1).unsqueeze(0)  # same grid per exemplar
         kv = self.kv_proj(kv)                            # [B,K*M,C_sim]
-        kv = self.kv_proj(kv)                            # [B,K*M,C_sim]
         cond = self.cond(q, kv)                          # [B,M,cond_dim]
         c = torch.cat([q, cond], -1)                     # [B,M,C+cond]
         cmap = c.transpose(1, 2).reshape(B, -1, H0, W0)
