@@ -204,8 +204,8 @@
   "N0031_composite_multires": {
    "parent": "N0027_norm_flip_swa",
    "children": [],
-   "status": "running",
-   "best_metric": null,
+   "status": "timeout",
+   "best_metric": 22.181,
    "train_seconds": null,
    "quality": null,
    "avail": null,
@@ -217,8 +217,8 @@
   "N0032_dinov3_dual": {
    "parent": "N0027_norm_flip_swa",
    "children": [],
-   "status": "running",
-   "best_metric": null,
+   "status": "failed",
+   "best_metric": 63.539,
    "train_seconds": null,
    "quality": null,
    "avail": null,
