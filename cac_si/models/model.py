@@ -22,8 +22,7 @@ class SICounter(nn.Module):
         self.kv_proj = nn.Linear(C, cfg.d_sim)       # b' 384 -> d_sim before MHA
         self.cond = Condenser(d_in=C, d_sim=cfg.d_sim, n_heads=cfg.n_heads,
                               ff=cfg.ff, d_out=cfg.cond_dim)
-        self.inr = INRDecoder(C + cfg.cond_dim, cfg.inr_hidden,
-                              cfg.inr_layers, cfg.fourier_freqs)
+        self.inr = INRDecoder(C + cfg.cond_dim, cfg.inr_hidden, cfg.inr_layers)
 
     def _regular_grid(self, g, device):
         c = (torch.arange(g, device=device, dtype=torch.float32) + 0.5) / g
