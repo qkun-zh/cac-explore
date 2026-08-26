@@ -42,7 +42,7 @@ class Condenser(nn.Module):
         self.proj_in = nn.Linear(d_in, d_sim)
         self.attn = nn.MultiheadAttention(d_sim, n_heads, batch_first=True)
         self.norm1 = nn.LayerNorm(d_sim); self.norm2 = nn.LayerNorm(d_sim)
-        self.ffn = nn.Sequential(nn.Linear(d_sim, ff), nn.GELU(), nn.Linear(d_sim, ff))
+        self.ffn = nn.Sequential(nn.Linear(d_sim, ff), nn.GELU(), nn.Linear(ff, d_sim))
         self.out = nn.Linear(d_sim, d_out)
     def forward(self, tok, e):                       # tok [B,M,D], e [B,K,D]
         tok = self.proj_in(tok)
