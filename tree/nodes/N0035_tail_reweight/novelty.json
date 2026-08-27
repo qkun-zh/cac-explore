@@ -1,0 +1,1 @@
+{"novel": true, "most_similar_to": "N0027_norm_flip_swa", "shared_principles": "data hygiene", "new_contribution": "tail-reweight inverse sqrt(N) + Huber delta 5.0 on frozen 2-stage, vs norm+flip or SALF/MoE, targeting 75% SSE tail", "checked_at": "2026-08-27T10:10:00+08:00"}

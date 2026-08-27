@@ -1,0 +1,20 @@
+# Same optimizer as yesterday last model (cac_d baseline384) per instruction: do not touch optimizer/lr/schedule
+cfg = dict(
+    input_size=384,
+    hf_model="facebook/dinov3-convnext-tiny-pretrain-lvd1689m",
+    backbone_dims=(192,384),
+    embed_dim=256,
+    exemplar_layers=2,
+    roi_size=7,
+    d_fine=128,
+    cond_dim=64,
+    gauss_sigma=1.5,
+    epochs=40,
+    batch_size=16,
+    lr=1e-3,
+    weight_decay=0.05,
+    amp=True,
+    num_workers=4,
+    max_params_M=32,
+    augment=True,
+)
