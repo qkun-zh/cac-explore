@@ -1,0 +1,1 @@
+{"novel": true, "most_similar_to": "N0036_gca_ddca", "shared_principles": "GCA+DDCA, frozen", "new_contribution": "replace Condenser with support-conditioned depthwise dynamic conv (SCDC)", "checked_at": "2026-08-27T13:10:00+08:00"}
