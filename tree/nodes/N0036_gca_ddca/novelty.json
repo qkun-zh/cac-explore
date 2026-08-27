@@ -1,0 +1,1 @@
+{"novel": true, "most_similar_to": "N0035_refine_frozen", "shared_principles": "frozen 2-stage FineFuser", "new_contribution": "GCA global count aux (GAP+e_mean->logN) + DDCA deterministic dilated branch (zero-init) router-free, vs SALF/MoE per-location softmax", "checked_at": "2026-08-27T10:30:00+08:00"}
