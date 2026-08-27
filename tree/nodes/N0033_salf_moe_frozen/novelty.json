@@ -1,0 +1,1 @@
+{"novel": true, "most_similar_to": "N0028_scb_multires", "shared_principles": "multi-scale feature use", "new_contribution": "SALF per-location softmax depth selection + DR-MoE 3-RF soft routing with balance loss under FROZEN ConvNeXt (DCA-MoE lite, not SCB gating), 4-stage alignment to H/8", "checked_at": "2026-08-27T10:00:00+08:00"}
