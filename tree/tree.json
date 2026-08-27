@@ -349,10 +349,10 @@
   "N0042_mutual_bg": {
    "parent": "N0036_gca_ddca",
    "children": [],
-   "status": "proposed",
-   "best_metric": null,
-   "train_seconds": null,
-   "quality": null,
+   "status": "failed",
+   "best_metric": 32.58,
+   "train_seconds": 115,
+   "quality": 0,
    "avail": null,
    "score": null,
    "tested_hypotheses": [
@@ -362,7 +362,7 @@
   "N0043_dynamic_kernel": {
    "parent": "N0036_gca_ddca",
    "children": [],
-   "status": "proposed",
+   "status": "running",
    "best_metric": null,
    "train_seconds": null,
    "quality": null,
