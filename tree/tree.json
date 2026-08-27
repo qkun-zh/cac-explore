@@ -310,10 +310,10 @@
   "N0039_exemplar_attn": {
    "parent": "N0036_gca_ddca",
    "children": [],
-   "status": "proposed",
-   "best_metric": null,
-   "train_seconds": null,
-   "quality": null,
+   "status": "failed",
+   "best_metric": 23.075,
+   "train_seconds": 966,
+   "quality": 0,
    "avail": null,
    "score": null,
    "tested_hypotheses": [
