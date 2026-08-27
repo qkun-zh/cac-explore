@@ -336,10 +336,10 @@
   "N0041_exemplar_count": {
    "parent": "N0026_res_sweep",
    "children": [],
-   "status": "proposed",
-   "best_metric": null,
-   "train_seconds": null,
-   "quality": null,
+   "status": "failed",
+   "best_metric": 24.06,
+   "train_seconds": 964,
+   "quality": 0,
    "avail": null,
    "score": null,
    "tested_hypotheses": [
