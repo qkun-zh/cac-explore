@@ -362,10 +362,10 @@
   "N0043_dynamic_kernel": {
    "parent": "N0036_gca_ddca",
    "children": [],
-   "status": "running",
-   "best_metric": null,
-   "train_seconds": null,
-   "quality": null,
+   "status": "failed",
+   "best_metric": 999,
+   "train_seconds": 60,
+   "quality": 0,
    "avail": null,
    "score": null,
    "tested_hypotheses": [
@@ -375,7 +375,7 @@
   "N0044_bg_token_lite": {
    "parent": "N0036_gca_ddca",
    "children": [],
-   "status": "proposed",
+   "status": "running",
    "best_metric": null,
    "train_seconds": null,
    "quality": null,
