@@ -109,10 +109,11 @@ class Counter(nn.Module):
         nn.init.zeros_(self.gca[-1].weight); nn.init.zeros_(self.gca[-1].bias)
         # Exemplar spatial attention: e(B,K,d) -> attn_map(B,1,Hf,Wf) -> sigmoid gate
         self.e2d_q=nn.Linear(d_model, D//4)
-        self.e2d_k=nn.Linear(D, D//4)
+        self.e2d_k=nn.Conv2d(D, D//4, 1)
         self.e2d_scale=nn.Parameter(torch.tensor(1.0))
         nn.init.zeros_(self.e2d_q.weight); nn.init.zeros_(self.e2d_q.bias)
-        nn.init.zeros_(self.e2d_k.weight); nn.init.zeros_(self.e2d_k.bias)
+        nn.init.zeros_(self.e2d_k.weight)
+        if self.e2d_k.bias is not None: nn.init.zeros_(self.e2d_k.bias)
     def train(self,mode=True):
         super().train(mode)
         self.backbone.eval()
