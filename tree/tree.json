@@ -214,85 +214,98 @@
     "H0042"
    ]
   },
-   "N0032_dinov3_dual": {
-    "parent": "N0027_norm_flip_swa",
-    "children": [],
-    "status": "failed",
-    "best_metric": 63.539,
-    "train_seconds": null,
-    "quality": null,
-    "avail": null,
-    "score": null,
-    "tested_hypotheses": [
-     "H0045"
-    ]
-   },
-   "N0033_salf_moe_frozen": {
-      "parent": "N0026_res_sweep",
-      "children": [],
-      "status": "failed",
-      "best_metric": 24.317,
-      "train_seconds": 1116,
-      "quality": null,
-      "avail": null,
-      "score": null,
-      "tested_hypotheses": [
-       "H0049",
-       "H0050"
-      ]
-     },
-   "N0034_sha_frozen": {
-      "parent": "N0026_res_sweep",
-      "children": [],
-      "status": "failed",
-      "best_metric": 25.361,
-      "train_seconds": 614,
-      "quality": null,
-      "avail": null,
-      "score": null,
-      "tested_hypotheses": [
-       "H0051"
-      ]
-     },
-   "N0035_tail_reweight": {
-      "parent": "N0026_res_sweep",
-      "children": [],
-      "status": "timeout",
-      "best_metric": 22.692,
-      "train_seconds": 1826,
-      "quality": null,
-      "avail": null,
-      "score": null,
-      "tested_hypotheses": [
-       "H0052"
-      ]
-     },
-   "N0036_gca_ddca": {
-      "parent": "N0026_res_sweep",
-      "children": [],
-      "status": "done",
-      "best_metric": 20.491,
-      "train_seconds": 1730,
-      "quality": null,
-      "avail": null,
-      "score": null,
-      "tested_hypotheses": [
-       "H0057",
-       "H0058"
-      ]
-     },
-   "N0037_ppc_head": {
-      "parent": "N0026_res_sweep",
-      "children": [],
-      "status": "running",
-      "best_metric": null,
-      "train_seconds": null,
-      "quality": null,
-      "avail": null,
-      "score": null,
-      "tested_hypotheses": [
-       "H0053"
-      ]
-     }
-    }
+  "N0032_dinov3_dual": {
+   "parent": "N0027_norm_flip_swa",
+   "children": [],
+   "status": "failed",
+   "best_metric": 63.539,
+   "train_seconds": null,
+   "quality": null,
+   "avail": null,
+   "score": null,
+   "tested_hypotheses": [
+    "H0045"
+   ]
+  },
+  "N0033_salf_moe_frozen": {
+   "parent": "N0026_res_sweep",
+   "children": [],
+   "status": "failed",
+   "best_metric": 24.317,
+   "train_seconds": 1116,
+   "quality": null,
+   "avail": null,
+   "score": null,
+   "tested_hypotheses": [
+    "H0049",
+    "H0050"
+   ]
+  },
+  "N0034_sha_frozen": {
+   "parent": "N0026_res_sweep",
+   "children": [],
+   "status": "failed",
+   "best_metric": 25.361,
+   "train_seconds": 614,
+   "quality": null,
+   "avail": null,
+   "score": null,
+   "tested_hypotheses": [
+    "H0051"
+   ]
+  },
+  "N0035_tail_reweight": {
+   "parent": "N0026_res_sweep",
+   "children": [],
+   "status": "timeout",
+   "best_metric": 22.692,
+   "train_seconds": 1826,
+   "quality": null,
+   "avail": null,
+   "score": null,
+   "tested_hypotheses": [
+    "H0052"
+   ]
+  },
+  "N0036_gca_ddca": {
+   "parent": "N0026_res_sweep",
+   "children": [],
+   "status": "done",
+   "best_metric": 20.491,
+   "train_seconds": 1730,
+   "quality": null,
+   "avail": null,
+   "score": null,
+   "tested_hypotheses": [
+    "H0057",
+    "H0058"
+   ]
+  },
+  "N0037_ppc_head": {
+   "parent": "N0026_res_sweep",
+   "children": [],
+   "status": "done",
+   "best_metric": 20.993,
+   "train_seconds": 1347,
+   "quality": null,
+   "avail": null,
+   "score": null,
+   "tested_hypotheses": [
+    "H0053"
+   ]
+  },
+  "N0038_rl_psf": {
+   "parent": "N0026_res_sweep",
+   "children": [],
+   "status": "proposed",
+   "best_metric": null,
+   "train_seconds": null,
+   "quality": null,
+   "avail": null,
+   "score": null,
+   "tested_hypotheses": [
+    "H0055"
+   ]
+  }
+ }
 }
