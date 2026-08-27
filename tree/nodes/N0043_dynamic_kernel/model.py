@@ -84,6 +84,8 @@ class Counter(nn.Module):
         dims=_get(cfg,"backbone_dims",(192,384))
         D=_get(cfg,"d_fine",128)
         d_model=_get(cfg,"embed_dim",256)
+        self.D=D
+        self.d_model=d_model
         self.backbone=Backbone(cfg)
         self.fuser=FineFuserDDCA(dims[1],dims[0],d_fine=D)
         self.exemplar=ExemplarEncoder(in_dim=dims[1],d_model=d_model,n_layers=_get(cfg,"exemplar_layers",2),roi_size=_get(cfg,"roi_size",7))
@@ -107,22 +109,13 @@ class Counter(nn.Module):
         e=self.exemplar(h3,bboxes_in,self.S)
         e_mean=e.mean(dim=1)
         # dynamic depthwise kernel
-        k=self.kernel_gen(e_mean).view(B, D, 3, 3)
-        k=F.softmax(k.view(B,D,9), dim=-1).view(B,D,3,3)
-        # apply depthwise per sample (grouped conv workaround)
-        # fine: [B,D,Hf,Wf], k: [B,D,3,3] -> loop over B or use conv trick
-        # Use unfold + einsum for efficiency and gradient
-        # unfold fine to [B, D*9, Hf*Wf]
-        fine_pad=F.pad(fine, (1,1,1,1), mode='replicate')
-        patches=F.unfold(fine_pad, kernel_size=3)  # Wait fine already padded? Use direct unfold
-        # Better: F.unfold(fine, 3, padding=1) -> [B, D*9, Hf*Wf]
+        k=self.kernel_gen(e_mean).view(B, self.D, 3, 3)
+        k=F.softmax(k.view(B,self.D,9), dim=-1).view(B,self.D,3,3)
         patches=F.unfold(fine, kernel_size=3, padding=1)  # [B, D*9, L]
-        k_flat=k.view(B, D, 9)  # [B,D,9]
-        # Need to apply per-channel: patches view [B,D,9,L] -> sum over 9 weighted by k
-        patches=patches.view(B, D, 9, Hf*Wf)
+        k_flat=k.view(B, self.D, 9)  # [B,D,9]
+        patches=patches.view(B, self.D, 9, Hf*Wf)
         filtered=(patches * k_flat.unsqueeze(-1)).sum(dim=2)  # [B,D,L]
-        filtered=filtered.view(B,D,Hf,Wf)
-        # residual blend, zero-init ensures filtered ~ average, blend 0.5
+        filtered=filtered.view(B,self.D,Hf,Wf)
         feat=fine*0.5 + filtered*0.5
         dens=self.decoder(feat)
         gap=fine.mean(dim=(2,3))
