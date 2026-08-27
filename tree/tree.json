@@ -345,6 +345,19 @@
    "tested_hypotheses": [
     "H0061"
    ]
+  },
+  "N0042_mutual_bg": {
+   "parent": "N0036_gca_ddca",
+   "children": [],
+   "status": "proposed",
+   "best_metric": null,
+   "train_seconds": null,
+   "quality": null,
+   "avail": null,
+   "score": null,
+   "tested_hypotheses": [
+    "H0062"
+   ]
   }
  }
 }
