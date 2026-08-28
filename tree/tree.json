@@ -499,7 +499,10 @@
     },
     "N0054_xscale_exemplar": {
       "parent": "N0052_pluggable_trunk",
-      "children": [],
+      "children": [
+        "N0055_xscale_key",
+        "N0056_xfine_exemplar"
+      ],
       "status": "done",
       "best_metric": 19.647,
       "train_seconds": 1800,
@@ -508,6 +511,32 @@
       "score": null,
       "tested_hypotheses": [
         "H0075"
+      ]
+    },
+    "N0055_xscale_key": {
+      "parent": "N0054_xscale_exemplar",
+      "children": [],
+      "status": "done",
+      "best_metric": 20.835,
+      "train_seconds": -1701,
+      "quality": "bad",
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": [
+        "H0076"
+      ]
+    },
+    "N0056_xfine_exemplar": {
+      "parent": "N0054_xscale_exemplar",
+      "children": [],
+      "status": "early_stopped",
+      "best_metric": 24.313,
+      "train_seconds": -1801,
+      "quality": "bad",
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": [
+        "H0077"
       ]
     }
   }
