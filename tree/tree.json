@@ -501,7 +501,8 @@
       "parent": "N0052_pluggable_trunk",
       "children": [
         "N0055_xscale_key",
-        "N0056_xfine_exemplar"
+        "N0056_xfine_exemplar",
+        "N0057_cond_matcher"
       ],
       "status": "done",
       "best_metric": 19.647,
@@ -537,6 +538,19 @@
       "score": null,
       "tested_hypotheses": [
         "H0077"
+      ]
+    },
+    "N0057_cond_matcher": {
+      "parent": "N0054_xscale_exemplar",
+      "children": [],
+      "status": "done",
+      "best_metric": 21.076,
+      "train_seconds": 1700,
+      "quality": "bad",
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": [
+        "H0079"
       ]
     }
   }

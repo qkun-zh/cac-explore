@@ -21,10 +21,11 @@
 | N0051 | GCA-only | 20.599 | GCA genuine (~1.6) |
 | N0053 | GCA+RGA (reg count aux) | 21.450 | ❌ density-bias aux hurts |
 | N0056 | GCA+XScale+XFine (fused h2) | 24.313 (ES@17) | ❌ exemplar-enrich hurts (+3.06) |
+| N0057 | GCA+XScale+Matcher (REPLACEMENT) | 21.076 | ❌ condenser cross-attn load-bearing (+1.43) |
 | N0052 | GCA+DDCA (refactor) | 22.410 | ❌ DDCA harmful (+1.8, drop) |
 | N0036 | GCA+DDCA (orig) | 20.49 | non-reproducible seed |
 
-**Lesson (locked)**: exemplar-embedding interface = the real lever, and **N0054 is its sharp local optimum**. Feature-modulators + density-bias aux (DDCA, RGA, SALF, FILM, cross-attn, MoE, bg-token) all degrade a near-optimal condenser under 30ep. Then exemplar-enrichment (separate 2nd key N0055 +1.19, fused fine h2 N0056 +3.06) ALSO degrade — the single fused coarse XScale prototype is exactly right; more exemplar info only adds optimization burden under frozen 30ep. GCA is the one density-side keep; XScale is the exemplar-side win, and nothing stacks on it. Structural head innovation = frozen-backbone + pluggable parts only (§5.14).
+**Lesson (locked, fully triangulated)**: N0054 is the frozen-backbone optimum. All add-ons (DDCA, RGA, SALF, FILM, cross-attn, MoE, bg-token, XScale-Key, XFine) degrade; the one cleaner replacement (cosine-sim matcher) ALSO degrades — the learned cross-attn condenser is load-bearing. The exemplar-embedding interface + condenser attention form a tightly-matched pair under frozen 30ep. Structural head innovation exhausted in this regime.
 
 ## Server gotchas
 
