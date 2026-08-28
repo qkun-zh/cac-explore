@@ -1,42 +1,36 @@
-# STATE — Session 2026-08-26 (Lead=qkun-local)
+# STATE — Session 2026-08-28 (Lead=qkun-local)
 
 **Mode**: 用户指导模式 (User-Guided)
-**Preflight**: git up-to-date · SERVER_OK · RTX3060 idle, no tmux
+**Preflight**: git init-sync ok · creds ROTATED (port 52331, new host) → re-ran `python3 scripts/install_key.py` · SERVER_OK
+**Cleanup (session start)**: purged junk (OIR log, PROBE_dual_topo, G001, N0050, N0039_upcount_lite) out of `tree/nodes/` → archives; remote `tree/nodes` shrunk 59→30 (matches local); `/data/runs` pruned to active lineage + archive_2026-08-28.
 
-## Champion
+## Champion (frozen regime)
 
-**CAC-D simplified** (frozen DINOv3-ConvNeXt-L + FineFuser + Condenser + DensityDecoder)
-- 224 fast lane: val MAE **19.15**
-- 384 full res: val best 22.38, TEST **18.33** (384 lane, ckpt `/data/runs/cac_d_baseline384/best.pth`)
-- 28.74M total / 3.38M trainable · ~50s/ep @224 · ~70s/ep @384
+**N0054_xscale_exemplar** (GCA + **XScale**, frozen DINOv3-ConvNeXt-Tiny)
+- val MAE **19.647** / RMSE 74.05 · 31.32M total / ~3.4M trainable · 30ep @384 · fixed recipe (AdamW 1e-3, wd0.05, cosine, bs16, AMP)
+- XScale = multi-scale (coarse+fine) ROI pooling → per-exemplar global summary additively fused into exemplar token pre-Condenser; ~0.1M. First pluggable part to BEAT GCA-only.
+- Config: use_gca=True · use_ddca=False · use_xscale=True · xscale_size=3
 
-## Negative Lines (archived)
+## Frozen-lineage record (what beat what, 30ep @384)
 
-**CAC-SI (SI-INR) — NEGATIVE** (3 variants, 4 runs total)
-
-| Variant | TEST | Δ vs cac_d 224 | Δ vs cac_d 384 |
+| Node | Config | MAE | Verdict |
 |---|---|---|---|
-| Base (multi-scale B_H, uw, cnt_w=1) | 24.89 | +5.7 | +6.6 |
-| + fg_sampling p_s=0.5 | 24.81 | +5.7 | +6.5 |
-| + pos_enc 2D sincos | 25.62 | +6.5 | +7.3 |
-| Single-scale (B_H→[1.0]) | 25.16 | +6.0 | +6.8 |
+| N0054 | GCA+XScale | **19.647** | ✅ CHAMPION |
+| N0051 | GCA-only | 20.599 | GCA genuine (~1.6) |
+| N0053 | GCA+RGA (reg count aux) | 21.450 | ❌ density-bias aux hurts |
+| N0052 | GCA+DDCA (refactor) | 22.410 | ❌ DDCA harmful (+1.8, drop) |
+| N0036 | GCA+DDCA (orig) | 20.49 | non-reproducible seed |
 
-**消融结论**: B_H 多尺度无显著贡献（0.3 噪声级），砍掉节省 38% 时间。前景采样、位置编码均阴性。INR 解码器系统性弱于卷积解码器 ~6 点，非超参问题。Line 已 archive。
+**Lesson (locked)**: exemplar-embedding interface = the real lever. Feature-modulators + density-bias aux (DDCA, RGA, SALF, FILM, cross-attn, MoE, bg-token) all degrade a near-optimal condenser under 30ep. GCA is the one density-side keep; XScale is the exemplar-side win. Structural head innovation = frozen-backbone + pluggable parts only (§5.14).
 
-**Queue prompt (MFU) — NEGATIVE**: q_mse 20.41 / q_ada 21.45 / q_bl 23.60 (all WORSE than 19.15 no-queue control at 224 lane)。Parked。
+## Server gotchas
 
-**Density variants (ada/bl) — INCONCLUSIVE**: 无干净控制组。
+- tmux at `/data/miniconda/bin/tmux` (libtinfo warning non-fatal) — launch via tmux not run_node.sh (bare tmux not on PATH)
+- python `/data/miniconda/envs/cac/bin/python`; HF cache `/data/asset/hf` + `HF_ENDPOINT=https://hf-mirror.com`
+- Remote sync via `scp` (never `git pull`) — proxy fails / untracked conflict
+- `/data/runs` hygiene: keep active lineage, archive stale (see AGENTS §7)
 
-## Completed Experiments
+## Queue (today)
 
-- 384 baseline: 32ep, TEST 18.33-18.88 (Ep24-32)
-- 224 fast lane queue screening: 3 runs
-- cac_si base 32ep: 24.89/24.52
-- cac_si fg_sampling 32ep: 24.81/25.31
-- cac_si pos_enc 32ep: 25.62/27.45
-- cac_si single-scale B_H ablation 32ep: 25.16/25.29
-
-## Awaiting user direction
-
-- cac_d 主线下一步方向（384 全分辨率 vs 224 快车道 vs 新方向）
-- 384 baseline best ckpt 尚未单独重新评估
+1. Next incremental exemplar-side step built on N0054 (strengthen XScale / second exemplar refinement; if it degrades, lock N0054 19.647 as deliverable). Parent best for early-stop = 19.647 → bar 21.147 at ep16+.
+2. Re-verify N0054 best.pth intact on server before launch (champion must not be lost during cleanup).

@@ -363,6 +363,11 @@ def main():
         if mae < best:
             best = mae; tag = " ***BEST"
             torch.save({"epoch": ep, "model": model.state_dict(), "best_mae": best}, ckpt)
+        # Save periodic checkpoints for ensemble
+        save_every = int(cfg.get("save_every", 0))
+        if save_every and ep % save_every == 0:
+            torch.save({"epoch": ep, "model": model.state_dict(), "mae": mae},
+                       os.path.join(run_dir, f"ep{ep:03d}.pth"))
         write_result("running", {"mae": mae, "rmse": rmse, "best_mae": best},
                      {"train_seconds": round(time.time() - t_start, 1), "epochs_done": ep},
                      {"oom": oom})
