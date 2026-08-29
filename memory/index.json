@@ -534,6 +534,38 @@
           "evidence_type": "run",
           "strength": 1.0,
           "reasoning": "N0063 launches as executable test of H0091: timm convnext_small.in12k frozen backbone swap (49.5M vs 27M tiny, same 192/384 dims) under identical GCA+XScale head, 30ep, deviation allows >32M (total ~5"
+        },
+        {
+          "source_node": "N0063_large_backbone",
+          "evidence_type": "refutes",
+          "strength": 1.0,
+          "reasoning": "N0063 32/32ep (norm-fixed) best 25.893 @E08 vs champion 19.647 (+6.25, RMSE 81.5 vs 74.05), 37.49M total. Larger frozen backbone (34M vs 27.8M, +22%) did NOT help; actually worse after E08. H0091 refu"
+        }
+      ]
+    },
+    "H0092": {
+      "text": "IF [a learned scale embedding (20 bins, BMNet+-inspired relative bbox size w/img_w+h/img_h) is additively injected into ExemplarEncoder output] IN [frozen N0054 128ep @384, GCA+XScale unchanged] THEN [best val MAE < 19.647] BECAUSE [scale-aware exemplar representation helps cross-scale count invariance]. DISPROVED IF best val MAE >= 19.647 or training becomes unstable (nan/divergence).",
+      "confidence": 0.5,
+      "n_tested": 0,
+      "status": "uncertain",
+      "tags": [
+        "frozen",
+        "scale-embed",
+        "exemplar",
+        "N0065"
+      ],
+      "log": [
+        {
+          "source_node": "N0065_scale_embed",
+          "evidence_type": "run",
+          "strength": 1.0,
+          "reasoning": "N0065 launches as executable test of H0092: champion + scale embedding (20x256=5120 params, 31.33M total) 128ep, resume+36h patch."
+        },
+        {
+          "source_node": "N0065_scale_embed",
+          "evidence_type": "refutes",
+          "strength": 1.0,
+          "reasoning": "N0065 ran 81/128ep, best 20.429 @E28 vs champion 19.647 (+0.78), 31.33M. Never broke champion; 22 epochs (E28-50) plateau at 20.4-22.5, then 10 consecutive nan @E64-73 and divergence to 62.4 @E81. H00"
         }
       ]
     }

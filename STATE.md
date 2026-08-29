@@ -1,36 +1,29 @@
-# STATE — Session 2026-08-29 (Lead=qkun-local, User-Guided)
+# STATE — Session 2026-08-29 CLOSE (Lead=qkun-local, User-Guided)
 
-**Mode**: User-Guided (backbone swap per user: "换上更大的backbone，来看看是不是参数量限制"). Direct execution, temply Lead does all roles.
-**Preflight**: SERVER_OK (port 44387). Deviation logged: N0063 allows total 37.49M >32M (max_params 60) to isolate backbone capacity — User-Guided override per AGENTS.md §1.
+**Mode**: User-Guided. Preflight SERVER_OK (44387). Deviations: N0063 37.49M>32M (backbone cap test); N0065 31.33M scale-embed (BMNet+ idea). Engine patched: timeout 30→2160 (36h) + resume from best.pth (failure_modes.md).
 
-## Champion (frozen tiny regime)
-**N0054_xscale_exemplar** (GCA + XScale, dinov3-convnext-tiny) 19.647 / 74.05 / 31.32M LOCKED.
+## Champion (frozen)
+**N0054_xscale_exemplar** GCA+XScale 19.647/74.05/31.32M LOCKED. AdamW 1e-3 wd0.05 cosine bs16 AMP 30ep.
 
-## Closed negative evidence (30ep @384) — 5 nodes, frozen tiny
-| Node | Axis | Delta |
-|---|---|---|
-| N0054 | — | 19.647 CHAMPION |
-| N0055 | info-add 2K keys | +1.19 |
-| N0056 | info-add extra fine to exemplar agg | +3.06 |
-| N0057 | consumer swap | +1.43 |
-| N0058 | producer swap part-pool | +3.50 |
-| N0059 | producer swap matched | +1.31 |
-| N0060 | 2nd coarse MAX | +3.24 |
-| N0037 | N·p factorization | +0.5 |
-| N0061 | multiplicative count | +3.86 |
-| N0062 | decoder native-1/4 h1 | +1.68 |
+## Closed 2026-08-29 (7 nodes, all NEGATIVE)
+| Node | Axis | Best | Δ |
+|---|---|---|---|
+| N0058 | part-pool producer | 23.151 | +3.50 |
+| N0059 | matched producer | 20.958 | +1.31 |
+| N0060 | XScale MAX | 22.886 | +3.24 |
+| N0061 | count norm | 23.502 | +3.86 |
+| N0062 | decoder h1 | 21.323 | +1.68 |
+| **N0063** | large backbone 37.49M (H0091) | **25.893@E08** | +6.25 FAIL — param cap NOT bottleneck |
+| **N0065** | scale-embed 20bin 31.33M (H0092) 128ep→81ep | **20.429@E28** | +0.78 FAIL + 10 nan→62 MAE collapse |
 
-**Laws**: H0085 single-slider; H0089 readout-multiplier premise error; H0081 attention load-bearing 0.59; H0090 decoder-res closed.
+**Laws**: H0085 single-slider; H0089 readout premise error; H0081 attn 0.59; H0090 decoder-res closed; H0091 backbone-cap refuted; H0092 scale-embed refuted (no benefit + late instability).
 
-## Active: N0063_large_backbone (H0091) — PARAM-CAP DIAGNOSTIC
-**Design**: timm `convnext_small.in12k` frozen (34.0M backbone, dims 192@1/8+384@1/16 same as tiny 27.8M, +6.2M total →37.49M) + identical GCA+XScale head (3.5M). `use_large_backbone=False` bit-identical (forward diff 0.0, smoke PASS 37.49M vs 31.32M). Same /255 input, frozen, 30ep.
-**Hypothesis H0091**: larger frozen representation <19.647 if param cap is bottleneck; DISPROVED if ≥19.647.
-**Smoke**: large 37.49M OK, small 31.32M identical, shapes (2,1,96,96) finite `model.py:14-27`.
-**Status**: code+smoke done, launching 30ep User-Guided deviation run (max_params 60).
+## External SOTA survey
+BMNet+ (CVPR22) val 15.74/27M total/13M train — best <32M with code. Cloned /data/repo/bmnet_ref, smoke 12.86M trainable but 32ep trial OOM bs16→4, E00 38.11, killed for N0065. SPDCN needs mmcv, skipped. SAFECount ~12M. Survey done, next step: port BMNet+ ideas (scale-embed already tried → fail; dynamic matcher/contrast loss remain).
 
 ## Server gotchas
-- run_node.sh git pull hangs: launch tmux directly (PATH=/data/miniconda/bin). HF /data/asset/hf + hf-mirror. Sync via scp.
+- git pull hangs → tmux direct; HF /data/asset/hf hf-mirror; scp sync; PATH /data/miniconda/bin; timeout 36h + resume patch code/engine/train.py:195,281-290.
 
-## Queue
-1. N0063 running 30ep — diagnostic for param cap; if FAIL, closes backbone-capacity axis and confirms frozen-head saturation is architecture/head, not size.
-2. Ledger 26 hyps, index H0091 run booked.
+## Queue (next session)
+1. N0065 synthesis + N0063 synthesis (Lead-booked, subagent network_error). Ledger 27 hyps (15 tested, 33% correct).
+2. Frozen-head LOS hardened — remaining lever is engine tail_reweight (dead code train.py:334) or head redesign (dynamic matcher).

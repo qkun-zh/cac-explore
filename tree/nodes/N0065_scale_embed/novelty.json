@@ -1,0 +1,1 @@
+{"novel": true, "most_similar_to": "N0054_xscale_exemplar", "shared_principles": "frozen GCA+XScale head", "new_contribution": "BMNet+-inspired scale embedding (20 bins relative bbox size) additive to exemplar encoder, 128ep long-train test", "checked_at": "2026-08-29T19:30:00+08:00"}

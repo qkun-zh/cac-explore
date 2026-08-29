@@ -192,7 +192,7 @@ def main():
     p.add_argument("--node_dir", required=True)
     p.add_argument("--run_dir", default=None)
     p.add_argument("--smoke", action="store_true")
-    p.add_argument("--timeout-min", type=float, default=float(os.environ.get("TAU_MAX_MIN", 30)))
+    p.add_argument("--timeout-min", type=float, default=float(os.environ.get("TAU_MAX_MIN", 2160)))
     p.add_argument("--epochs", type=int, default=None)
     args = p.parse_args()
 
@@ -279,7 +279,15 @@ def main():
         swa_s, swa_e = int(swa_s), int(swa_e)
     swa_sum, swa_lo, swa_hi = {}, None, None
     ckpt = os.path.join(run_dir, "best.pth")
-    for ep in range(1, epochs + 1):
+    start_ep = 1
+    if os.path.isfile(ckpt):
+        _ck = torch.load(ckpt, map_location=device)
+        if "model" in _ck and "epoch" in _ck:
+            model.load_state_dict(_ck["model"], strict=False)
+            best = _ck.get("best_mae", float("inf"))
+            start_ep = _ck["epoch"] + 1
+            print("[engine] resumed from epoch", _ck["epoch"], "best=", f"{best:.3f}")
+    for ep in range(start_ep, epochs + 1):
         if time.time() - t_start > args.timeout_min * 60:
             timed_out = True; break
         model.train(); ls = nb = 0

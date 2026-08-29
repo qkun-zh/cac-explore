@@ -3,7 +3,7 @@
   "description": "Trajectory tree",
   "lambda_acc": 0.85,
   "lambda_parent": 0.6,
-  "tau_max_min": 30
+  "tau_max_min": 2160
  },
  "nodes": {
   "R001_point_detect": {
@@ -508,7 +508,8 @@
     "N0060_xscale_max",
     "N0061_countnorm",
     "N0062_fine_decoder",
-    "N0063_large_backbone"
+    "N0063_large_backbone",
+    "N0065_scale_embed"
    ],
    "status": "done",
    "best_metric": 19.647,
@@ -632,14 +633,27 @@
   "N0063_large_backbone": {
    "parent": "N0054_xscale_exemplar",
    "children": [],
-   "status": "proposed",
-   "best_metric": null,
-   "train_seconds": null,
-   "quality": null,
-   "avail": null,
-   "score": null,
+   "status": "failed",
+   "best_metric": 25.893,
+   "train_seconds": 957,
+   "quality": 0.1,
+   "avail": 0.9,
+   "score": 0.09,
    "tested_hypotheses": [
     "H0091"
+   ]
+  },
+  "N0065_scale_embed": {
+   "parent": "N0054_xscale_exemplar",
+   "children": [],
+   "status": "failed",
+   "best_metric": 20.429,
+   "train_seconds": 2939,
+   "quality": 0.3,
+   "avail": 0.9,
+   "score": 0.27,
+   "tested_hypotheses": [
+    "H0092"
    ]
   }
  }
