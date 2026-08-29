@@ -68,6 +68,7 @@ class ExemplarEncoder(nn.Module):
         self.r=roi_size
         self.use_xscale=use_xscale
         self.use_pmom=use_pmom
+        self.d_model=d_model
         self.shape_mlp=nn.Sequential(nn.Linear(2,64), nn.ReLU(), nn.Linear(64,d_model))
         if use_xscale:
             self.xs=xs
@@ -94,7 +95,7 @@ class ExemplarEncoder(nn.Module):
             m=torch.cat([h,h*h],dim=-1)                        # (B*K,4,2*in_dim)
             a=torch.softmax(self.gate(m),dim=1)                # (B*K,4,1)
             Hs=(a*m).sum(dim=1)                                # (B*K,2*in_dim)
-            out=self.moment_proj(Hs).view(B,K,d_model)         # (B,K,d_model)
+            out=self.moment_proj(Hs).view(B,K,self.d_model)    # (B,K,d_model)
             out=out+self.shape_mlp(wh)
         else:
             tok=self.proj(roi.flatten(2).transpose(1,2))
