@@ -1,0 +1,16 @@
+# Causal feedback — N0061_countnorm (multiplicative count autoscale, H0088)
+
+## Verdict
+**H0088 DISPROVED.** best 23.502 @E27 / final 23.718 / RMSE 87.61 (+3.855 floor, +13.56 RMSE vs N0054 19.647/74.05). The metric the mechanism existed to shrink — RMSE — got worse. FAIL >20.0 fired E18 (+2.71 same-epoch). Single-switch clean; attribution to density·exp(z) sound.
+
+## Why it hurt instead of helping the tail — four stacked causes
+1. **Engine premise never existed.** The BECAUSE claimed "MSE becomes count-weighted / count residual penalized in log space with C-independent curvature." The engine loss is plain `MSE(dens,gt_d)` over the whole batch + `w_cnt*L1(sum,gt_c)` with `tail_reweight=False` (train.py:333-345) — NO per-image count normalization, NO log-space term. The factor's pixel gradient `dL/dz = dot(D, f·D − G)` is proportional to ΣD², i.e. raw-count² — the extra channel re-INJECTS the tail magnitude into the exact knob meant to de-weight it. Grievance (b): the intended de-weighting never occurred.
+2. **Product-gauge ambiguity / blame-splitting.** out = shape × f with nothing pinning the decoder mass: the count-misfit gradient flows into BOTH the factor and the intact decoder simultaneously, so z absorbs count misfit the shape also receives. The two (MSE's variance-weighted optimum f≈Σdg/Σd² vs L1's exact f=gt_c/s) are structurally different targets; one scalar cannot satisfy both, so it sits between them — shape and count both stay wrong. 24k params supervised by ONE scalar/sample with two conflicting signals = coarsely over-parameterized.
+3. **Doubled count supervision conflicts with GCA.** GCA's additive 0.02-bias (the champion's count channel, ~1.6 MAE) is in the multiplication path: the same gt_c and same MSE now supervise an additive and a multiplicative channel whose sum-reparameterization interacts nonlinearly — two independent claims on one quantity, vs N0037's normalized shape which cleanly isolated count into its count branch.
+4. **Global scalar is the wrong tail hammer.** The tail is spatially heterogeneous cell-quantization mass loss (N0026: tail error ∝ resolution; H0036: S=518 routing cuts it offline to RMSE 66.37). A single per-image scale (f∈[0.13,7.4], identity-at-init does NOT pin it afterward) cannot repair distributed, location-dependent mass loss; it only overfits the scale (train loss 2.66 + val plateau ~23.5 = N0059/N0060's overfit-to-scale signature).
+
+## N0037-class, NEW instance — and NOT N0059/N0060
+Same failure CLASS as N0037 (multiplicative count×shape reparameterization under plain MSE), doubly refuting the readout-factorization axis — but a NEW, more severe INSTANCE: N0037's unit-sum shape isolated count into the branch (+0.5); N0061's residual form leaves the shape coupled (no normalization) and stacks a second count channel on GCA, amplifying the loss to +3.86. Distinct from N0059/N0060 (exemplar/aggregation pathway, byte-identical untouched here) and from N0053 RGA (additive, spatial, not multiplicative-global).
+
+## Direction closure
+Count-normalized readout — factorized (N0037) or residual-autoscale (N0061) — is CLOSED in the frozen head under plain MSE. The count axis is already fully occupied by GCA's additive bias; any second global count channel is harmful redundancy. The tail lives in resolution/routing, not count scale.

@@ -602,15 +602,16 @@
   "N0061_countnorm": {
    "parent": "N0054_xscale_exemplar",
    "children": [],
-   "status": "proposed",
-   "best_metric": null,
-   "train_seconds": null,
-   "quality": null,
+   "status": "success",
+   "best_metric": 23.502,
+   "train_seconds": 1706,
+   "quality": "fail",
    "avail": null,
    "score": null,
    "tested_hypotheses": [
     "H0088"
-   ]
+   ],
+   "final_metric": 23.718
   }
  }
 }

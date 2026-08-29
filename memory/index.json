@@ -448,6 +448,48 @@
         "N0060"
       ],
       "log": []
+    },
+    "H0088": {
+      "text": "IF density output is re-scaled by a count-consistency factor density*n_hat/sum(density) with n_hat from a shared-interface count trunk IN frozen N0054, density MSE, 30ep THEN val MAE < 19.647 BECAUSE the engine MSE becomes count-weighted; the multiplicative count-consistency autoscale pins the total count to a variance-stabilized log-space estimate, shrinking the RMSE-tail (N>=500 images) without any spatial/ROI/operator change. DISPROVED IF best val MAE > 20.4.",
+      "confidence": 0.5,
+      "n_tested": 0,
+      "status": "uncertain",
+      "tags": [
+        "frozen",
+        "count-normalized-readout",
+        "multiplicative-autoscale",
+        "H0088",
+        "N0061"
+      ],
+      "log": [
+        {
+          "source_node": "N0061_countnorm",
+          "evidence_type": "run",
+          "strength": 1.0,
+          "reasoning": "N0061 launches as the pre-registered executable test of H0088: CountNormHead bolts parallel to GCA reading only GAP(fine)+e_mean, z=clamp(W2*GELU(W1*feat),-2,2) with W2 zero-init (identity-at-init f=1"
+        },
+        {
+          "source_node": "N0061_countnorm",
+          "evidence_type": "refutes",
+          "strength": 1.0,
+          "reasoning": "N0061 clean 30/30ep, params 31.35M, single switch use_countnorm: best 23.502 @E27 / final 23.718, floor +3.855 vs champion N0054 19.647 (RMSE 87.61 vs 74.05); FAIL gate >20.0 fired (early-stop E18 +2."
+        }
+      ]
+    },
+    "H0089": {
+      "text": "IF the density-MSE count-weighted readout is implemented as an output multiplier (out[density] = champion_density * f) IN the frozen N0054 engine where gt_d is raw non-unit-mass Gaussian blobs (sum=count) and only out[density] carries gradients THEN it does NOT achieve count-weighting and harms val MAE (multiplicative count-autoscale closed: N0037 N*p +0.5 and N0061 +3.855), leaving GCA (additive, 0.02-attenuated, zero-init) as the unique positive count-side module BECAUSE an output multiplier only rescales MSE by f^2 per image on the raw count-scaled target and cannot reweight the target's c^2 curvature that tail-steering requires. DISPROVED IF a readout-side output multiplier reaches best val MAE < 19.647.",
+      "confidence": 0.5,
+      "n_tested": 0,
+      "status": "uncertain",
+      "tags": [
+        "frozen",
+        "count-normalized-readout",
+        "premise-error",
+        "axis-mapped",
+        "GCA-unique",
+        "N0061"
+      ],
+      "log": []
     }
   }
 }
