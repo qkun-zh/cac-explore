@@ -1,0 +1,32 @@
+{
+  "node": "N0058_pompart_exemplar",
+  "parent": "N0054_xscale_exemplar",
+  "novel": true,
+  "stage1_best_sim": 0.264,
+  "most_similar_to": [
+    {
+      "node": "N0054_xscale_exemplar",
+      "why": "Same module scope (ExemplarEncoder) and same interface invariant (single fused prototype consumed by the condenser), plus the XScale coarse-summary add is kept untouched. But N0054 ADDED a second scale-source summary on top of the intact attention-aggregated token (data/input-axis enrichment); N0058 REPLACES the aggregation operator itself. Different structural axis: add-information vs swap-operator."
+    },
+    {
+      "node": "N0057_cond_matcher",
+      "why": "Shares the strongest principle: a strict capacity REPLACEMENT ('less is more'), not an add-on, under the frozen regime. But they swap OPPOSITE ends of the exemplar pathway: N0057 replaced the CONSUMER (condenser cross-attn MHA → cosine matcher) leaving exemplar aggregation untouched; N0058 replaces the PRODUCER (exemplar self-attn + attention-pool → polynomial moments) leaving the load-bearing condenser cross-attn untouched. Complementary, not duplicate."
+    },
+    {
+      "node": "N0056_xfine_exemplar",
+      "why": "Same 'fuse X into the single prototype' family, but N0056 adds another scale-summary (h2) to an unchanged attention aggregation — still enrich-with-information. N0058 does not add any input source; it changes how the same ROI patches collapse into the prototype. Input-axis vs operator-axis."
+    },
+    {
+      "node": "N0055_xscale_key",
+      "why": "Both touch ExemplarEncoder only. N0055 expands the key-interface cardinality (2K condenser keys), which the evidence showed dilutes cross-attention. N0058 holds key count fixed at one fused prototype and never touches the condenser key interface or its count. Opposite direction (reduce in-encoder redundancy, do not widen consumer inputs)."
+    }
+  ],
+  "shared_principles": [
+    "Scope is the exemplar-embedding interface (h3 + bboxes → (B,K,256)), the one lever §5.14 allows; no frozen-backbone or recipe change.",
+    "Frozen-regime single-switch hook: `use_*` flag toggles the delta against N0054; everything else byte-identical.",
+    "Preserve a single fused prototype vector as the condenser key (the invariant that survived N0055/N0056), and never touch the load-bearing condenser cross-attention (the N0057 lesson).",
+    "Structural replacement over stacking, and mechanism pairing with the existing GCA/XScale components (interfaces only, no internal coupling, per §5.14).",
+    "Strict pre-registered kill/confirm ladder against parent 19.647 with the standard +1.5 early-stop bar."
+  ],
+  "new_contribution": "First operator-level swap of the exemplar aggregation itself: replaces set-pooling/self-attention (49 patch tokens, 2 transformer layers, attention-pool) with a part-wise 2nd-order polynomial-moment summary (2x2 part mean+square moments, adaptive softmax part-gate, single linear readout) — transplanting the PoM polynomial-aggregation idea (arXiv:2604.06129) and ParTY adaptive part-fusion idea (arXiv:2603.09611) onto the exemplar side while preserving the exact single fused-prototype interface and leaving the load-bearing condenser cross-attention and XScale add untouched. Unlike N0055/N0056 it changes operator, not inputs/interface cardinality; unlike N0057 it replaces the aggregator, not the consumer. Distinct structural axis: producer-swap vs consumer-swap vs enrichment."
+}
