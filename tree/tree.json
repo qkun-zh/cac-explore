@@ -557,10 +557,10 @@
   "N0058_pompart_exemplar": {
    "parent": "N0054_xscale_exemplar",
    "children": [],
-   "status": "proposed",
-   "best_metric": null,
-   "train_seconds": null,
-   "quality": null,
+   "status": "early_stopped",
+   "best_metric": 23.151,
+   "train_seconds": 853,
+   "quality": "fail",
    "avail": null,
    "score": null,
    "tested_hypotheses": [

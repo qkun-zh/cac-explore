@@ -208,6 +208,155 @@
           "reasoning": "SWA over E14-28 gives 21.083 vs best-single 20.403 (+0.68 WORSE). Iterate averaging fails here - late-phase epochs are not bouncing in one basin but drifting (consistent with causal.md RMSE-creep acco"
         }
       ]
+    },
+    "H0046": {
+      "text": "IF foreground-biased mixed sampling p_s=0.5 with jitter 3sigma IS used in the INR training loop IN cac_si THEN val MAE <24.89 (base) BECAUSE INR denser supervision near GT points improves high-density region estimation. DISPROVED IF TEST MAE >= 24.89.",
+      "confidence": 0.44,
+      "n_tested": 1,
+      "status": "uncertain",
+      "tags": [
+        "si-inr",
+        "sampling",
+        "fg_sampling"
+      ],
+      "log": [
+        {
+          "source_node": "cac_si_fgsamp_224",
+          "evidence_type": "contradicts",
+          "strength": 0.6,
+          "reasoning": "TEST MAE 24.81 vs base 24.89: delta -0.08 within noise. 32ep, same config as base, only fg_sampling=0.5. No improvement detected."
+        }
+      ]
+    },
+    "H0047": {
+      "text": "IF 2D sincos positional encoding (DETR-style) IS added to Q and KV in the cross-attention of cac_si THEN val MAE <24.89 (base) BECAUSE spatial awareness improves exemplar-to-image spatial alignment in cross-attention. DISPROVED IF TEST MAE >= 24.89.",
+      "confidence": 0.43,
+      "n_tested": 1,
+      "status": "uncertain",
+      "tags": [
+        "si-inr",
+        "pos_enc",
+        "attention"
+      ],
+      "log": [
+        {
+          "source_node": "cac_si_pos_224",
+          "evidence_type": "contradicts",
+          "strength": 0.7,
+          "reasoning": "TEST MAE 25.62 vs base 24.89: delta +0.73 (WORSE). Pos-enc disrupted cross-attention dynamics rather than helping. 32ep, same config as base, only pos_enc=true."
+        }
+      ]
+    },
+    "H0048": {
+      "text": "IF B_H multi-scale operation (3 scales) IS removed (scales=[1.0], single-forward) IN cac_si THEN val MAE stays within +0.5 of base (24.89) BECAUSE B_H adds 3x compute but multi-scale features may be misaligned or redundant. DISPROVED IF TEST MAE > 25.39.",
+      "confidence": 0.56,
+      "n_tested": 1,
+      "status": "uncertain",
+      "tags": [
+        "si-inr",
+        "ablation",
+        "b_h_multiscale"
+      ],
+      "log": [
+        {
+          "source_node": "cac_si_single_224",
+          "evidence_type": "supports",
+          "strength": 0.6,
+          "reasoning": "TEST MAE 25.16 vs base 24.89: delta +0.27 (within noise). Epoch time dropped from 51s to 31.5s (-38%). B_H multi-scale contributes no measurable benefit at this scale while costing 3x backbone compute"
+        }
+      ]
+    },
+    "H0076": {
+      "text": "IF XScale-Key (coarse exemplar prototype supplied as a SEPARATE second condenser key, fine+coarse = 2K keys) IS added IN frozen N0054 base (GCA+XScale, use_ddca=False) THEN val MAE < 19.647 BECAUSE the condenser can weight fine-vs-coarse exemplar evidence per query, improving cross-scale exemplar matching. DISPROVED IF val MAE >= 19.65.",
+      "confidence": 0.5,
+      "n_tested": 0,
+      "status": "uncertain",
+      "tags": [
+        "frozen",
+        "exemplar-attn",
+        "xscale-key"
+      ],
+      "log": [
+        {
+          "source_node": "N0055_xscale_key",
+          "evidence_type": "refutes",
+          "strength": 1.0,
+          "reasoning": "N0055 val MAE 20.835 vs parent N0054 19.647: delta +1.19, past the +1.5 early-stop but within run. 2K condenser keys dilute cross-attn weighting; single fused prototype is better. H0076 refuted."
+        }
+      ]
+    },
+    "H0077": {
+      "text": "IF XFine (fine h2 1/8 exemplar ROI -> GAP -> proj -> additive fusion into the SAME single fused prototype) IS added IN frozen N0054 base (GCA+XScale, use_ddca=False) THEN val MAE < 19.647 BECAUSE a sharp higher-resolution exemplar appearance summary within the prototype improves cross-scale matching with no key-structure change. DISPROVED IF val MAE >= 19.65.",
+      "confidence": 0.5,
+      "n_tested": 0,
+      "status": "uncertain",
+      "tags": [
+        "frozen",
+        "exemplar-attn",
+        "xfine"
+      ],
+      "log": [
+        {
+          "source_node": "N0056_xfine_exemplar",
+          "evidence_type": "refutes",
+          "strength": 1.0,
+          "reasoning": "N0056 early-stopped at EP17 with best 24.313, +3.06 vs parent N0054 at same epoch (21.250), far past the +1.5 bar and stuck ~24.3 since E11. Extra fine-scale exemplar entropy degrades the head under f"
+        }
+      ]
+    },
+    "H0079": {
+      "text": "IF condenser REPLACED by cosine-similarity prototype matcher (no learned MHA/FFN/LN) IN frozen N0054 base (use_ddca=False) THEN val MAE within +0.5 of N0054 (i.e. <=20.15) BECAUSE the simpler matcher fits the same exemplar evidence with less to optimize. DISPROVED IF val MAE > 20.15.",
+      "confidence": 0.5,
+      "n_tested": 0,
+      "status": "uncertain",
+      "tags": [
+        "frozen",
+        "condenser-replacement",
+        "less-is-more"
+      ],
+      "log": [
+        {
+          "source_node": "N0057_cond_matcher",
+          "evidence_type": "refutes",
+          "strength": 1.0,
+          "reasoning": "N0057 val MAE 21.076 vs parent N0054 19.647: delta +1.43, past the +0.5 keep threshold. The matcher peaked at E15=21.076 and never improved, while N0054's cross-attn condenser dropped from 21.25 to 19"
+        }
+      ]
+    },
+    "H0080": {
+      "text": "IF per-exemplar aggregation operator is replaced by a part-wise 2nd-order polynomial-moment summary (PMOM) IN the frozen N0054 base (GCA+XScale, use_ddca=False, 30ep @384) THEN val MAE < 19.647 BECAUSE 2x2 part-wise mean+square polynomial moments + part-gating should capture category-discriminative part statistics and inject them through the unchanged single fused prototype into the load-bearing condenser cross-attention. DISPROVED IF val MAE >= 20.4.",
+      "confidence": 0.5,
+      "n_tested": 0,
+      "status": "uncertain",
+      "tags": [
+        "frozen",
+        "exemplar-agg",
+        "operator-swap",
+        "pmom",
+        "N0058"
+      ],
+      "log": [
+        {
+          "source_node": "N0058_pompart_exemplar",
+          "evidence_type": "refutes",
+          "strength": 1.0,
+          "reasoning": "N0058 early-stopped E15: best val 23.151 @E13, E15 23.805 = +2.17 same-epoch vs N0054 21.635; converged-gap floor +3.50 (19.647). Pre-registered KILL (>=20.4) fired E7, never left the lethal zone. PMO"
+        }
+      ]
+    },
+    "H0081": {
+      "text": "IF a learned aggregation operator at the exemplar producer (exemplar ROI self-attention) OR at the consumer (condenser cross-attention) is replaced by a lower-capacity non-attention operator IN the frozen 30ep head-only regime THEN val MAE degrades by at least +1.4 BECAUSE data-dependent token mixing on the exemplar pathway is load-bearing and its benefit accrues in the late-training window (E18-27), as shown by N0057 (consumer swap +1.43) and N0058 (producer swap +2.17); the boundary is aggregation swaps only, NOT granularity/scale enrichment (XScale remains the one positive axis, +0.95) and NOT interface-cardinality/density-side changes. DISPROVED IF an operator swap that keeps at least 1.5M trainable params (a param-matched control) beats N0054's val MAE 19.647, given that capacity and expressivity are confounded absent such a control.",
+      "confidence": 0.5,
+      "n_tested": 0,
+      "status": "uncertain",
+      "tags": [
+        "frozen",
+        "attention-law",
+        "operator-swap",
+        "load-bearing",
+        "N0058"
+      ],
+      "log": []
     }
   }
 }
