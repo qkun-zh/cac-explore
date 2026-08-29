@@ -516,6 +516,26 @@
           "reasoning": "N0062 clean 30/30ep, params 31.34M, single switch use_fine_decoder: best 21.323 @E17 / final 22.298, floor +1.676 vs champion 19.647 (RMSE 75.96 vs 74.05); FAIL gate >20.0 fired (early-stop E19 +3.66)"
         }
       ]
+    },
+    "H0091": {
+      "text": "IF [frozen backbone is swapped from dinov3-convnext-tiny (27M) to convnext_small.in12k (49.5M, same channel dims, deeper) IN frozen N0054 head (GCA+XScale, 30ep @384, no recipe change)] THEN [best val MAE < 19.647] BECAUSE [larger frozen representation supplies richer count-semantic features the pluggable head can exploit, and the 32M cap was the bottleneck]. DISPROVED IF best val MAE >= 19.647.",
+      "confidence": 0.5,
+      "n_tested": 0,
+      "status": "uncertain",
+      "tags": [
+        "User-Guided",
+        "large-backbone",
+        "param-cap",
+        "N0063"
+      ],
+      "log": [
+        {
+          "source_node": "N0063_large_backbone",
+          "evidence_type": "run",
+          "strength": 1.0,
+          "reasoning": "N0063 launches as executable test of H0091: timm convnext_small.in12k frozen backbone swap (49.5M vs 27M tiny, same 192/384 dims) under identical GCA+XScale head, 30ep, deviation allows >32M (total ~5"
+        }
+      ]
     }
   }
 }
