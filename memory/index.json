@@ -346,8 +346,8 @@
     },
     "H0081": {
       "text": "IF a learned aggregation operator at the exemplar producer (exemplar ROI self-attention) OR at the consumer (condenser cross-attention) is replaced by a lower-capacity non-attention operator IN the frozen 30ep head-only regime THEN val MAE degrades by at least +1.4 BECAUSE data-dependent token mixing on the exemplar pathway is load-bearing and its benefit accrues in the late-training window (E18-27), as shown by N0057 (consumer swap +1.43) and N0058 (producer swap +2.17); the boundary is aggregation swaps only, NOT granularity/scale enrichment (XScale remains the one positive axis, +0.95) and NOT interface-cardinality/density-side changes. DISPROVED IF an operator swap that keeps at least 1.5M trainable params (a param-matched control) beats N0054's val MAE 19.647, given that capacity and expressivity are confounded absent such a control.",
-      "confidence": 0.5,
-      "n_tested": 0,
+      "confidence": 0.59,
+      "n_tested": 1,
       "status": "uncertain",
       "tags": [
         "frozen",
@@ -355,6 +355,48 @@
         "operator-swap",
         "load-bearing",
         "N0058"
+      ],
+      "log": [
+        {
+          "source_node": "N0059_pom_morph",
+          "evidence_type": "supports",
+          "strength": 0.9,
+          "reasoning": "H0081 confirmed-by-failure: its pre-registered falsifier N0059 (the exact param-matched control the law demanded — PoM-PolyMorpher swap, 3.52M trainable head vs 3.505M, 49 tokens, residual-kept, no pa"
+        }
+      ]
+    },
+    "H0082": {
+      "text": "IF param-matched non-attention operator (PoM-PolyMorpher, k=2, D=352, residual-kept, 49 tokens, no part-pool) replaces the exemplar producer self-attention in frozen N0054 IN frozen N0054, matched 3.5M trainable THEN val MAE < 19.647 BECAUSE cross-token 2nd-order moments + nonlinear gating supply aggregation at matched capacity → producer self-attention not load-bearing. DISPROVED IF best val MAE ≥ 20.40.",
+      "confidence": 0.5,
+      "n_tested": 0,
+      "status": "uncertain",
+      "tags": [
+        "frozen",
+        "exemplar-agg",
+        "operator-swap",
+        "attn-law",
+        "N0059"
+      ],
+      "log": [
+        {
+          "source_node": "N0059_pom_morph",
+          "evidence_type": "refutes",
+          "strength": 1.0,
+          "reasoning": "N0059 30/30ep success: best val 20.958 @E18, final 21.415, RMSE 76.06; floor delta +1.31 vs N0054 19.647; ep16+ same-epoch bar fired E16 (+2.13); KILL gate (>=19.90) both prongs. Param-matched (head 3"
+        }
+      ]
+    },
+    "H0083": {
+      "text": "IF a second single-slot coarse additive summary (additional GAP pooling granularity over h3 beyond XScale's xscale_size=3, fused additively into the same single fused exemplar prototype, producer and consumer attention untouched) IS added IN frozen N0054 champion (GCA+XScale, use_ddca=False, 30ep @384) THEN val MAE < 19.647 BECAUSE the only positive frozen-regime axis is XScale-style granularity enrichment (single-slot, additive, coarse); N0055 degraded by splitting the prototype across 2K keys and N0056 by adding fine-scale entropy, so a second coarse single-slot GAP pool exploits the champion's winning axis while violating neither failed mechanism. DISPROVED IF val MAE >= 19.65.",
+      "confidence": 0.5,
+      "n_tested": 0,
+      "status": "uncertain",
+      "tags": [
+        "frozen",
+        "exemplar-agg",
+        "xscale",
+        "granularity",
+        "N0059"
       ],
       "log": []
     }

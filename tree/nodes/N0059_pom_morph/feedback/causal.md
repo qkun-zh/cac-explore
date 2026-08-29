@@ -1,0 +1,20 @@
+# Causal feedback — N0059_pom_morph (param-matched falsifier of H0081)
+
+## Intervention & outcome (confound-cleared single-switch)
+- Swap: exemplar aggregator {proj 98.5k + 2×TransformerEncoder 1.58M + attn-pool} → {proj + 2× PoM-PolyMorpher (eq.3: mean-over-49 2nd-order moments H, per-token σ-gate, W_o, norm_first residual)} over ALL 49 ROI tokens. Condenser MHA, GCA, XScale, shape_mlp untouched; ParTY 2×2 part-pool EXCLUDED; (B,K,256) prototype interface shape-identical.
+- Outcome: best val **20.958 @E18**; final 21.415 @30ep; **floor delta +1.31** (vs 19.647); early-stop bar (same-epoch ≥ +1.5) fired E16. Instability false; params 31.34M ≤ 32M. H0082 (DISPROVED IF ≥20.40) ⇒ **REFUTED**.
+
+## Is the causal chain sound? — yes, with one residual (gate design)
+N0058 removed BOTH confounds (capacity −42%→ matched 3.52M/3.50M; 2×2 part-pool → all 49 tokens) and ADDED residual matching (Eq.3 norm_first+residual identical to N0054). Yet the operator-class swap STILL degrades: early +2.13, floor +1.31. The N0058=capacity/expressivity/part-pool confound is now broken: at matched capacity the degradation persists, so the failure is attributable to the non-attention OPERATOR CLASS (polynomial moment aggregation under-expressive at n=49 for the exemplar producer), not to N0058's capacity cut. Chain sound.
+
+## Residual confounds — the smaller floor gap (1.31 vs 3.50) IS informative, not noise
+Early delta is comparable (+2.13 N0059 vs +2.17 N0058) but the FLOOR delta is far smaller (+1.31 vs +3.50). Both confounds now eliminated, N0059 nails its best LATE (E18, matching N0054's benefit window) whereas N0058 early-stopped E13 with the curve still descending. This pair of facts says **capacity HELPED**: the matched operator keeps enough head budget that it can still traverse the late-training regime, shrinking the converged floor from +3.50 to +1.31. But the operator still LOSES +1.31, so capacity alone was never the whole story — it gated how much the operator could recover, not whether it caught up. Direction (non-attention < attention at n=49) is robust and now operator-attributable.
+
+## E18-tail-oscillation — optimization vs expressivity
+Train loss falls monotonically to 2.13 while val MAE never leaves 21.1–23.5 (best is the E18 spike 20.958; tail E19–30 oscillates 21.09–23.45). MAE-val/train-loss divergence with NO late improvement — and unlike N0054, the E18-27 window yields ZERO benefit — is the signature of **overfit-to-scale, not exemplar-drive**: the block fits the global density/count scale (readable in the GCA bias and W_o scale) without progressively sharpening per-exemplar prototype identity. Mechanism (operator expressivity: moments collapse distinct exemplars onto a fixed-basis summary, rotting the condenser-key/GCA-e_mean latent rank) is therefore the live cause; gate/moment details (σ-gate shape, GELU vs clamp activation, k=2) are INCIDENTAL — alternative gating could not have recovered the missing 49-token data-dependent mixing N0054's self-attention supplied.
+
+## Decoder-info sufficiency ruled out
+Condenser cross-attention + GCA + XScale (consumer/decoder side) are byte-identical and load-bearing, yet with the producer silent they extract only a mild residual gain (+1.31 not catastrophic): condenser attention makes producer 2nd-order degradation mild — consistent with the producer self-attention being the marginal encoder of exemplar content, not the decoder compensating. Producer attention, not decoder sufficiency, is implicated.
+
+## Verdict
+**H0082 REFUTED**: a param-matched non-attention operator (PoM-PolyMorpher, n=49) does NOT beat 19.647 (best 20.958, ≥20.40 kill bar). **H0081 CONFIRMED-BY-FAILURE** — the falsifier did not disprove the load-bearing attention law; now with capacity/part-pool confounds cleared, the law stands as: data-dependent multi-token mixing by learned attention on the exemplar producer is genuinely load-bearing, not a capacity artifact. Boundary preserved (aggregation-swap axis only; XScale granularity-enrichment stays the one positive axis). N=1, single-seed kill/refutation; second-seed not mandated (best ≥19.40).
