@@ -1,0 +1,34 @@
+{
+  "node": "N0061_countnorm",
+  "parent": "N0054_xscale_exemplar",
+  "novel": true,
+  "stage1_best_sim": 0.383,
+  "verdict": "stage-1 REVIEW (0.383 < 0.55); stage-2 structural judge: NOVEL — distinct design principle (multiplicative count-consistency autoscale on the final density) vs all top matches.",
+  "most_similar_to": [
+    {
+      "node": "N0037_ppc_head",
+      "why": "Stage-1 top match (0.383) and the closest structural relative: N0037 is the factorized N.p decomposition (shape branch softplus+sum-1 normalized, independent softplus count branch, density = N_hat . p_hat) — i.e., EXACTLY variant (i). It pre-registered as H0053 and FAILED (20.99, +0.5) in the frozen regime. N0061 is the deliberately NON-factorized alternative the brief calls variant (ii): it does NOT re-architect the DensityDecoder into shape+count branches and does NOT normalize a shape field; it applies a per-image scalar log-link factor exp(z) (identity-at-init, z=0 at ep0) to the intact champion output, so the count is COUPLED to the champion's own current total (n_hat = s.exp(z), a residual count-consistency autoscale) rather than an independent absolute count, and OFF is bit-identical N0054. And it is a single-switch bolt-on reading only GAP(fine)+e_mean (N0037 rewired the decoder internals and could not ablate against the champion)."
+    },
+    {
+      "node": "N0053_rga_aux",
+      "why": "Same shared-interface aux family (GAP(fine)+e_mean) and same tail motivation (RMSE-dominated N>=500 images), but RGA injects a REGIONAL ADDITIVE bias (4x4 grid, 0.02 . n_rga/region_area) and is closed-negative (21.450). N0061 is the antipode: purely MULTIPLICATIVE, purely GLOBAL (one scalar per image), zero spatial structure — it cannot be an RGA-retry. The distinction additive-vs-multiplicative on the readout is the brief's core premise (GCA/RGA additive absolute offsets cannot fix the tail's RELATIVE scale error)."
+    },
+    {
+      "node": "N0041_exemplar_count",
+      "why": "Also a 'count-branch' proposal, but N0041 predicts PER-EXEMPLAR counts via a learned attention ROI over fine and sums K of them (density demoted to secondary output). N0061 reads ONE non-spatial count from GAP(fine)+e_mean (no per-exemplar attention, no spatial routing), keeps density as the sole supervised output, and never changes what the exemplar/condenser path produces."
+    },
+    {
+      "node": "N0029_loghead",
+      "why": "Cousin in log-space readout: N0029 reparameterized the DECODER to exp() in linear density space (monotone field reparametrization, learn magnitude vs absolute). Distinct in kind: N0061 does not change the density nonlinearity at all — the champion field is produced identically and only rescaled by a per-image count-consistency factor in log link space, with the ENGINE's MSE flowing through the multiplication (no separate log-mse target, no target reparametrization)."
+    }
+  ],
+  "shared_principles": [
+    "Frozen N0054 champion scope; single switch use_countnorm; use_countnorm=False restores the exact N0054 path (31.32M / 3.505M trainable) — bit-identical OFF is a hard requirement.",
+    "Reads ONLY the two shared interfaces the pluggable trunk exposes (GAP(fine) (B,128) + e_mean (B,256), exactly the GCA/RGA interface, model.py:143,157); no coupling between components (ss5.14); fused prototype/condenser/exemplar producer/GCA additive path all untouched.",
+    "Engine-compatible: only out['density'] feeds the loss; the count branch is trained implicitly through the multiplication (density MSE) plus the engine's existing w_cnt.L1(sum(out),gt_c).",
+    "Tail-attack motivation: N0025 shows 76% of SSE in 17/83 images with N>=500 (RMSE 74 vs MAE 19.6); N0026 shows tail error falls monotonically with resolution — a relative/scale count error, not an offset.",
+    "Closed-negatives respected: no RGA spatial grid, no fine-scale exemplar entropy, no prototype cardinality/key-split, no consumer/producer operator swap, no 2nd ROI coarse summary.",
+    "Standard pre-registered CONFIRM/WEAK-KEEP/FAIL ladder vs parent 19.647, +1.5 early-stop bar, 2nd-seed rule below 19.40, DISPROVED >20.4."
+  ],
+  "new_contribution": "The first MULTIPLICATIVE count-consistency readout on the frozen champion, as the count-side complement to GCA's ADDITIVE bias (offset vs scale): a per-image log-link factor n_hat = s.exp(z) read from GAP(fine)+e_mean rescales the final density (density * n_hat/sum(density)) so the engine's density MSE decomposes into unit-mass-shape x count (out = n_hat . D) and becomes count-weighted per image, steering gradient away from the raw-count-squared RMSE tail while the count residual is penalized in variance-stabilized log/L1 space with C-independent curvature. Structurally it is distinct from every prior count-aux: vs RGA (no spatial grid bias), vs GCA (multiplicative global scale, not additive global offset), vs N0037 PPC (no decoder re-architecture, no independent normalized shape field, identity-at-init, bit-identical OFF, ablative against the champion), vs N0041 (no per-exemplar spatial count), vs N0029 (no decoder nonlinearity change, no target reparametrization). It is also the first frozen-regime test of P1's count-weighted-MSE mechanism as a pure output-side autoscale."
+}

@@ -6,12 +6,11 @@
 ## Champion (frozen regime, UNCHANGED)
 **N0054_xscale_exemplar** (GCA + XScale) val MAE **19.647** / RMSE 74.05 · 31.32M · LOCKED. AdamW 1e-3, wd0.05, cosine, bs16, AMP, 30ep @384.
 
-## Today: 3 nodes closed (all NEGATIVE) — exemplar aggregation coarse-summary axis FULLY MAPPED
-**N0058_pompart_exemplar** — producer PMOM (2×2 part-pool + polynomial moments), early-stopped E15. best 23.151 = +2.17 same-ep / +3.50 floor. Confound: −42% cap + part-pool. H0080 refuted.
-
-**N0059_pom_morph** — producer PoM-PolyMorpher (capacity-matched, full 49 tokens, ParTY-excluded). best 20.958 = +1.31 floor / +2.13 same-ep. KILL. H0082 refuted; H0081 strengthened (0.5→0.59, load-bearing producer attention capacity-independent).
-
-**N0060_xscale_max** — H0084: 2nd coarse MAX-order-statistic summary on the SAME fused prototype beside mean-XScale. best **22.886 = +3.24 floor**, final 23.010, RMSE +11. FAIL. H0083/H0084 refuted; refined negative **H0085**: coarse-summary slot is a SINGLE slider — exactly one additive coarse summary (mean-XScale) is positive; any 2nd ROI summary over the same spatial source is harmful/neutral.
+## Active node: N0061_countnorm (RUNNING, 30ep)
+**H0088 test — P1 count-normalized readout (variant ii).** CountNormHead: read GAP(fine)+e_mean → z=clamp(W2·GELU(W1[·]),−2,2), W2 zero-init → identity-at-init (f=1, forward==champion at ep0); `out.density = champion_density * exp(z)`. Count-weighted MSE steers gradient OUT of the RMSE-tail (17/83 N≥500 = 76% SSE). Single switch use_countnorm (False = exact champion bit-identical; verified 0.000 diff). +24,705 params → head 3.53M / total 31.35M.
+**Research brief (2026 SOTA)**: FSC147 now CoDi 5.81 (diffusion) / GeCo2 9.38 (detection) — unportable (huge fine-tuned backbones). Only portable frozen-lever = readout/target shape + tail + kernel σ.
+**H0088** IF density re-scaled by count-consistency factor density·n_hat/sum(density) with n_hat from shared-interface count trunk IN frozen N0054 THEN MAE < 19.647 BECAUSE count-weighted MSE shrinks the RMSE-tail without spatial/ROI/operator change. DISPROVED IF > 20.4.
+**Gates**: CONFIRM <19.45 (2nd seed if <19.40) · WEAK-KEEP 19.45–20.0 · FAIL >20.0; early-stop ep16+ ≥+1.5.
 
 ## Frozen-regime exemplar axis table (30ep @384) — FULLY MAPPED
 | Node | Axis | Delta |
@@ -24,12 +23,12 @@
 | N0059 PoM-Morph | producer swap (matched, full-token) | +1.31 floor / +2.13 same-ep |
 | N0060 XScale-MAX | 2nd coarse MAX on SAME ROI | **+3.24** |
 
-**Refined law**: EVERY second summary of the same spatial source (mean/max/grid/part-pool: N0055/56/60) AND every attention/operator swap (N0057/58/59) is NEGATIVE. The exemplar coarse-summary/aggregation axis is fully mapped with exactly ONE positive: champion mean-XScale (+0.95). Producer+consumer attention is load-bearing (H0081 0.59). The frozen-regime head is essentially near-converged; champion-faithful progress must change the INTERFACE (aux on frozen backbone features / regime/extent change), not add parallel projectors onto the same prototype.
+**Refined law**: every 2nd spatial summary + every operator swap + cardinality/fine-entropy all NEGATIVE (H0085 booked). Exemplar coarse-summary/aggregation axis fully mapped with ONE positive (mean-XScale +0.95). Moving forward: readout/tail-count direction (N0061) NOT on exemplar slot. Producer+consumer attention load-bearing (H0081 0.59).
 
 ## Server gotchas
 - run_node.sh `git pull` hangs server-side: launch tmux directly (export PATH=/data/miniconda/bin). tmux libtinfo warning non-fatal. python /data/miniconda/envs/cac/bin/python; HF /data/asset/hf + hf-mirror. Sync via scp; `local/` gitignored (best.pth in local/feedback_src_N00{58,59,60}/).
 
 ## Queue
-1. ✅ N0058, N0059, N0060 full cycles closed (idea→code→smoke→run→feedback×4→synthesis→calibration→ledger→tree flip). Ledger 47 lines: H0080/82/84/83 refuted, H0083/84, H0085 booked, H0081 0.59. Index 22 hyps.
-2. Next: exemplar coarse-summary & aggregation axes closed. Recommend a new interface direction (e.g. shared-interface aux on frozen backbone features, or regime/extent change) — do NOT retry ROI spatial summaries or operator swaps.
-3. Remaining: commit & push session close.
+1. ✅ N0058-60 closed + N0061: research brief→idea(finalize, variant-ii chosen)→novelty(0.383)→code→local smoke (identity-at-init 0.000)→server smoke GREEN→launched.
+2. Poll curve vs N0054; apply CONFIRM/WEAK/FAIL; 2nd seed if <19.40.
+3. Feedback×4 + Diagnostic + synthesis + calibration + H0088 ledger + tree flip + commit/push.
