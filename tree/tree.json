@@ -506,7 +506,8 @@
     "N0058_pompart_exemplar",
     "N0059_pom_morph",
     "N0060_xscale_max",
-    "N0061_countnorm"
+    "N0061_countnorm",
+    "N0062_fine_decoder"
    ],
    "status": "done",
    "best_metric": 19.647,
@@ -612,6 +613,19 @@
     "H0088"
    ],
    "final_metric": 23.718
+  },
+  "N0062_fine_decoder": {
+   "parent": "N0054_xscale_exemplar",
+   "children": [],
+   "status": "proposed",
+   "best_metric": null,
+   "train_seconds": null,
+   "quality": null,
+   "avail": null,
+   "score": null,
+   "tested_hypotheses": [
+    "H0090"
+   ]
   }
  }
 }

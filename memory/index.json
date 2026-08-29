@@ -490,6 +490,26 @@
         "N0061"
       ],
       "log": []
+    },
+    "H0090": {
+      "text": "IF [a frozen native-1/4 backbone feature h1 is injected as extra input channels to the DensityDecoder (receiver-resolution enrichment, exemplar/condenser/GCA/attention untouched)] IN [frozen N0054, 30ep @384, no engine change] THEN [val MAE < 19.647] BECAUSE [the dense-image tail (76% SSE in 17 imgs N>=500) fails by cell-quantization mass loss from reading only upsampled-from-1/8 fine; native 1/4 per-cell fidelity places peak mass correctly (N0026: tail error falls with resolution), and this decoder-RECEIVER axis is orthogonal to N0056 exemplar-aggregation entropy and RGA output-bias]. DISPROVED IF best val MAE > 20.4.",
+      "confidence": 0.5,
+      "n_tested": 0,
+      "status": "uncertain",
+      "tags": [
+        "frozen",
+        "decoder-resolution",
+        "native-1/4",
+        "N0062"
+      ],
+      "log": [
+        {
+          "source_node": "N0062_fine_decoder",
+          "evidence_type": "run",
+          "strength": 1.0,
+          "reasoning": "N0062 launches as executable test of H0090: native-1/4 h1 injector 96->8 + GN into DensityDecoder input (in_ch 192->200, +19k params), exemplar/condenser/GCA/attention untouched, use_fine_decoder=Fals"
+        }
+      ]
     }
   }
 }
