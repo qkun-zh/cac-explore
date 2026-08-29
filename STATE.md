@@ -1,43 +1,29 @@
-# STATE — Session 2026-08-28 (Lead=qkun-local)
+# STATE — Session 2026-08-29 (Lead=qkun-local)
 
-**Mode**: 用户指导模式 (User-Guided)
-**Preflight**: git init-sync ok · creds ROTATED (port 52331, new host) → re-ran `python3 scripts/install_key.py` · SERVER_OK
-**Cleanup (session start)**: purged junk (OIR log, PROBE_dual_topo, G001, N0050, N0039_upcount_lite) out of `tree/nodes/` → archives; remote `tree/nodes` shrunk 59→30 (matches local); `/data/runs` pruned to active lineage + archive_2026-08-28.
+**Mode**: Free-Research (autonomous; user: "你是自主模式，不必请求我的意见")
+**Preflight**: creds ROTATED (port 44387, new host gxkkqyad0izmmwnlsnow.deepln.com) → reran `python3 scripts/install_key.py` → SERVER_OK. git up to date. Server python/HF/tmux gotchas below unchanged.
 
-## Champion (frozen regime)
+## Session directive (new generation)
+Combine the two papers' pluggable attention/module designs into the frozen N0054 champion:
+- **PoM** (arXiv:2604.06129, CVPR-F'26): polynomial mixer — `H=[Σ_p α_p ⊙ h(W_h X)^p]·1` + gate `σ(W_s X)⊙H`; linear, permutation-equivariant, contextual-mapping. D=2d,k=2 enough; **hybrids (attention+PoM) best**.
+- **ParTY** (arXiv:2603.09611, CVPR'26): part-guidance — separate part tokens → fused Part-Guidance conditions the holistic branch; part-aware gating; holistic-part cross-attn fusion.
 
-**N0054_xscale_exemplar** (GCA + **XScale**, frozen DINOv3-ConvNeXt-Tiny) — **LOCKED DELIVERABLE**
-- val MAE **19.647** / RMSE 74.05 · 31.32M total / ~3.4M trainable · 30ep @384 · fixed recipe (AdamW 1e-3, wd0.05, cosine, bs16, AMP)
-- XScale = multi-scale (coarse+fine) ROI pooling → per-exemplar global summary additively fused into exemplar token pre-Condenser; ~0.1M. First pluggable part to BEAT GCA-only.
-- Config: use_gca=True · use_ddca=False · use_xscale=True · xscale_size=3
-- Confirmed optimum of the exemplar interface (see lineage): GCA-only, XScale, nothing else.
+**Lead integration decision (3 parallel lens idea agents)**: counter-intuitive (a)-KV-hybrid rejected (semantics collapse to global mean — fails the exemplar interface), (b) bias rejected (query-side modulation = SALF/FILM family), (d) gap² into GCA weak. Champion-lineage PMOM accepted: change ONLY the exemplar **aggregation operator** (→**not** the info-add axis N0055/N0056, **not** the consumer-swap axis N0057).
 
-## Frozen-lineage record (what beat what, 30ep @384)
+## Champion (frozen regime, UNCHANGED)
+**N0054_xscale_exemplar** (GCA + XScale) val MAE **19.647** / RMSE 74.05 · 31.32M · LOCKED DELIVERABLE. Recipe: AdamW 1e-3, wd0.05, cosine, bs16, AMP, 30ep @384, MSE+SmoothL1, augment. use_gca=True, use_ddca=False, use_xscale=True, xscale_size=3.
 
-| Node | Config | MAE | Verdict |
-|---|---|---|---|
-| N0054 | GCA+XScale | **19.647** | ✅ CHAMPION (LOCKED) |
-| N0055 | GCA+XScale+XKey (separate 2nd key) | 20.835 | ❌ exemplar-enrich hurts (+1.19) |
-| N0051 | GCA-only | 20.599 | GCA genuine (~1.6) |
-| N0053 | GCA+RGA (reg count aux) | 21.450 | ❌ density-bias aux hurts |
-| N0056 | GCA+XScale+XFine (fused h2) | 24.313 (ES@17) | ❌ exemplar-enrich hurts (+3.06) |
-| N0057 | GCA+XScale+Matcher (REPLACEMENT) | 21.076 | ❌ condenser cross-attn load-bearing (+1.43) |
-| N0052 | GCA+DDCA (refactor) | 22.410 | ❌ DDCA harmful (+1.8, drop) |
-| N0036 | GCA+DDCA (orig) | 20.49 | non-reproducible seed |
+## Active node
+**N0058_pompart_exemplar** (parent N0054, launched): PMOM = 2×2 part-pool → 2nd-order polynomial moments `m=[h;h²]` → learned part-gate softmax → moment_proj → single fused prototype (B,K,256) preserved; condenser MHA, XScale, GCA untouched. Novelty GATE passed (0.264, stage-2 NOVEL — swap-producer vs N0057 swap-consumer). H0080. smoke GREEN (real backbone): use_pmom=True 29.86M / trainable 2.04M; use_pmom=False 31.32M/3.50M (exact N0054 → single-switch proven). Train E1 32.484 @101s/ep.
 
-**Lesson (locked, fully triangulated)**: N0054 is the frozen-backbone optimum. All add-ons (DDCA, RGA, SALF, FILM, cross-attn, MoE, bg-token, XScale-Key, XFine) degrade; the one cleaner replacement (cosine-sim matcher) ALSO degrades — the learned cross-attn condenser is load-bearing. The exemplar-embedding interface + condenser attention form a tightly-matched pair under frozen 30ep. Structural head innovation exhausted in this regime.
+**H0080 barrier**: CONFIRM best val MAE < 19.647 · WEAK-KEEP ≤20.0 · KILL ≥20.4 or ep16+ train ≥ +1.5 over 19.647 (i.e. ≥21.147).
 
 ## Server gotchas
+- tmux at `/data/miniconda/bin/tmux` (libtinfo warning non-fatal) — export PATH inside command.
+- python `/data/miniconda/envs/cac/bin/python`; HF cache `/data/asset/hf` + `HF_ENDPOINT=https://hf-mirror.com`.
+- Remote sync via `scp` (git pull flaky). `/data/runs` hygiene: keep lineage, archive stale.
 
-- tmux at `/data/miniconda/bin/tmux` (libtinfo warning non-fatal) — launch via tmux not run_node.sh (bare tmux not on PATH)
-- python `/data/miniconda/envs/cac/bin/python`; HF cache `/data/asset/hf` + `HF_ENDPOINT=https://hf-mirror.com`
-- Remote sync via `scp` (never `git pull`) — proxy fails / untracked conflict
-- `/data/runs` hygiene: keep active lineage, archive stale (see AGENTS §7)
-
-## Queue (today)
-
-1. ✅ **N0054 locked as deliverable (19.647).** Both exemplar-enrichment challengers refuted:
-   N0055 XScale-Key (separate 2nd key) 20.835 (+1.19), N0056 XFine (fused h2) 24.313 ES@17 (+3.06).
-   No further exemplar-side step is justified by evidence; the interface is exhausted at N0054.
-2. ✅ Re-verified N0054 best.pth intact on server at `/data/runs/N0054_xscale_exemplar/best.pth`.
-3. Remaining: final calibration table in latest synthesis mark; commit & push; session close.
+## Queue
+1. ✅ N0058 novelty gate + smoke green (29.86M/2.04M, single-switch exact).
+2. 🔄 N0058 training running (~50min @30ep). Poll single ssh; early-stop bar 21.147 @ep16+.
+3. ⏸ On done: feedback ×3 + synthesis + calibration table + journal + commit.
