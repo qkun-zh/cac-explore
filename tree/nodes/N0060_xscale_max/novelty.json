@@ -1,0 +1,27 @@
+{
+  "node": "N0060_xscale_max",
+  "parent": "N0054_xscale_exemplar",
+  "novel": true,
+  "stage1_best_sim": 0.498,
+  "most_similar_to": [
+    {
+      "node": "hypothesis:H0083",
+      "why": "Stage-1 top match (0.498) is expected: N0060 is the EXECUTABLE TEST of booked hypothesis H0083 (add a second single-slot coarse XScale-style summary). Structural distinction: H0083 proposed generic 'additional GAP pooling granularity'; N0060 concretizes it as the MAX-order statistic (adaptive_max_pool2d) rather than a second MEAN (mean GAP), which the red-team showed is redundant (corr 0.85-0.97 with the existing XScale per-channel mean). N0060 also corrects H0084's false 'orthogonal to the 3x3 layout' premise to the true one: max is orthogonal to the mean as an ORDER statistic on the same coarse single-slot additive axis."
+    },
+    {
+      "node": "N0055_xscale_key",
+      "why": "Same module scope + same positive-axis family (coarse summary on exemplar prototype). N0055 FAILED by splitting prototype cardinality (2K condenser keys, +1.19). N0060 deliberately stays at SINGLE fused prototype cardinality (additive into the same (B,K,256)), explicitly not reproducing N0055."
+    },
+    {
+      "node": "N0056_xfine_exemplar",
+      "why": "N0056 FAILED by adding fine-space entropy (extra fine backbone scale, +3.06). N0060 is the antipode: a maximally-coarse single scalar per channel (max over the already-aligned 7x7 ROI), no new feature map, no fine scale. The single-coarse-additive axis is the only positive one."
+    }
+  ],
+  "shared_principles": [
+    "Scope is the exemplar-embedding interface on the frozen champion; single-switch use_* hook; use_hxscale=False restores the exact N0054 path (31.32M/3.505M).",
+    "Coarse, single-slot, ADDITIVE granularity summary — the only empirically positive frozen axis (N0054 XScale +0.95).",
+    "Never grow prototype cardinality (N0055) or add fine-scale entropy (N0056); attention paths (producer self-attn + load-bearing condenser cross-attn) untouched.",
+    "Pre-registered CONFIRM/WEAK-KEEP/FAIL ladder with the standard +1.5 early-stop bar and 2nd-seed rule for a new-champion claim."
+  ],
+  "new_contribution": "The first test of the ONLY positive frozen axis with a genuinely orthogonal statistic: a coarse MAX-order-statistic summary (adaptive_max_pool2d over the already-computed 7x7 ROI, zero extra FLOPs) added to the same fused prototype, alongside the retained mean XScale. Where the N0059/N0058/N0057 aggregation-swap/closed-axis work closed the operator direction, N0060 probes whether the positive single-coarse-additive axis has remaining headroom (CONFIRM) or is saturated (WEAK-KEEP tie) — and corrects H0084's mechanism from the false '3x3 layout orthogonality' to the correct 'mean-vs-max order-statistic orthogonality.' Uses the existing roi tensor (model.py:82) so the additive branch is pure parameter (98,560) with no new forward computation."
+}

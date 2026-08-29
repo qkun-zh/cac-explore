@@ -504,7 +504,8 @@
     "N0056_xfine_exemplar",
     "N0057_cond_matcher",
     "N0058_pompart_exemplar",
-    "N0059_pom_morph"
+    "N0059_pom_morph",
+    "N0060_xscale_max"
    ],
    "status": "done",
    "best_metric": 19.647,
@@ -581,6 +582,19 @@
     "H0082"
    ],
    "final_metric": 21.415
+  },
+  "N0060_xscale_max": {
+   "parent": "N0054_xscale_exemplar",
+   "children": [],
+   "status": "proposed",
+   "best_metric": null,
+   "train_seconds": null,
+   "quality": null,
+   "avail": null,
+   "score": null,
+   "tested_hypotheses": [
+    "H0084"
+   ]
   }
  }
 }
