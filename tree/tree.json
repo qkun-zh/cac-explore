@@ -617,15 +617,16 @@
   "N0062_fine_decoder": {
    "parent": "N0054_xscale_exemplar",
    "children": [],
-   "status": "proposed",
-   "best_metric": null,
-   "train_seconds": null,
-   "quality": null,
+   "status": "success",
+   "best_metric": 21.323,
+   "train_seconds": 1745,
+   "quality": "fail",
    "avail": null,
    "score": null,
    "tested_hypotheses": [
     "H0090"
-   ]
+   ],
+   "final_metric": 22.298
   }
  }
 }

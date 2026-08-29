@@ -508,6 +508,12 @@
           "evidence_type": "run",
           "strength": 1.0,
           "reasoning": "N0062 launches as executable test of H0090: native-1/4 h1 injector 96->8 + GN into DensityDecoder input (in_ch 192->200, +19k params), exemplar/condenser/GCA/attention untouched, use_fine_decoder=Fals"
+        },
+        {
+          "source_node": "N0062_fine_decoder",
+          "evidence_type": "refutes",
+          "strength": 1.0,
+          "reasoning": "N0062 clean 30/30ep, params 31.34M, single switch use_fine_decoder: best 21.323 @E17 / final 22.298, floor +1.676 vs champion 19.647 (RMSE 75.96 vs 74.05); FAIL gate >20.0 fired (early-stop E19 +3.66)"
         }
       ]
     }
