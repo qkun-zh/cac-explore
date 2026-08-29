@@ -6,28 +6,30 @@
 ## Champion (frozen regime, UNCHANGED)
 **N0054_xscale_exemplar** (GCA + XScale) val MAE **19.647** / RMSE 74.05 · 31.32M · LOCKED. AdamW 1e-3, wd0.05, cosine, bs16, AMP, 30ep @384.
 
-## Active node: N0060_xscale_max (RUNNING, 30ep)
-**H0084 test — the ONLY positive axis.** Add coarse MAX-order-statistic summary (adaptive_max_pool2d over already-aligned 7×7 ROI → xproj→256 → additive onto the SAME fused prototype) beside the retained mean XScale. Producer self-attn + condenser cross-attn + GCA untouched. Red-team corrected H0083: a 2nd global MEAN is redundant (corr 0.85–0.97 with XScale per-channel mean → tie); MAX is an order statistic near-orthogonal under heavy-tailed ConvNeXt, catches peak/foreground signal. Single switch use_xscale_max (False = exact champion bit-identical). Params +98,560 → head 3.60M / total 31.42M.
-**H0084** IF coarse MAX-order-statistic summary added additively to fused prototype alongside mean XScale IN frozen champion THEN val MAE < 19.647 BECAUSE max is order-statistic-orthogonal to the mean, supplying peak/foreground signal, without N0055 cardinality or N0056 fine entropy. DISPROVED IF best > 20.0.
-**Gates**: CONFIRM <19.45 (2nd seed if first <19.40) · WEAK-KEEP 19.45–20.0 (axis saturated/informative tie, NOT a kill) · FAIL >20.0.
-Launched ~19:0x tmux node_N0060_xscale_max (direct, run_node.sh git-pull hangs).
+## Today: 3 nodes closed (all NEGATIVE) — exemplar aggregation coarse-summary axis FULLY MAPPED
+**N0058_pompart_exemplar** — producer PMOM (2×2 part-pool + polynomial moments), early-stopped E15. best 23.151 = +2.17 same-ep / +3.50 floor. Confound: −42% cap + part-pool. H0080 refuted.
 
-## Frozen-regime NEGATIVE table (30ep @384); N0059 cleared confounds
+**N0059_pom_morph** — producer PoM-PolyMorpher (capacity-matched, full 49 tokens, ParTY-excluded). best 20.958 = +1.31 floor / +2.13 same-ep. KILL. H0082 refuted; H0081 strengthened (0.5→0.59, load-bearing producer attention capacity-independent).
+
+**N0060_xscale_max** — H0084: 2nd coarse MAX-order-statistic summary on the SAME fused prototype beside mean-XScale. best **22.886 = +3.24 floor**, final 23.010, RMSE +11. FAIL. H0083/H0084 refuted; refined negative **H0085**: coarse-summary slot is a SINGLE slider — exactly one additive coarse summary (mean-XScale) is positive; any 2nd ROI summary over the same spatial source is harmful/neutral.
+
+## Frozen-regime exemplar axis table (30ep @384) — FULLY MAPPED
 | Node | Axis | Delta |
 |---|---|---|
 | N0054 GCA+XScale | — | **19.647 CHAMPION** |
 | N0055 XScale-Key | info-add 2K keys | +1.19 |
-| N0056 XFine | info-add extra scale | +3.06 |
+| N0056 XFine | info-add extra fine scale | +3.06 |
 | N0057 cond-matcher | consumer swap | +1.43 |
 | N0058 PMOM | producer swap (part-pool+−42%cap) | +2.17 same-ep / +3.50 floor |
 | N0059 PoM-Morph | producer swap (matched, full-token) | +1.31 floor / +2.13 same-ep |
+| N0060 XScale-MAX | 2nd coarse MAX on SAME ROI | **+3.24** |
 
-**Refined law**: ALL aggregation axes negative (info-add, consumer swap, producer swap both confounded & matched). Self-attention on exemplar pathway is load-bearing, capacity-independent (H0081 0.5→0.59 via N0059). THE ONE positive axis = XScale-style coarse single-slot ADDITIVE granularity summary (XScale +0.95). N0060 now probes whether a 2nd order-statistic (MAX) on that axis has headroom (CONFIRM) or is saturated (WEAK-KEEP tie).
+**Refined law**: EVERY second summary of the same spatial source (mean/max/grid/part-pool: N0055/56/60) AND every attention/operator swap (N0057/58/59) is NEGATIVE. The exemplar coarse-summary/aggregation axis is fully mapped with exactly ONE positive: champion mean-XScale (+0.95). Producer+consumer attention is load-bearing (H0081 0.59). The frozen-regime head is essentially near-converged; champion-faithful progress must change the INTERFACE (aux on frozen backbone features / regime/extent change), not add parallel projectors onto the same prototype.
 
 ## Server gotchas
-- run_node.sh `git pull` hangs server-side: launch tmux directly (export PATH=/data/miniconda/bin). tmux libtinfo warning non-fatal. python /data/miniconda/envs/cac/bin/python; HF /data/asset/hf + hf-mirror. Sync via scp; `local/` gitignored.
+- run_node.sh `git pull` hangs server-side: launch tmux directly (export PATH=/data/miniconda/bin). tmux libtinfo warning non-fatal. python /data/miniconda/envs/cac/bin/python; HF /data/asset/hf + hf-mirror. Sync via scp; `local/` gitignored (best.pth in local/feedback_src_N00{58,59,60}/).
 
 ## Queue
-1. ✅ N0058 closed, N0059 closed, N0060: idea(finalize+red-team)+novelty(0.498)+code+local smoke+server smoke GREEN+launched.
-2. Poll curve vs N0054 same-epoch; apply CONFIRM/WEAK-KEEP/FAIL bands (2nd seed if <19.40).
-3. Feedback×4 + Diagnostic + synthesis + calibration + H0084 ledger + tree flip + commit/push.
+1. ✅ N0058, N0059, N0060 full cycles closed (idea→code→smoke→run→feedback×4→synthesis→calibration→ledger→tree flip). Ledger 47 lines: H0080/82/84/83 refuted, H0083/84, H0085 booked, H0081 0.59. Index 22 hyps.
+2. Next: exemplar coarse-summary & aggregation axes closed. Recommend a new interface direction (e.g. shared-interface aux on frozen backbone features, or regime/extent change) — do NOT retry ROI spatial summaries or operator swaps.
+3. Remaining: commit & push session close.

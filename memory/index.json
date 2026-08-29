@@ -398,6 +398,55 @@
         "granularity",
         "N0059"
       ],
+      "log": [
+        {
+          "source_node": "N0060_xscale_max",
+          "evidence_type": "run",
+          "strength": 1.0,
+          "reasoning": "N0060 launches as the executable test of H0083: a second single-slot coarse additive summary, concretized as the MAX-order statistic over the same already-aligned 7x7 ROI (mean-XScale retained), the o"
+        },
+        {
+          "source_node": "N0060_xscale_max",
+          "evidence_type": "refutes",
+          "strength": 1.0,
+          "reasoning": "N0060 clean 30/30ep: best 22.886 @E23, final 23.010, floor +3.24 vs N0054 19.647 (RMSE 85.11 vs 74.05). H0083's DISPROVED bar (>=19.65) beaten by +3.24; FAIL gate >20.0 fired. A second single-slot coa"
+        }
+      ]
+    },
+    "H0084": {
+      "text": "IF a coarse MAX-order-statistic summary (adaptive_max_pool2d over the already-aligned 7x7 ROI, xproj to 256, additive onto the SAME fused exemplar prototype alongside the retained mean XScale) is added IN the frozen N0054 champion (GCA+XScale, use_ddca=False, 30ep @384, producer/condenser/GCA untouched) THEN val MAE < 19.647 BECAUSE the single positive portable axis is coarse single-slot additive granularity; the max is an order statistic near-orthogonal to XScale's per-channel mean under heavy-tailed ConvNeXt activations, supplying peak/foreground signal a mean-only prototype lacks, violating neither N0055's cardinality nor N0056's fine entropy. DISPROVED IF best val MAE > 20.0.",
+      "confidence": 0.5,
+      "n_tested": 0,
+      "status": "uncertain",
+      "tags": [
+        "frozen",
+        "exemplar-agg",
+        "xscale",
+        "max-order-stat",
+        "N0060"
+      ],
+      "log": [
+        {
+          "source_node": "N0060_xscale_max",
+          "evidence_type": "refutes",
+          "strength": 1.0,
+          "reasoning": "N0060 clean 30/30ep, params 31.42M, single switch use_xscale_max: best 22.886 @E23 / final 23.010, floor +3.24 vs champion 19.647; FAIL gate (>20.0) fired decisively (+2.886 margin, ~3.3 sigma). RMSE "
+        }
+      ]
+    },
+    "H0085": {
+      "text": "IF a second additive coarse single-slot ROI summary of ANY statistic (mean / MAX / grid / part-pool) is fused into the same exemplar prototype beside the retained mean-XScale IN the frozen N0054 champion (GCA+XScale, 30ep @384) THEN best val MAE does NOT beat 19.647 (harms or neutral) BECAUSE the exemplar coarse-summary slot is a SINGLE slider: exactly one additive coarse summary (the mean-XScale, +0.95) is positive, a second summary over the same spatial source is redundant (2nd mean corr 0.85-0.97) or destructive (MAX N0060 +3.24 floor, part-pool N0058 +3.50 floor), and the axis is mapped negative elsewhere (N0055 +1.19, N0056 +3.06, N0057 +1.43, N0059 +1.31). DISPROVED IF a second coarse single-slot ROI summary over the same spatial source reaches best val MAE < 19.647.",
+      "confidence": 0.5,
+      "n_tested": 0,
+      "status": "uncertain",
+      "tags": [
+        "frozen",
+        "exemplar-agg",
+        "xscale",
+        "single-slider",
+        "axis-mapped",
+        "N0060"
+      ],
       "log": []
     }
   }
