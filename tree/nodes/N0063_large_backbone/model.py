@@ -36,6 +36,10 @@ class Backbone(nn.Module):
     @torch.no_grad()
     def forward_feature_map(self,x):
         if self.use_large:
+            # timm convnext_small expects ImageNet-normalized input; fsc147.py gives /255 in [0,1] — normalize here
+            mean=torch.tensor([0.485,0.456,0.406], device=x.device).view(1,3,1,1)
+            std=torch.tensor([0.229,0.224,0.225], device=x.device).view(1,3,1,1)
+            x=(x-mean)/std
             feats=self.net(x)
             return feats  # [h2 1/8 192, h3 1/16 384]
         else:
