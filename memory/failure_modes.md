@@ -39,3 +39,5 @@
 ## Subagent Reliability
 
 - Subagent task reports may claim commits/pushes that never happened: one Coding report cited "[main f0a2c11]" + double-push to a typo remote, but reflog showed those commits never existed in this repo. ALWAYS verify `git log --oneline -3` + `git status` after any subagent claims git writes; treat unverified reports as proposals only. (gen-4)
+- Engine default timeout `TAU_MAX_MIN=30` (30 minutes) silently kills long runs: N0065 128-epoch run was killed at E32. Set `TAU_MAX_MIN=2160` (36h) in env or patch default. After any timeout, verify `result.json` status="timeout" and resume from `best.pth`. (N0065)
+- Engine had no resume support: `best.pth` saved epoch+model but training always started from epoch 1. Patched `code/engine/train.py` to load checkpoint and set `start_ep = epoch+1` if checkpoint exists. (N0065)
