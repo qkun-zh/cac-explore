@@ -1,0 +1,47 @@
+# =============================================================================
+# baseline/config.toml — SINGLE SOURCE OF TRUTH for all settings.
+# Read by code/engine/train.py (load_cfg). Keys are FLAT to match the exact
+# names engine cfg.get(...) and model._get(cfg, ...) already use, so no model
+# code change is required. Reproducibility: set `seed` -> bit-identical reruns.
+# =============================================================================
+
+# --- reproducibility ---
+seed = 20260830
+deterministic = true
+notes = "Canonical consolidated baseline; see README.md for in/out component table. env: /data/miniconda/envs/cac, torch 2.10.0 cu128, py 3.12"
+
+# --- model / backbone ---
+hf_model = "facebook/dinov3-convnext-tiny-pretrain-lvd1689m"
+backbone_dims = [192, 384]
+input_size = 384
+embed_dim = 256
+exemplar_layers = 2
+roi_size = 7
+d_fine = 128
+cond_dim = 64
+gauss_sigma = 1.5
+use_gca = true
+use_ddca = false
+use_xscale = true
+xscale_size = 3
+
+# --- data ---
+data_root = "/data/dataset/FSC147"
+augment = true
+num_workers = 4
+
+# --- optimizer (AdamW) ---
+lr = 1.0e-3
+weight_decay = 0.05
+betas = [0.9, 0.999]
+
+# --- scheduler (CosineAnnealingLR) ---
+eta_min = 1.0e-6
+
+# --- training ---
+epochs = 30
+batch_size = 16
+amp = true
+max_params_M = 32
+loss_count_weight = 0.3
+smoke = false

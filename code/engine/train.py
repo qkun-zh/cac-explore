@@ -5,10 +5,30 @@ Usage:
   python code/engine/train.py --node_dir tree/nodes/N0001_x [--run_dir /data/runs/N0001_x]
   python code/engine/train.py --node_dir ... --smoke          # synthetic-data smoke, no dataset needed
 """
-import argparse, importlib.util, json, math, os, sys, time, traceback
+import argparse, importlib.util, json, math, os, random, sys, time, traceback
 
+import numpy as np
 import torch
 import torch.nn.functional as F
+
+
+def _set_seed(seed):
+    """Deterministically seed all RNG sources for reproducible runs."""
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
+
+def _worker_init_fn(seed):
+    def _init(worker_id):
+        random.seed(seed + worker_id)
+        np.random.seed(seed + worker_id)
+        torch.manual_seed(seed + worker_id)
+    return _init
 
 
 def load_module(path, name):
@@ -17,6 +37,33 @@ def load_module(path, name):
     sys.modules[name] = m
     spec.loader.exec_module(m)
     return m
+
+
+def load_cfg(node_dir, run_name):
+    """Load run config. Prefers config.toml (single source of truth for all
+    training/model settings); falls back to config.py for legacy nodes.
+    Returns a plain dict with two keys: 'cfg' (the merged settings) and 'paths'."""
+
+    def _toml_to_dict(t):
+        # flatten nested tables into dotted keys so model._get(cfg, k) works
+        out = {}
+        for k, v in t.items():
+            if isinstance(v, dict):
+                for kk, vv in v.items():
+                    out[f"{k}.{kk}"] = vv
+            else:
+                out[k] = v
+        return out
+
+    p_toml = os.path.join(node_dir, "config.toml")
+    p_py = os.path.join(node_dir, "config.py")
+    if os.path.isfile(p_toml):
+        import tomllib
+        with open(p_toml, "rb") as f:
+            t = tomllib.load(f)
+        return {"cfg": _toml_to_dict(t), "source": "config.toml"}
+    cfg_mod = load_module(p_py, f"{run_name}_config")
+    return {"cfg": dict(getattr(cfg_mod, "cfg")), "source": "config.py"}
 
 
 def _sigmoid_focal_loss(logits, targets, alpha=0.25, gamma=2.0):
@@ -143,8 +190,15 @@ def make_loaders(cfg, smoke):
     va = DS(root, size, "val")
     bs = int(cfg.get("batch_size", 8))
     nw = int(cfg.get("num_workers", 4))
-    return (DataLoader(tr, batch_size=bs, shuffle=True, num_workers=nw, collate_fn=collate, drop_last=True, pin_memory=True),
-            DataLoader(va, batch_size=bs, shuffle=False, num_workers=nw, collate_fn=collate, pin_memory=True), bs)
+    seed = cfg.get("seed")
+    dl_kw = dict(batch_size=bs, num_workers=nw, collate_fn=collate, pin_memory=True)
+    if seed is not None:
+        gen = torch.Generator()
+        gen.manual_seed(int(seed))
+        dl_kw["generator"] = gen
+        dl_kw["worker_init_fn"] = _worker_init_fn(int(seed))
+    return (DataLoader(tr, shuffle=True, drop_last=True, **dl_kw),
+            DataLoader(va, shuffle=False, **dl_kw), bs)
 
 
 def _call_model(model, imgs, bbox, bboxes3=None):
@@ -210,16 +264,21 @@ def main():
         print("RESULT " + json.dumps(r, ensure_ascii=False), flush=True)
 
     t_start = time.time()
-    cfg_mod = load_module(os.path.join(node_dir, "config.py"), f"{run_name}_config")
+    _cfg_load = load_cfg(node_dir, run_name)
     model_mod = load_module(os.path.join(node_dir, "model.py"), f"{run_name}_model")
-    cfg = dict(getattr(cfg_mod, "cfg"))
+    cfg = dict(_cfg_load["cfg"])
+    cfg["_config_source"] = _cfg_load["source"]
     cfg.setdefault("smoke", False)
     if args.smoke:
         cfg["smoke"] = True
     epochs = args.epochs or int(cfg.get("epochs", 10))
+    run_seed = cfg.get("seed")
+    if run_seed is not None:
+        _set_seed(int(run_seed))
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    torch.backends.cudnn.benchmark = True
+    if run_seed is None:
+        torch.backends.cudnn.benchmark = True
     use_amp = bool(cfg.get("amp", True)) and device.type == "cuda"
     try:
         model = model_mod.build_model(cfg).to(device)
@@ -253,10 +312,12 @@ def main():
         dl_hi = DataLoader(DSH(str(cfg.get("data_root", "/data/dataset/FSC147")), int(cfg.get("dual_res_size", 448)), "val"), batch_size=4, shuffle=False, num_workers=2, collate_fn=CH, pin_memory=True)
     if hasattr(model, 'param_groups'):
         optim = torch.optim.AdamW(model.param_groups(float(cfg.get("lr", 1e-3)),
-                                                    float(cfg.get("weight_decay", 1e-4))))
+                                                    float(cfg.get("weight_decay", 1e-4))),
+                                  betas=tuple(cfg.get("betas", (0.9, 0.999))))
     else:
         optim = torch.optim.AdamW(filter(lambda q: q.requires_grad, model.parameters()),
-                                  lr=float(cfg.get("lr", 1e-3)), weight_decay=float(cfg.get("weight_decay", 1e-4)))
+                                  lr=float(cfg.get("lr", 1e-3)), weight_decay=float(cfg.get("weight_decay", 1e-4)),
+                                  betas=tuple(cfg.get("betas", (0.9, 0.999))))
     sched = torch.optim.lr_scheduler.CosineAnnealingLR(optim, epochs, eta_min=float(cfg.get("eta_min", 1e-6)))
     scaler = torch.cuda.amp.GradScaler(enabled=use_amp)
     w_cnt = float(cfg.get("loss_count_weight", 0.3))
