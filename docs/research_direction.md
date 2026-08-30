@@ -27,7 +27,7 @@ Source: official package uploaded by the user via scp; same content as the HF mi
 
 ## Constraints
 
-- **Backbone**: pretrained from HF Hub or timm (`timm.create_model(name, pretrained=True)` / AutoModel); may be frozen or *partially fine-tuned* with differential LR (validated: DINOv2-S reg4 top blocks 10-11 @ lr×0.1 beats frozen 21.53→20.44, N0021). Backbone choice is itself an architectural decision recorded in idea.md; full-FT is refuted (EBC 48.4 collapse) — keep unfrozen scope narrow + lr low.
+- **Backbone**: pretrained from HF Hub or timm (`timm.create_model(name, pretrained=True)` / AutoModel); may be frozen or *partially fine-tuned* with differential LR (validated: DINOv2-S reg4 top blocks 10-11 @ lr×0.1 beats frozen 21.53→20.44, N0021; 2026-08-30 user directive explicitly allows mid-layer FT on DINOv3-ConvNeXt-Tiny stages 1-2 @ lr×0.1 and exploration of intermediate (hs 2/3) vs final (hs 4) readout). Backbone choice is itself an architectural decision recorded in idea.md; full-FT is refuted (EBC 48.4 collapse) — keep unfrozen scope narrow (middle layers only) + lr low. Intermediate features are hypothesized to be more suitable for counting than final-layer outputs (compare hs_map (2,3) vs (3,4)).
 - **Parameter budget**: ≤32M TOTAL including the backbone (memory footprint counts). Engine asserts `max_params_M` (default 32) over all params
 - Parameter budget and training-time cap live in each node's `config.py`; default wall clock ≤30 minutes
 - Single RTX 3060 12GB, AMP mixed precision

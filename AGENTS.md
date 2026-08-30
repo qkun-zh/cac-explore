@@ -3,7 +3,7 @@
 Implementation of [HypoExplore (arXiv:2604.12999)](https://arxiv.org/abs/2604.12999) adapted for FSC147 crowd counting. Deviations from the paper are explicit (§9), never silent.
 
 **Mission**: ≤32M total params · same-parameter-class SOTA MAE on FSC147 test.
-**Regime (since 2026-08-27)**: FROZEN backbone — innovation restricted to pluggable head parts (§5.14); the frozen backbone is non-negotiable. Optimizer/loss/schedule are fixed (AdamW 1e-3, wd0.05, cosine, bs16, AMP, 30ep, MSE(+SmoothL1)). Any proposal that needs to unfreeze or change the recipe is out of scope. See README for the current champion and empirical lessons.
+**Regime (since 2026-08-30, user directive)**: PARTIAL-FT backbone — middle layers (stages 1-2, hs_map 2/3) MAY be fine-tuned with differential LR (backbone 0.1× head). Innovation in pluggable head parts (§5.14) remains primary, but backbone mid-layer tuning is now in-scope to test intermediate-vs-final readout. Optimizer/loss/schedule are fixed (AdamW 1e-3 head / 1e-4 backbone, wd0.05, cosine, bs16, AMP, 30ep, MSE(+SmoothL1)). Unfreezing early stem (stage0) or all stages is out of scope. See README for champion and empirical lessons.
 
 **Engine contract (frozen)**: `config.py` → `cfg=dict(...)`; `model.py` → `build_model(cfg)` → `forward(imgs,bboxes[,bboxes3])` → `{"density", optional "n_aux"}`. Engine loss = MSE(dens,gt_d)+w_cnt·L1(sum(dens),gt_c); **only `out["density"]`** feeds the loss/gradients. Asserts `params ≤ max_params_M`.
 

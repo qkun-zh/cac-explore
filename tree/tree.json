@@ -1,660 +1,688 @@
 {
- "_meta": {
-  "description": "Trajectory tree",
-  "lambda_acc": 0.85,
-  "lambda_parent": 0.6,
-  "tau_max_min": 2160
- },
- "nodes": {
-  "R001_point_detect": {
-   "parent": null,
-   "children": [],
-   "status": "failed",
-   "best_metric": 52.568,
-   "train_seconds": 640,
-   "quality": null,
-   "avail": null,
-   "score": null,
-   "tested_hypotheses": [
-    "H0030"
-   ]
+  "_meta": {
+    "description": "Trajectory tree",
+    "lambda_acc": 0.85,
+    "lambda_parent": 0.6,
+    "tau_max_min": 2160
   },
-  "R002_density_verify": {
-   "parent": null,
-   "children": [],
-   "status": "proposed",
-   "best_metric": null,
-   "train_seconds": null,
-   "quality": null,
-   "avail": null,
-   "score": null,
-   "tested_hypotheses": []
-  },
-  "R003_scale_deform": {
-   "parent": null,
-   "children": [],
-   "status": "proposed",
-   "best_metric": null,
-   "train_seconds": null,
-   "quality": null,
-   "avail": null,
-   "score": null,
-   "tested_hypotheses": []
-  },
-  "R004_diffusion_loc": {
-   "parent": null,
-   "children": [],
-   "status": "proposed",
-   "best_metric": null,
-   "train_seconds": null,
-   "quality": null,
-   "avail": null,
-   "score": null,
-   "tested_hypotheses": []
-  },
-  "N0021_dino_fullft": {
-   "parent": null,
-   "children": [],
-   "status": "failed",
-   "best_metric": 48.4,
-   "train_seconds": 565,
-   "quality": null,
-   "avail": null,
-   "score": null,
-   "tested_hypotheses": [
-    "H0030"
-   ]
-  },
-  "N0022_dino_ebc_fullft": {
-   "parent": null,
-   "children": [],
-   "status": "done",
-   "best_metric": 21.708,
-   "train_seconds": 1449,
-   "quality": null,
-   "avail": null,
-   "score": null,
-   "tested_hypotheses": [
-    "H0029"
-   ]
-  },
-  "N0023_dino_hires_out": {
-   "parent": "N0010_dino_multilayer_long",
-   "children": [],
-   "status": "done",
-   "best_metric": 45.487,
-   "train_seconds": 357,
-   "tested_hypotheses": [
-    "H0031"
-   ],
-   "quality": null,
-   "avail": null,
-   "score": null
-  },
-  "N0021_dino_partialft": {
-   "parent": null,
-   "children": [],
-   "status": "done",
-   "best_metric": 20.438,
-   "train_seconds": 1441,
-   "quality": null,
-   "avail": null,
-   "score": null,
-   "tested_hypotheses": [
-    "H0032"
-   ]
-  },
-  "N0024_ebc_partialft": {
-   "parent": "N0022_dino_ebc_fullft",
-   "children": [],
-   "status": "failed",
-   "best_metric": null,
-   "train_seconds": null,
-   "quality": null,
-   "avail": null,
-   "score": null,
-   "tested_hypotheses": [
-    "H0032"
-   ]
-  },
-  "N0025_eval_readout": {
-   "parent": "N0021_dino_partialft",
-   "children": [],
-   "status": "done",
-   "best_metric": 20.441,
-   "train_seconds": 75,
-   "quality": null,
-   "avail": null,
-   "score": null,
-   "tested_hypotheses": [
-    "H0033",
-    "H0034"
-   ]
-  },
-  "N0026_res_sweep": {
-   "parent": "N0021_dino_partialft",
-   "children": [],
-   "status": "done",
-   "best_metric": 19.178,
-   "train_seconds": 420,
-   "quality": null,
-   "avail": null,
-   "score": null,
-   "tested_hypotheses": [
-    "H0035"
-   ]
-  },
-  "N0027_norm_flip_swa": {
-   "parent": "N0021_dino_partialft",
-   "children": [
-    "N0028_scb_multires"
-   ],
-   "status": "done",
-   "best_metric": 20.403,
-   "train_seconds": 1513,
-   "quality": null,
-   "avail": null,
-   "score": null,
-   "tested_hypotheses": [
-    "H0037",
-    "H0038",
-    "H0039"
-   ]
-  },
-  "N0028_scb_multires": {
-   "parent": "N0027_norm_flip_swa",
-   "children": [],
-   "status": "failed",
-   "best_metric": 48.414,
-   "train_seconds": 203,
-   "quality": null,
-   "avail": null,
-   "score": null,
-   "tested_hypotheses": [
-    "H0040",
-    "H0042"
-   ]
-  },
-  "N0029_loghead": {
-   "parent": "N0027_norm_flip_swa",
-   "children": [],
-   "status": "failed",
-   "best_metric": 20.753,
-   "train_seconds": 1219,
-   "quality": null,
-   "avail": null,
-   "score": null,
-   "tested_hypotheses": [
-    "H0043"
-   ]
-  },
-  "N0030_sizenorm": {
-   "parent": "N0027_norm_flip_swa",
-   "children": [],
-   "status": "failed",
-   "best_metric": null,
-   "train_seconds": 9,
-   "quality": null,
-   "avail": null,
-   "score": null,
-   "tested_hypotheses": [
-    "H0044"
-   ]
-  },
-  "N0031_composite_multires": {
-   "parent": "N0027_norm_flip_swa",
-   "children": [],
-   "status": "timeout",
-   "best_metric": 22.181,
-   "train_seconds": null,
-   "quality": null,
-   "avail": null,
-   "score": null,
-   "tested_hypotheses": [
-    "H0042"
-   ]
-  },
-  "N0032_dinov3_dual": {
-   "parent": "N0027_norm_flip_swa",
-   "children": [],
-   "status": "failed",
-   "best_metric": 63.539,
-   "train_seconds": null,
-   "quality": null,
-   "avail": null,
-   "score": null,
-   "tested_hypotheses": [
-    "H0045"
-   ]
-  },
-  "N0033_salf_moe_frozen": {
-   "parent": "N0026_res_sweep",
-   "children": [],
-   "status": "failed",
-   "best_metric": 24.317,
-   "train_seconds": 1116,
-   "quality": null,
-   "avail": null,
-   "score": null,
-   "tested_hypotheses": [
-    "H0049",
-    "H0050"
-   ]
-  },
-  "N0034_sha_frozen": {
-   "parent": "N0026_res_sweep",
-   "children": [],
-   "status": "failed",
-   "best_metric": 25.361,
-   "train_seconds": 614,
-   "quality": null,
-   "avail": null,
-   "score": null,
-   "tested_hypotheses": [
-    "H0051"
-   ]
-  },
-  "N0035_tail_reweight": {
-   "parent": "N0026_res_sweep",
-   "children": [],
-   "status": "timeout",
-   "best_metric": 22.692,
-   "train_seconds": 1826,
-   "quality": null,
-   "avail": null,
-   "score": null,
-   "tested_hypotheses": [
-    "H0052"
-   ]
-  },
-  "N0036_gca_ddca": {
-   "parent": "N0026_res_sweep",
-   "children": [
-    "N0051_gca_only",
-    "N0052_pluggable_trunk"
-   ],
-   "status": "done",
-   "best_metric": 20.491,
-   "train_seconds": 1730,
-   "quality": null,
-   "avail": null,
-   "score": null,
-   "tested_hypotheses": [
-    "H0057",
-    "H0058"
-   ]
-  },
-  "N0037_ppc_head": {
-   "parent": "N0026_res_sweep",
-   "children": [],
-   "status": "done",
-   "best_metric": 20.993,
-   "train_seconds": 1359,
-   "quality": null,
-   "avail": null,
-   "score": null,
-   "tested_hypotheses": [
-    "H0053"
-   ]
-  },
-  "N0038_rl_psf": {
-   "parent": "N0026_res_sweep",
-   "children": [],
-   "status": "failed",
-   "best_metric": 6324.542,
-   "train_seconds": 118,
-   "quality": 0,
-   "avail": 0,
-   "score": 0,
-   "tested_hypotheses": [
-    "H0055"
-   ]
-  },
-  "N0039_exemplar_attn": {
-   "parent": "N0036_gca_ddca",
-   "children": [],
-   "status": "failed",
-   "best_metric": 23.075,
-   "train_seconds": 966,
-   "quality": 0,
-   "avail": null,
-   "score": null,
-   "tested_hypotheses": [
-    "H0059"
-   ]
-  },
-  "N0040_film_recal": {
-   "parent": "N0036_gca_ddca",
-   "children": [],
-   "status": "failed",
-   "best_metric": 22.108,
-   "train_seconds": 952,
-   "quality": 0,
-   "avail": null,
-   "score": null,
-   "tested_hypotheses": [
-    "H0060"
-   ]
-  },
-  "N0041_exemplar_count": {
-   "parent": "N0026_res_sweep",
-   "children": [],
-   "status": "failed",
-   "best_metric": 24.06,
-   "train_seconds": 964,
-   "quality": 0,
-   "avail": null,
-   "score": null,
-   "tested_hypotheses": [
-    "H0061"
-   ]
-  },
-  "N0042_mutual_bg": {
-   "parent": "N0036_gca_ddca",
-   "children": [],
-   "status": "failed",
-   "best_metric": 32.58,
-   "train_seconds": 115,
-   "quality": 0,
-   "avail": null,
-   "score": null,
-   "tested_hypotheses": [
-    "H0062"
-   ]
-  },
-  "N0043_dynamic_kernel": {
-   "parent": "N0036_gca_ddca",
-   "children": [],
-   "status": "failed",
-   "best_metric": 999,
-   "train_seconds": 60,
-   "quality": 0,
-   "avail": null,
-   "score": null,
-   "tested_hypotheses": [
-    "H0063"
-   ]
-  },
-  "N0044_bg_token_lite": {
-   "parent": "N0036_gca_ddca",
-   "children": [],
-   "status": "failed",
-   "best_metric": 24.024,
-   "train_seconds": 947,
-   "quality": "bad",
-   "avail": null,
-   "score": null,
-   "tested_hypotheses": [
-    "H0065"
-   ]
-  },
-  "N0045_iter_exemplar": {
-   "parent": "N0036_gca_ddca",
-   "children": [],
-   "status": "failed",
-   "best_metric": 24.336,
-   "train_seconds": 1152,
-   "quality": "bad",
-   "avail": null,
-   "score": null,
-   "tested_hypotheses": [
-    "H_iter_exemplar"
-   ]
-  },
-  "N0046_scale_prior": {
-   "parent": "N0036_gca_ddca",
-   "children": [],
-   "status": "proposed",
-   "best_metric": null,
-   "train_seconds": null,
-   "quality": null,
-   "avail": null,
-   "score": null,
-   "tested_hypotheses": [
-    "H0066"
-   ]
-  },
-  "N0047_urmdistill": {
-   "parent": "N0036_gca_ddca",
-   "children": [],
-   "status": "proposed",
-   "best_metric": null,
-   "train_seconds": null,
-   "quality": null,
-   "avail": null,
-   "score": null,
-   "tested_hypotheses": [
-    "H0067"
-   ]
-  },
-  "N0048_no_gca": {
-   "parent": "N0036_gca_ddca",
-   "children": [],
-   "status": "failed",
-   "best_metric": 22.197,
-   "train_seconds": 1500,
-   "quality": "bad",
-   "avail": null,
-   "score": null,
-   "tested_hypotheses": [
-    "H0068"
-   ]
-  },
-  "N0049_deform_attn": {
-   "parent": "N0036_gca_ddca",
-   "children": [],
-   "status": "proposed",
-   "best_metric": null,
-   "train_seconds": null,
-   "quality": null,
-   "avail": null,
-   "score": null,
-   "tested_hypotheses": [
-    "H0069"
-   ]
-  },
-  "N0051_gca_only": {
-   "parent": "N0036_gca_ddca",
-   "children": [],
-   "status": "done",
-   "best_metric": 20.599,
-   "train_seconds": 1798,
-   "quality": "good",
-   "avail": null,
-   "score": null,
-   "tested_hypotheses": [
-    "H0073"
-   ]
-  },
-  "N0052_pluggable_trunk": {
-   "parent": "N0036_gca_ddca",
-   "children": [
-    "N0053_rga_aux",
-    "N0054_xscale_exemplar"
-   ],
-   "status": "done",
-   "best_metric": 22.41,
-   "train_seconds": 1747,
-   "quality": "good",
-   "avail": null,
-   "score": null,
-   "tested_hypotheses": [
-    "H0070",
-    "H0071",
-    "H0072"
-   ]
-  },
-  "N0053_rga_aux": {
-   "parent": "N0052_pluggable_trunk",
-   "children": [],
-   "status": "done",
-   "best_metric": 21.45,
-   "train_seconds": 1650,
-   "quality": "bad",
-   "avail": null,
-   "score": null,
-   "tested_hypotheses": [
-    "H0074"
-   ]
-  },
-  "N0054_xscale_exemplar": {
-   "parent": "N0052_pluggable_trunk",
-   "children": [
-    "N0055_xscale_key",
-    "N0056_xfine_exemplar",
-    "N0057_cond_matcher",
-    "N0058_pompart_exemplar",
-    "N0059_pom_morph",
-    "N0060_xscale_max",
-    "N0061_countnorm",
-    "N0062_fine_decoder",
-    "N0063_large_backbone",
-    "N0065_scale_embed"
-   ],
-   "status": "done",
-   "best_metric": 19.647,
-   "train_seconds": 1800,
-   "quality": "good",
-   "avail": null,
-   "score": null,
-   "tested_hypotheses": [
-    "H0075"
-   ]
-  },
-  "N0055_xscale_key": {
-   "parent": "N0054_xscale_exemplar",
-   "children": [],
-   "status": "done",
-   "best_metric": 20.835,
-   "train_seconds": -1701,
-   "quality": "bad",
-   "avail": null,
-   "score": null,
-   "tested_hypotheses": [
-    "H0076"
-   ]
-  },
-  "N0056_xfine_exemplar": {
-   "parent": "N0054_xscale_exemplar",
-   "children": [],
-   "status": "early_stopped",
-   "best_metric": 24.313,
-   "train_seconds": -1801,
-   "quality": "bad",
-   "avail": null,
-   "score": null,
-   "tested_hypotheses": [
-    "H0077"
-   ]
-  },
-  "N0057_cond_matcher": {
-   "parent": "N0054_xscale_exemplar",
-   "children": [],
-   "status": "done",
-   "best_metric": 21.076,
-   "train_seconds": 1700,
-   "quality": "bad",
-   "avail": null,
-   "score": null,
-   "tested_hypotheses": [
-    "H0079"
-   ]
-  },
-  "N0058_pompart_exemplar": {
-   "parent": "N0054_xscale_exemplar",
-   "children": [],
-   "status": "early_stopped",
-   "best_metric": 23.151,
-   "train_seconds": 853,
-   "quality": "fail",
-   "avail": null,
-   "score": null,
-   "tested_hypotheses": [
-    "H0080"
-   ]
-  },
-  "N0059_pom_morph": {
-   "parent": "N0054_xscale_exemplar",
-   "children": [],
-   "status": "success",
-   "best_metric": 20.958,
-   "train_seconds": 1699,
-   "quality": "fail",
-   "avail": null,
-   "score": null,
-   "tested_hypotheses": [
-    "H0082"
-   ],
-   "final_metric": 21.415
-  },
-  "N0060_xscale_max": {
-   "parent": "N0054_xscale_exemplar",
-   "children": [],
-   "status": "success",
-   "best_metric": 22.886,
-   "train_seconds": 1693,
-   "quality": "fail",
-   "avail": null,
-   "score": null,
-   "tested_hypotheses": [
-    "H0083",
-    "H0084"
-   ],
-   "final_metric": 23.01
-  },
-  "N0061_countnorm": {
-   "parent": "N0054_xscale_exemplar",
-   "children": [],
-   "status": "success",
-   "best_metric": 23.502,
-   "train_seconds": 1706,
-   "quality": "fail",
-   "avail": null,
-   "score": null,
-   "tested_hypotheses": [
-    "H0088"
-   ],
-   "final_metric": 23.718
-  },
-  "N0062_fine_decoder": {
-   "parent": "N0054_xscale_exemplar",
-   "children": [],
-   "status": "success",
-   "best_metric": 21.323,
-   "train_seconds": 1745,
-   "quality": "fail",
-   "avail": null,
-   "score": null,
-   "tested_hypotheses": [
-    "H0090"
-   ],
-   "final_metric": 22.298
-  },
-  "N0063_large_backbone": {
-   "parent": "N0054_xscale_exemplar",
-   "children": [],
-   "status": "failed",
-   "best_metric": 25.893,
-   "train_seconds": 957,
-   "quality": 0.1,
-   "avail": 0.9,
-   "score": 0.09,
-   "tested_hypotheses": [
-    "H0091"
-   ]
-  },
-  "N0065_scale_embed": {
-   "parent": "N0054_xscale_exemplar",
-   "children": [],
-   "status": "failed",
-   "best_metric": 20.429,
-   "train_seconds": 2939,
-   "quality": 0.3,
-   "avail": 0.9,
-   "score": 0.27,
-   "tested_hypotheses": [
-    "H0092"
-   ]
+  "nodes": {
+    "R001_point_detect": {
+      "parent": null,
+      "children": [],
+      "status": "failed",
+      "best_metric": 52.568,
+      "train_seconds": 640,
+      "quality": null,
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": [
+        "H0030"
+      ]
+    },
+    "R002_density_verify": {
+      "parent": null,
+      "children": [],
+      "status": "proposed",
+      "best_metric": null,
+      "train_seconds": null,
+      "quality": null,
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": []
+    },
+    "R003_scale_deform": {
+      "parent": null,
+      "children": [],
+      "status": "proposed",
+      "best_metric": null,
+      "train_seconds": null,
+      "quality": null,
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": []
+    },
+    "R004_diffusion_loc": {
+      "parent": null,
+      "children": [],
+      "status": "proposed",
+      "best_metric": null,
+      "train_seconds": null,
+      "quality": null,
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": []
+    },
+    "N0021_dino_fullft": {
+      "parent": null,
+      "children": [],
+      "status": "failed",
+      "best_metric": 48.4,
+      "train_seconds": 565,
+      "quality": null,
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": [
+        "H0030"
+      ]
+    },
+    "N0022_dino_ebc_fullft": {
+      "parent": null,
+      "children": [],
+      "status": "done",
+      "best_metric": 21.708,
+      "train_seconds": 1449,
+      "quality": null,
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": [
+        "H0029"
+      ]
+    },
+    "N0023_dino_hires_out": {
+      "parent": "N0010_dino_multilayer_long",
+      "children": [],
+      "status": "done",
+      "best_metric": 45.487,
+      "train_seconds": 357,
+      "tested_hypotheses": [
+        "H0031"
+      ],
+      "quality": null,
+      "avail": null,
+      "score": null
+    },
+    "N0021_dino_partialft": {
+      "parent": null,
+      "children": [],
+      "status": "done",
+      "best_metric": 20.438,
+      "train_seconds": 1441,
+      "quality": null,
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": [
+        "H0032"
+      ]
+    },
+    "N0024_ebc_partialft": {
+      "parent": "N0022_dino_ebc_fullft",
+      "children": [],
+      "status": "failed",
+      "best_metric": null,
+      "train_seconds": null,
+      "quality": null,
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": [
+        "H0032"
+      ]
+    },
+    "N0025_eval_readout": {
+      "parent": "N0021_dino_partialft",
+      "children": [],
+      "status": "done",
+      "best_metric": 20.441,
+      "train_seconds": 75,
+      "quality": null,
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": [
+        "H0033",
+        "H0034"
+      ]
+    },
+    "N0026_res_sweep": {
+      "parent": "N0021_dino_partialft",
+      "children": [],
+      "status": "done",
+      "best_metric": 19.178,
+      "train_seconds": 420,
+      "quality": null,
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": [
+        "H0035"
+      ]
+    },
+    "N0027_norm_flip_swa": {
+      "parent": "N0021_dino_partialft",
+      "children": [
+        "N0028_scb_multires"
+      ],
+      "status": "done",
+      "best_metric": 20.403,
+      "train_seconds": 1513,
+      "quality": null,
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": [
+        "H0037",
+        "H0038",
+        "H0039"
+      ]
+    },
+    "N0028_scb_multires": {
+      "parent": "N0027_norm_flip_swa",
+      "children": [],
+      "status": "failed",
+      "best_metric": 48.414,
+      "train_seconds": 203,
+      "quality": null,
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": [
+        "H0040",
+        "H0042"
+      ]
+    },
+    "N0029_loghead": {
+      "parent": "N0027_norm_flip_swa",
+      "children": [],
+      "status": "failed",
+      "best_metric": 20.753,
+      "train_seconds": 1219,
+      "quality": null,
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": [
+        "H0043"
+      ]
+    },
+    "N0030_sizenorm": {
+      "parent": "N0027_norm_flip_swa",
+      "children": [],
+      "status": "failed",
+      "best_metric": null,
+      "train_seconds": 9,
+      "quality": null,
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": [
+        "H0044"
+      ]
+    },
+    "N0031_composite_multires": {
+      "parent": "N0027_norm_flip_swa",
+      "children": [],
+      "status": "timeout",
+      "best_metric": 22.181,
+      "train_seconds": null,
+      "quality": null,
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": [
+        "H0042"
+      ]
+    },
+    "N0032_dinov3_dual": {
+      "parent": "N0027_norm_flip_swa",
+      "children": [],
+      "status": "failed",
+      "best_metric": 63.539,
+      "train_seconds": null,
+      "quality": null,
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": [
+        "H0045"
+      ]
+    },
+    "N0033_salf_moe_frozen": {
+      "parent": "N0026_res_sweep",
+      "children": [],
+      "status": "failed",
+      "best_metric": 24.317,
+      "train_seconds": 1116,
+      "quality": null,
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": [
+        "H0049",
+        "H0050"
+      ]
+    },
+    "N0034_sha_frozen": {
+      "parent": "N0026_res_sweep",
+      "children": [],
+      "status": "failed",
+      "best_metric": 25.361,
+      "train_seconds": 614,
+      "quality": null,
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": [
+        "H0051"
+      ]
+    },
+    "N0035_tail_reweight": {
+      "parent": "N0026_res_sweep",
+      "children": [],
+      "status": "timeout",
+      "best_metric": 22.692,
+      "train_seconds": 1826,
+      "quality": null,
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": [
+        "H0052"
+      ]
+    },
+    "N0036_gca_ddca": {
+      "parent": "N0026_res_sweep",
+      "children": [
+        "N0051_gca_only",
+        "N0052_pluggable_trunk"
+      ],
+      "status": "done",
+      "best_metric": 20.491,
+      "train_seconds": 1730,
+      "quality": null,
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": [
+        "H0057",
+        "H0058"
+      ]
+    },
+    "N0037_ppc_head": {
+      "parent": "N0026_res_sweep",
+      "children": [],
+      "status": "done",
+      "best_metric": 20.993,
+      "train_seconds": 1359,
+      "quality": null,
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": [
+        "H0053"
+      ]
+    },
+    "N0038_rl_psf": {
+      "parent": "N0026_res_sweep",
+      "children": [],
+      "status": "failed",
+      "best_metric": 6324.542,
+      "train_seconds": 118,
+      "quality": 0,
+      "avail": 0,
+      "score": 0,
+      "tested_hypotheses": [
+        "H0055"
+      ]
+    },
+    "N0039_exemplar_attn": {
+      "parent": "N0036_gca_ddca",
+      "children": [],
+      "status": "failed",
+      "best_metric": 23.075,
+      "train_seconds": 966,
+      "quality": 0,
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": [
+        "H0059"
+      ]
+    },
+    "N0040_film_recal": {
+      "parent": "N0036_gca_ddca",
+      "children": [],
+      "status": "failed",
+      "best_metric": 22.108,
+      "train_seconds": 952,
+      "quality": 0,
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": [
+        "H0060"
+      ]
+    },
+    "N0041_exemplar_count": {
+      "parent": "N0026_res_sweep",
+      "children": [],
+      "status": "failed",
+      "best_metric": 24.06,
+      "train_seconds": 964,
+      "quality": 0,
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": [
+        "H0061"
+      ]
+    },
+    "N0042_mutual_bg": {
+      "parent": "N0036_gca_ddca",
+      "children": [],
+      "status": "failed",
+      "best_metric": 32.58,
+      "train_seconds": 115,
+      "quality": 0,
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": [
+        "H0062"
+      ]
+    },
+    "N0043_dynamic_kernel": {
+      "parent": "N0036_gca_ddca",
+      "children": [],
+      "status": "failed",
+      "best_metric": 999,
+      "train_seconds": 60,
+      "quality": 0,
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": [
+        "H0063"
+      ]
+    },
+    "N0044_bg_token_lite": {
+      "parent": "N0036_gca_ddca",
+      "children": [],
+      "status": "failed",
+      "best_metric": 24.024,
+      "train_seconds": 947,
+      "quality": "bad",
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": [
+        "H0065"
+      ]
+    },
+    "N0045_iter_exemplar": {
+      "parent": "N0036_gca_ddca",
+      "children": [],
+      "status": "failed",
+      "best_metric": 24.336,
+      "train_seconds": 1152,
+      "quality": "bad",
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": [
+        "H_iter_exemplar"
+      ]
+    },
+    "N0046_scale_prior": {
+      "parent": "N0036_gca_ddca",
+      "children": [],
+      "status": "proposed",
+      "best_metric": null,
+      "train_seconds": null,
+      "quality": null,
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": [
+        "H0066"
+      ]
+    },
+    "N0047_urmdistill": {
+      "parent": "N0036_gca_ddca",
+      "children": [],
+      "status": "proposed",
+      "best_metric": null,
+      "train_seconds": null,
+      "quality": null,
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": [
+        "H0067"
+      ]
+    },
+    "N0048_no_gca": {
+      "parent": "N0036_gca_ddca",
+      "children": [],
+      "status": "failed",
+      "best_metric": 22.197,
+      "train_seconds": 1500,
+      "quality": "bad",
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": [
+        "H0068"
+      ]
+    },
+    "N0049_deform_attn": {
+      "parent": "N0036_gca_ddca",
+      "children": [],
+      "status": "proposed",
+      "best_metric": null,
+      "train_seconds": null,
+      "quality": null,
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": [
+        "H0069"
+      ]
+    },
+    "N0051_gca_only": {
+      "parent": "N0036_gca_ddca",
+      "children": [],
+      "status": "done",
+      "best_metric": 20.599,
+      "train_seconds": 1798,
+      "quality": "good",
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": [
+        "H0073"
+      ]
+    },
+    "N0052_pluggable_trunk": {
+      "parent": "N0036_gca_ddca",
+      "children": [
+        "N0053_rga_aux",
+        "N0054_xscale_exemplar"
+      ],
+      "status": "done",
+      "best_metric": 22.41,
+      "train_seconds": 1747,
+      "quality": "good",
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": [
+        "H0070",
+        "H0071",
+        "H0072"
+      ]
+    },
+    "N0053_rga_aux": {
+      "parent": "N0052_pluggable_trunk",
+      "children": [],
+      "status": "done",
+      "best_metric": 21.45,
+      "train_seconds": 1650,
+      "quality": "bad",
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": [
+        "H0074"
+      ]
+    },
+    "N0054_xscale_exemplar": {
+      "parent": "N0052_pluggable_trunk",
+      "children": [
+        "N0055_xscale_key",
+        "N0056_xfine_exemplar",
+        "N0057_cond_matcher",
+        "N0058_pompart_exemplar",
+        "N0059_pom_morph",
+        "N0060_xscale_max",
+        "N0061_countnorm",
+        "N0062_fine_decoder",
+        "N0063_large_backbone",
+        "N0065_scale_embed",
+        "N0066_midft_intermediate",
+        "N0067_midft_final"
+      ],
+      "status": "done",
+      "best_metric": 19.647,
+      "train_seconds": 1800,
+      "quality": "good",
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": [
+        "H0075"
+      ]
+    },
+    "N0055_xscale_key": {
+      "parent": "N0054_xscale_exemplar",
+      "children": [],
+      "status": "done",
+      "best_metric": 20.835,
+      "train_seconds": -1701,
+      "quality": "bad",
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": [
+        "H0076"
+      ]
+    },
+    "N0056_xfine_exemplar": {
+      "parent": "N0054_xscale_exemplar",
+      "children": [],
+      "status": "early_stopped",
+      "best_metric": 24.313,
+      "train_seconds": -1801,
+      "quality": "bad",
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": [
+        "H0077"
+      ]
+    },
+    "N0057_cond_matcher": {
+      "parent": "N0054_xscale_exemplar",
+      "children": [],
+      "status": "done",
+      "best_metric": 21.076,
+      "train_seconds": 1700,
+      "quality": "bad",
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": [
+        "H0079"
+      ]
+    },
+    "N0058_pompart_exemplar": {
+      "parent": "N0054_xscale_exemplar",
+      "children": [],
+      "status": "early_stopped",
+      "best_metric": 23.151,
+      "train_seconds": 853,
+      "quality": "fail",
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": [
+        "H0080"
+      ]
+    },
+    "N0059_pom_morph": {
+      "parent": "N0054_xscale_exemplar",
+      "children": [],
+      "status": "success",
+      "best_metric": 20.958,
+      "train_seconds": 1699,
+      "quality": "fail",
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": [
+        "H0082"
+      ],
+      "final_metric": 21.415
+    },
+    "N0060_xscale_max": {
+      "parent": "N0054_xscale_exemplar",
+      "children": [],
+      "status": "success",
+      "best_metric": 22.886,
+      "train_seconds": 1693,
+      "quality": "fail",
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": [
+        "H0083",
+        "H0084"
+      ],
+      "final_metric": 23.01
+    },
+    "N0061_countnorm": {
+      "parent": "N0054_xscale_exemplar",
+      "children": [],
+      "status": "success",
+      "best_metric": 23.502,
+      "train_seconds": 1706,
+      "quality": "fail",
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": [
+        "H0088"
+      ],
+      "final_metric": 23.718
+    },
+    "N0062_fine_decoder": {
+      "parent": "N0054_xscale_exemplar",
+      "children": [],
+      "status": "success",
+      "best_metric": 21.323,
+      "train_seconds": 1745,
+      "quality": "fail",
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": [
+        "H0090"
+      ],
+      "final_metric": 22.298
+    },
+    "N0063_large_backbone": {
+      "parent": "N0054_xscale_exemplar",
+      "children": [],
+      "status": "failed",
+      "best_metric": 25.893,
+      "train_seconds": 957,
+      "quality": 0.1,
+      "avail": 0.9,
+      "score": 0.09,
+      "tested_hypotheses": [
+        "H0091"
+      ]
+    },
+    "N0065_scale_embed": {
+      "parent": "N0054_xscale_exemplar",
+      "children": [],
+      "status": "failed",
+      "best_metric": 20.429,
+      "train_seconds": 2939,
+      "quality": 0.3,
+      "avail": 0.9,
+      "score": 0.27,
+      "tested_hypotheses": [
+        "H0092"
+      ]
+    },
+    "N0066_midft_intermediate": {
+      "parent": "N0054_xscale_exemplar",
+      "children": [],
+      "status": "coded",
+      "best_metric": null,
+      "train_seconds": null,
+      "quality": null,
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": [
+        "H0093"
+      ]
+    },
+    "N0067_midft_final": {
+      "parent": "N0054_xscale_exemplar",
+      "children": [],
+      "status": "coded",
+      "best_metric": null,
+      "train_seconds": null,
+      "quality": null,
+      "avail": null,
+      "score": null,
+      "tested_hypotheses": [
+        "H0094"
+      ]
+    }
   }
- }
 }
