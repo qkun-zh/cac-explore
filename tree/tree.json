@@ -661,7 +661,7 @@
     "N0066_midft_intermediate": {
       "parent": "N0054_xscale_exemplar",
       "children": [],
-      "status": "coded",
+      "status": "running",
       "best_metric": null,
       "train_seconds": null,
       "quality": null,
