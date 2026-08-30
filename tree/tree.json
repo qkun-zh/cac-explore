@@ -694,12 +694,15 @@
     },
     "N0068_frozen_final": {
       "parent": "N0054_xscale_exemplar",
-      "status": "coded",
+      "status": "failed",
       "hypotheses": {
         "H0095": "frozen final vs frozen intermediate"
       },
       "regime": "PARTIAL-FT frozen-control",
-      "note": "orthogonal frozen+frozen layer comparison; finishes the 2x2 table ground"
+      "note": "orthogonal frozen+frozen layer comparison; finishes the 2x2 table ground",
+      "best_mae": 26.868,
+      "epochs_done": 23,
+      "result": "early-stop E23 best 26.87@E22; same-epoch E22 +5.17 vs N0054 (26.87 vs 21.70) past +1.5 gate; frozen FINAL readout worse than frozen INTERMEDIATE -> intermediate features load-bearing. H0095 FAIL branch."
     }
   }
 }
