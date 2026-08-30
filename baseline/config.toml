@@ -8,7 +8,7 @@
 # --- reproducibility ---
 seed = 20260830
 deterministic = true
-notes = "Canonical consolidated baseline. Micro-tuned from a 48ep unseeded probe (best 21.94@E13): val plateaued 22-25 E14-25 while train loss kept falling (overfit) -> set epochs=30 (proven N0054), wd 0.05->0.08, loss_count_weight 0.3->0.4. env: /data/miniconda/envs/cac, torch 2.10.0 cu128, py 3.12"
+notes = "Canonical consolidated baseline. Micro-tuned from a 48ep unseeded probe (best 21.94@E13): val plateaued 22-25 E14-25 while train loss kept falling (overfit) -> set epochs=32 (min required), wd 0.05->0.08, loss_count_weight 0.3->0.4. env: /data/miniconda/envs/cac, torch 2.10.0 cu128, py 3.12"
 
 # --- model / backbone ---
 hf_model = "facebook/dinov3-convnext-tiny-pretrain-lvd1689m"
@@ -39,7 +39,7 @@ betas = [0.9, 0.999]
 eta_min = 1.0e-6
 
 # --- training ---
-epochs = 30
+epochs = 32   # min 32 required (per requirement); below this is invalid
 batch_size = 16
 amp = true
 max_params_M = 32
