@@ -679,7 +679,7 @@
     "N0067_midft_final": {
       "parent": "N0054_xscale_exemplar",
       "children": [],
-      "status": "coded",
+      "status": "failed",
       "best_metric": null,
       "train_seconds": null,
       "quality": null,
@@ -687,7 +687,10 @@
       "score": null,
       "tested_hypotheses": [
         "H0094"
-      ]
+      ],
+      "best_mae": 25.935,
+      "epochs_done": 20,
+      "result": "early-stop E20 best 25.94; same-epoch E19 +4.83 vs N0054 (25.94 vs 21.11) past +1.5 gate; final-layer FT still worse than frozen but ~3-4 better than N0066 mid-FT at same epochs"
     },
     "N0068_frozen_final": {
       "parent": "N0054_xscale_exemplar",
