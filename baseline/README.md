@@ -27,9 +27,19 @@ decision from the CAC explore project. All validated through controlled single-s
 | **Any backbone unfreeze (FT)** | N0066/67 | +6..+9 (intermediate readout load-bearing; unfreeze net-harmful) |
 
 ## Config (frozen contract)
-`config.py` → `build_model(cfg)`; forward `({"density", "n_aux"})`; MSE(+count) loss.
-Regime: backbone frozen, head-only train. Engine: `code/engine/train.py`.
-Params assert ≤ 32M.
+`config.toml` — SINGLE SOURCE OF TRUTH for all model/training settings (seed, lr,
+optimizer, scheduler, epochs, bs, AMP, data, gate). Read by `code/engine/train.py`
+(via `load_cfg`, prefers `config.toml`, falls back to legacy `config.py`).
+`model.py` → `build_model(cfg)` reads the same flat keys. Forward `({"density","n_aux"})`;
+MSE(+0.3·count) loss. Regime: backbone frozen, head-only train. Params assert ≤ 32M.
+
+## Reproducibility
+`config.toml` sets `seed=20260830`. Engine's `_set_seed` then seeds torch/numpy/random,
+uses a seeded DataLoader generator + `worker_init_fn`, enables `cudnn.deterministic`,
+and disables `cudnn.benchmark` — so a given config + seed reruns bit-identical.
+Set `seed` to a new int in `config.toml` for a different-but-reproducible run.
+NOTE: the historical N0054 19.647 predates seeding and is NOT bit-reproducible;
+the canonical `baseline/` run with a fixed seed is the reproducible artifact.
 
 ## How to extend
 Attach a new component via a **single pluggable switch** (`use_<name>`) on the N0054 interface
