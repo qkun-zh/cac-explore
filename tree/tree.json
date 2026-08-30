@@ -703,6 +703,22 @@
       "best_mae": 26.868,
       "epochs_done": 23,
       "result": "early-stop E23 best 26.87@E22; same-epoch E22 +5.17 vs N0054 (26.87 vs 21.70) past +1.5 gate; frozen FINAL readout worse than frozen INTERMEDIATE -> intermediate features load-bearing. H0095 FAIL branch."
+    },
+    "baseline": {
+      "parent": null,
+      "status": "done",
+      "best_metric": 19.647,
+      "rmse": 74.05,
+      "params_M": 31.32,
+      "components": {
+        "GCA": true,
+        "XScale": true,
+        "DDCA": false,
+        "readout": "hs(2,3) frozen",
+        "backbone": "frozen"
+      },
+      "note": "CANONICAL consolidated baseline: all proven-effective components, all proven-harmful excluded; byte-identical to N0054; smoke GREEN",
+      "path": "baseline/"
     }
   }
 }

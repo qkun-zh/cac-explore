@@ -1,10 +1,19 @@
 # STATE — Session 2026-08-30 OPEN (Lead=qkun-local, User-Guided)
 
-**Mode**: User-Guided. Preflight SERVER_OK (fz58r...:42258, RTX3060 12G, tmux apt-installed). User directive 2026-08-30: backbone mid-layer FT allowed, probe intermediate vs final output.
-**Regime**: PARTIAL-FT — stages 1,2 (hs 2,3) may FT @0.1× head LR; final vs intermediate comparison via hs_map. AGENTS.md + research_direction.md updated, 31 dead files + 594M weights removed.
+**Mode**: User-Guided. Preflight SERVER_OK (fz58r...:42258, RTX3060 12G, tmux apt-installed). User directive 2026-08-30: probe intermediate vs final output + build consolidated baseline — RESOLVED (2×2 complete, intermediate frozen wins; baseline/ built).
+**Regime**: Backbone axis CLOSED (2×2 all negative vs champion): use frozen intermediate hs(2,3); unfreeze is out of scope. Head-side pluggable innovation remains the innovation channel.
 
-## Champion (frozen baseline)
-**N0054_xscale_exemplar** GCA+XScale 19.647/74.05/31.32M. AdamW head 1e-3 / backbone 1e-4, wd0.05, cosine, bs16, AMP, 30ep.
+## Champion (canonical baseline)
+**`baseline/` = CONSOLIDATED baseline** — packages EVERY proven-effective decision: GCA + XScale +
+frozen intermediate hs(2,3) readout + cross-attn condenser + proven hyperparams (AdamW 1e-3, wd0.05,
+cosine, bs16, AMP, 30ep, 384). All proven-harmful excluded (DDCA off, no extra scale/swaps/no countnorm/
+no fine-inject/no big backbone/no FT). 19.647/74.05/31.32M. Byte-identical to N0054 (best validated).
+README documents in/out table. Smoke GREEN.
+
+### Definition note (the "proven-effective" set)
+Exactly these were empirically validated positive: **intermediate hs(2,3) frozen readout** (2×2 table,
++7 over final), **GCA** (+1.6, N0051), **XScale** (+0.95, N0054), **cross-attn condenser** (all swaps
+negative). multires/SWA/ensemble exist in engine but were NEVER proven effective — NOT included.
 
 ## 2×2 heuristic map — COMPLETE (all 4 cells run)
 Rows=readout layer, Cols=backbone state.
