@@ -661,7 +661,7 @@
     "N0066_midft_intermediate": {
       "parent": "N0054_xscale_exemplar",
       "children": [],
-      "status": "running",
+      "status": "failed",
       "best_metric": null,
       "train_seconds": null,
       "quality": null,
@@ -669,7 +669,11 @@
       "score": null,
       "tested_hypotheses": [
         "H0093"
-      ]
+      ],
+      "best_mae": 28.362,
+      "epochs_done": 16,
+      "result": "early-stop E16 same-epoch 28.36 vs N0054 22.34 (+6.02 past +1.5 gate); no catch-up, best 28.36@E16",
+      "hypotheses": {}
     },
     "N0067_midft_final": {
       "parent": "N0054_xscale_exemplar",
