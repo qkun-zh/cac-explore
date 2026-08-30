@@ -414,7 +414,7 @@ def main():
                             loss = dens_loss + w_cnt * F.l1_loss(dens.float().flatten(1).sum(1), gt_c)
                 scaler.scale(loss).backward()
                 scaler.unscale_(optim)
-                torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+                torch.nn.utils.clip_grad_norm_(model.parameters(), float(cfg.get("grad_clip", 1.0)))
                 scaler.step(optim); scaler.update()
                 ls += loss.item(); nb += 1
         except torch.cuda.OutOfMemoryError:

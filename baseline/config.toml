@@ -27,21 +27,36 @@ xscale_size = 3
 
 # --- data ---
 data_root = "/data/dataset/FSC147"
-augment = true
+augment = true          # random horizontal flip (seeded)
 num_workers = 4
 
-# --- optimizer (AdamW) ---
+# --- TRAINING STRATEGY ---
+
+# optimizer: adamw (torch.optim.AdamW)
+optimizer = "adamw"
 lr = 1.0e-3
-weight_decay = 0.08
+weight_decay = 0.08     # +0.03 vs N0054 (anti-overfit: val plateaued E14-25)
 betas = [0.9, 0.999]
 
-# --- scheduler (CosineAnnealingLR) ---
+# lr schedule: cosine (CosineAnnealingLR over epochs, no warmup)
+scheduler = "cosine"
 eta_min = 1.0e-6
 
-# --- training ---
-epochs = 32   # min 32 required (per requirement); below this is invalid
+# loss: mse on density + loss_count_weight * L1(sum(density), gt_count)
+loss_function = "mse"
+huber_delta = 5.0       # only used if loss_function="huber" (unused here)
+loss_count_weight = 0.4 # +0.1 vs N0054 (anchor count signal)
+
+# optimization dynamics
+grad_clip = 1.0         # torch.nn.utils.clip_grad_norm_ max norm
+amp = true              # fp16 autocast + GradScaler
 batch_size = 16
-amp = true
+epochs = 32             # min 32 required (per requirement); below this is invalid
+
+# intentionally OFF (never empirically proven effective): multires 392+518,
+# SWA (swa_start/swa_end), tail_reweight, dual_res_eval, paradigm!=reg
+multires = false
+
+# budget / gate
 max_params_M = 32
-loss_count_weight = 0.4
 smoke = false
