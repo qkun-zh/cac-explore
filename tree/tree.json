@@ -511,7 +511,8 @@
         "N0063_large_backbone",
         "N0065_scale_embed",
         "N0066_midft_intermediate",
-        "N0067_midft_final"
+        "N0067_midft_final",
+        "N0068_frozen_final"
       ],
       "status": "done",
       "best_metric": 19.647,
@@ -687,6 +688,15 @@
       "tested_hypotheses": [
         "H0094"
       ]
+    },
+    "N0068_frozen_final": {
+      "parent": "N0054_xscale_exemplar",
+      "status": "coded",
+      "hypotheses": {
+        "H0095": "frozen final vs frozen intermediate"
+      },
+      "regime": "PARTIAL-FT frozen-control",
+      "note": "orthogonal frozen+frozen layer comparison; finishes the 2x2 table ground"
     }
   }
 }
