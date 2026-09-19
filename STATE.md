@@ -48,6 +48,13 @@ journal/ first). Read AGENTS.md before anything below.
   training RNG). **The v1 chain was aborted**; a fresh `N0001_champion` v2 run
   becomes the canonical baseline; v1 numbers (21.459, all child results) stay as
   historical record. Do not silently re-run v1-refuted hyps (rule 11).
+  (6) **v2 augmented baseline came out 23.482 @ep16 (+2.02 WORSE than v1)** —
+  augmentation hurt at the fixed 32-epoch budget in this harness. A 2x2 protocol
+  isolation is IN FLIGHT (tmux `diag`, repro_run --set on the champion):
+  known (noaug,EMA)=21.459, (aug,EMA)=23.482; queued (aug,raw=use_ema=false)
+  then (noaug,raw). Historic 19.647 likely needs BOTH augment and raw-eval (old
+  engine had no EMA) — protocol decision + re-anchored canonical baseline
+  immediately after the cells land; no node runs until then.
 - **Paper backlog (researcher 2026-09-19, links fetched-verified; class-agnostic
   counting literature ONLY)**: booked: SAFECount `use_safe_enhance` (2201.08959,
   zhiyuanyou/SAFECount) = H0014; BMNet+ `use_dyn_exemplar_gate` (2203.08354,
