@@ -11,17 +11,14 @@ journal/ first). Read AGENTS.md before anything below.
   H0014/H0015 (below). **N0007_h0013 [H0013 subpixel-up solo] RUNNING** in tmux
   `runN6` (started ~16:08, ETA ~16:38; may touch the 1800s budget -> mark
   `timeout` honestly if it stops at ep31).
-- **Tree**: N0001_champion (canonical under v-harness: **23.293 @ep26** —
-  train loss fits like v1 but val plateaus 23.3; v1 unseeded-nondet was 21.459;
-  open: systematic cost of reproducibility vs seed-20260830 bad luck — the
-  in-flight same-seed replicate (expect exact match) + seed+1 (level test) will
-  decide) → N0003_h0009 22.6076, N0005_h0010 22.8102, N0004_h0010 23.3824,
-  N0006_h0012 21.4952 (all v1-protocol historical); N0007_h0013 22.4545 (v1);
-  N0008_h0014, N0009_h0015, N0010_h0016, N0011_h0010 coded (augment=false), smoke
-  green, queued after the canon chain in tmux `nodes` watchdog. **Falsifier bars
-  in H0014/H0015/H0016 texts quote the v1 anchor 21.459/21.159: once canonical
-  results land, evidence is scored by the falsifier SEMANTICS (0.30 lower than
-  the canonical parent) with the live parent number stated in the note.**
+- **Tree**: N0001_champion (canonical **23.293 @ep26**). v2-harness children
+  (all same-seed paired, augment=false): **N0008_h0014 22.9697 (H0014 SUPPORTS
+  0.6, -0.32, bar cleared by 0.024 — fragile)**; **N0009_h0015 23.6818 (H0015
+  contradicts 0.4, +0.39)**; **N0010_h0016 22.8831 (H0016 SUPPORTS 0.6, -0.41,
+  bar cleared by 0.11; learned gate (a,b)=(0.166,0.189), mild damper)**;
+  N0011_h0010 (clean H0010 solo) RUNNING. v1 history: N0003 22.6076, N0005
+  22.8102, N0004 23.3824, N0006 21.4952, N0007 22.4545 (record only).
+  Falsifier bars use live-parent semantics (anchor rule).
 - **Server queue after N0007**: (1) smoke N0008+N0009 (new run_node no-ops
   status on smoke); (2) tmux `python scripts/repro_run.py N0001_champion --out
   /data/cac/repro/champion_r2` — **noise-floor diagnostic (determinism on);
