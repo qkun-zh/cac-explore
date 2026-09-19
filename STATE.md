@@ -47,6 +47,18 @@ journal/ first). Read AGENTS.md before anything below.
   All falsifiers ≥0.30 vs champion 21.459. Rejected on fit: CounTR / GeCo /
   PSECO (backbone or loss violations). → book at next synthesis after
   N0006/N0007 land.
+- **Harness review (cycle-3 interlude, this session)**: (1) local tree/ was blind
+  to completed N0003/N0004 (info.json stale vs the server where run_node wrote
+  them) and champion carried the migration 19.647 — reconciled from each node's
+  own result.json via machinery writes; Eq.2-4 now sees 3 completed children.
+  (2) run_node no longer flips status to done on smoke/--off. (3) runner now
+  honors deterministic=true (cudnn deterministic, benchmark off) as the
+  pre-migration engine did unconditionally; old-vs-new engine diff: loss,
+  schedule, dataset, metric all match — remaining differences are EMA eval (we
+  use it, old raw), cudnn mode, Lightning vs custom loop. (4) Noise floor never
+  measured: queued same-seed champion replicate via new `scripts/repro_run.py`
+  (scratch dir, no tree mutation) after N0006/N0007; verdict bars (0.30) and
+  H0011's 0.202 delta assume noise << 0.30.
 - **Gotchas**:
   - run artifacts gitignored (`**/run/`, tmp_ideas_round2/); never `git add -A`
     blindly.
