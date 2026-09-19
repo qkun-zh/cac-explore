@@ -2,7 +2,7 @@
   "_meta": {
     "eta": 0.2
   },
-  "rebuilt": "2026-09-19T12:21:52+0800",
+  "rebuilt": "2026-09-19T12:46:21+0800",
   "hypotheses": {
     "H0001": {
       "text": "IF we attach a global-count auxiliary head that pools the fine feature map and the exemplar mean and adds a scaled soft-count bias onto the density output IN the CountingHead decoder of the frozen DINOv3-ConvNeXt-Tiny champion THEN final val MAE on FSC147 is at least 0.30 lower than the plain decoder BECAUSE a global count anchor disambiguates scale between sparse and dense scenes, an ambiguity that per-box exemplars cannot represent, so the decoder avoids systematic undercount. DISPROVED IF final val MAE is not at least 0.30 lower than the plain decoder",

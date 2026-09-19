@@ -3,30 +3,33 @@
 One session block; REWRITE it each session open (archive stale content to
 journal/ first). Read AGENTS.md before anything below.
 
-## Session (2026-09-19T13:00)
-- **Mode**: Free-Research (next moves staged, no commit yet — awaiting go).
-- **Tree**: N0001_champion (seed root, synthesized, MAE 19.647) → child
-  **N0003_h0009** (proposed; first evolution child via `discovery hypo`, Q_t=[H0009]).
-- **Memory**: H0001–H0008 seeded + H0009 (channel-gate condenser).
-  Standings: H0003 confirmed (0.770), H0005 refuted (0.215),
+## Session (2026-09-19T14:00)
+- **Mode**: Free-Research. Evolution cycle ACTIVE: N0003_h0009 (H0009 condenser
+  channel gate) **full budget run in flight** (tmux `runN3`, `--budget-seconds
+  1800`, smoke green 1st attempt, launched 13:45). ~31 min wall; will mark
+  `timeout` if the wall-clock ceiling trips.
+- **Tree**: N0001_champion (seed root, MAE 19.647) → child **N0003_h0009**
+  (coded, config diff = one line `use_channel_gate = true`; params TOTAL
+  31.36M ≤ 32M, gate 32,768).
+- **Memory**: H0001–H0009. H0003 confirmed (0.770), H0005 refuted (0.215),
   H0001/2/4 uncertain (0.664), H0006 (0.336), H0007/8 (0.269), H0009 (0.500).
-- **Server**: onboarded — `ssh cac-server` live (RTX 3060 12GB;
-  yzkczmrjwdtrqpkhsnow.deepln.com:48769). GPU smoke PASSED on server copy
-  (`/data/cac`); champion model loads from `/data/asset/hf` offline, bf16 AMP.
-- **Mechanism**: calibration upgraded (reliability primary = P(hold|conf),
-  direction accuracy secondary, weighted reliability error >0.2 → WARN;
-  current 0.227 WARN, direction accuracy 14/14). New CLI
-  `discovery evidence <hyp_id> --type <t> --strength <w> [--node] [--note]`
-  is the only sanctioned way to append evidence (append-only, phantom-id ban).
-- **Open frontier**: multires (392/518), SWA, tail_reweight, dual_res_eval,
-  EMA, pluggable head parts above frozen hs(2,3) + exemplar embedding
-  (see docs/research_direction.md). Next evolution target: implement H0009
-  delta on N0003_h0009 (Coding Agent) → server run → feedback → synthesis.
+  Calibration: reliability_error 0.227 (WARN), direction 14/14 — gate tripped.
+- **Engine fixes this session (2 bugs, found via probe, both green)**:
+  1. Budget phase reused the smoke datamodule → fake 4-batch training (26 s /
+     32 "epochs", MAE 507). Fixed: real FSC147DataModule(smoke=False) for the
+     budget fit; budget_hit works against the real run.
+  2. BestCheckpoint read `callback_metrics` from a hook that fires before the
+     module logs val/mae → recorded garbage (6593 vs actual 241). Fixed:
+     BestCheckpoint is now a sink invoked by CountingLit with the fresh MAE
+     (best_mae 246.14 @ ep1 in probe).
+- **Server**: cac-server live (RTX 3060 12GB), tensorboard now installed (tuna
+  mirror ~60 s — pypi index stalled). 3 next-round candidates queued
+  (cond keynorm 0.435 / fine-stage exview 0.471 / background null tok 0.410).
 - **Gotchas**:
-  - `local/` (creds) gitignored — check mtime before every lab session.
-  - Server copy is `/data/cac`; sync code via tar-over-ssh (rsync absent on this box).
-  - `hub.setup_hf_env()` is offline-first (HF_HUB_OFFLINE=1, mirror endpoint);
-    set HF_* BEFORE heavy imports in entrypoints.
-  - Historic N0001 MAE 19.647 predates seeding; a fresh rerun with seed
-    20260830 is the reproducible artifact.
-  - conformance is the commit gate — never commit with it red (currently green).
+  - run_node flags: `--budget-seconds N` AND `--budget-seconds=N` both valid.
+  - HF is offline-first: set HF_* at the TOP of any ad-hoc server python before
+    heavy imports (entrypoints do this via hub.setup_hf_env()).
+  - Server copy is /data/cac; sync via tar-over-ssh (no rsync on this box).
+  - Historic N0001 MAE 19.647 predates seeding; fresh reruns with seed 20260830
+    are the reproducible artifacts.
+  - `local/` creds gitignored — check mtime before each lab session.

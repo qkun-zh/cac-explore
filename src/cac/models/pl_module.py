@@ -94,6 +94,9 @@ class CountingLit(LightningModule):
     def on_validation_epoch_end(self):
         mae = self._val_mae.compute()
         rmse = self._val_rmse.compute().sqrt()
+        self._last_val_mae = float(mae)
+        if getattr(self, "_best_sink", None) is not None:
+            self._best_sink(self, float(mae))
         self.log("val/mae", mae, on_epoch=True, prog_bar=True)
         self.log("val/rmse", rmse, on_epoch=True, prog_bar=False)
         self._val_mae.reset()

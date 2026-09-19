@@ -43,6 +43,13 @@ def _model_from_cfg(cfg: dict[str, Any], node_dir: str | None = None,
     return make_model(cfg)
 
 
+def _BudgetStop_hit(trainer: L.Trainer) -> bool:
+    for c in trainer.callbacks:
+        if isinstance(c, _BudgetStop) and c.hit:
+            return True
+    return False
+
+
 def run_train(cfg: dict[str, Any], log_dir: str, node_dir: str | None = None,
               smoke: bool = False, built_model: Any = None,
               epochs: int | None = None, budget_seconds: float | None = None,
@@ -60,7 +67,7 @@ def run_train(cfg: dict[str, Any], log_dir: str, node_dir: str | None = None,
 
     Path(log_dir).mkdir(parents=True, exist_ok=True)
     save_best = BestCheckpoint(log_dir)
-    callbacks: list = [save_best, LearningRateMonitor("epoch")]
+    callbacks: list = [LearningRateMonitor("epoch")]
     if use_ema:
         callbacks.append(EMACallback(decay=float(cfg.get("ema_decay", 0.999))))
 
@@ -100,13 +107,18 @@ def run_train(cfg: dict[str, Any], log_dir: str, node_dir: str | None = None,
 
     tb = TensorBoardLogger(log_dir, name="tb", version="t")
     pl = CountingLit(cfg, model=model)
+    pl._best_sink = save_best
+    dm = FSC147DataModule(cfg, smoke=False,
+                          img_size=int(cfg.get("input_size", 384)),
+                          batch_size=int(cfg.get("batch_size", 16)))
     t_start = time.time()
     trainer = _mk_trainer(max_epochs=max_epochs, logger=tb, smoke_=False)
-    trainer.fit(pl, datamodule=smk)
+    trainer.fit(pl, datamodule=dm)
     return {"code": "ok", "log_dir": log_dir, "epochs": max_epochs,
             "best_mae": save_best.best, "best_epoch": save_best.best_epoch,
             "elapsed": time.time() - t_start,
-            "n_epochs_done": trainer.current_epoch}
+            "n_epochs_done": trainer.current_epoch,
+            "budget_hit": _BudgetStop_hit(trainer)}
 
 
 class _BudgetStop(L.callbacks.Callback):
@@ -114,11 +126,13 @@ class _BudgetStop(L.callbacks.Callback):
     exploration never spends unbounded time on a branch."""
     def __init__(self, budget: float):
         self.budget = budget
+        self.hit = False
         self._t0 = time.time()
 
     def on_train_batch_end(self, trainer, pl_module, outputs, batch, batch_idx):
         if time.time() - self._t0 > self.budget and not trainer.sanity_checking:
             trainer.should_stop = True
+            self.hit = True
             print(f"[budget] exceeded {self.budget:.0f}s — stopping early")
 
 

@@ -54,8 +54,15 @@ def main() -> int:
     t0 = time.time()
     try:
         kwargs: dict = {}
-        for flag in flags:
-            k, v = flag.split("=", 1) if "=" in flag else (flag, None)
+        i = 0
+        while i < len(flags):
+            flag = flags[i]
+            k, eq, v = flag.partition("=")
+            if not eq and k in ("--epochs", "--budget-seconds") and i + 1 < len(flags):
+                v = flags[i + 1]
+                i += 2
+            else:
+                i += 1
             if k in ("--epochs", "--budget-seconds"):
                 kwargs[k[2:].replace("-", "_")] = float(v) if "budget" in k else int(v)
             elif k == "--smoke":
@@ -79,7 +86,8 @@ def main() -> int:
         if best is not None:
             tree.update_metrics(node, best_metric=best, train_seconds=res.get("elapsed_s"),
                                 epochs=res.get("n_epochs_done"))
-        tree.set_status(node, "done")
+        hit = kwargs.get("budget_seconds") and res.get("budget_hit")
+        tree.set_status(node, "timeout" if hit else "done")
     else:
         tree.set_status(node, "done" if res.get("off") else "done")
     print(json.dumps(res, indent=2))
