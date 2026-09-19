@@ -2,7 +2,7 @@
 
 Implementation of **HypoExplore — Agentic Discovery with Active Hypothesis
 Exploration** (Koo et al., [arXiv:2604.12999](https://arxiv.org/abs/2604.12999))
-adapted for FSC147 crowd counting. The paper's evolutionary machinery is the
+adapted for FSC147 class-agnostic counting. The paper's evolutionary machinery is the
 load-bearing contract of this repo: **quality × availability parent selection
 (Eq.2–4), dual Thompson-exploit + epistemic-explore hypothesis selection
 (Eq.5–6), evidential confidence updating (Eq.1), and confirmation/refutation

@@ -43,3 +43,7 @@ journal/ first). Read AGENTS.md before anything below.
   - HF offline-first (hub.setup_hf_env() at top of entrypoints).
   - Server copy /data/cac not a git repo — sync src/scripts/tree via tar-over-ssh.
   - Champion honest baseline is seeded **21.459**, not migration 19.647.
+  - CAC = Class-Agnostic Counting (FSC147 few-shot: count ANY class given
+    exemplars), NOT crowd/people counting. Hypothesis inspiration must come
+    from the class-agnostic counting literature (LOCA/CounTR/DAVE/GeCo/PSECO/
+    SAFECount line), never crowd-counting papers. (User correction 2026-09-19.)

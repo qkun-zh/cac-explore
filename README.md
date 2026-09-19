@@ -1,7 +1,7 @@
 # cac — Active Hypothesis Exploration for Crowd Counting
 
 HypoExplore ([arXiv:2604.12999](https://arxiv.org/abs/2604.12999)) applied to
-FSC147 crowd counting. The trajectory tree IS a directory tree: every branch in
+FSC147 class-agnostic counting. The trajectory tree IS a directory tree: every branch in
 `tree/` (physical nesting) is the lineage of one architecture family, rooted at
 the certified champion **N0001_champion** (MAE 19.647 / RMSE 74.05 / 31.32M).
 
