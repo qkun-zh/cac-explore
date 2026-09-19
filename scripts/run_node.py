@@ -33,6 +33,20 @@ from cac.expt.node import TrajectoryTree
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
+def booked_hyps(idea_md: str) -> list[str]:
+    """Extract the hypothesis ids booked into a node from its idea.md
+    ("1. **H0010** — text" lines). Empty list if unparsable."""
+    import re
+    hyps: list[str] = []
+    if not os.path.exists(idea_md):
+        return hyps
+    for line in open(idea_md):
+        m = re.match(r"^\s*\d+\.\s+\*\*([HN][0-9]{4})\*\*", line)
+        if m:
+            hyps.append(m.group(1))
+    return hyps
+
+
 def main() -> int:
     if len(sys.argv) < 2:
         sys.exit("usage: python run_node.py <node_id> [--epochs N] [--budget-seconds S] [--smoke] [--off]")
@@ -86,6 +100,10 @@ def main() -> int:
         if best is not None:
             tree.update_metrics(node, best_metric=best, train_seconds=res.get("elapsed_s"),
                                 epochs=res.get("n_epochs_done"))
+        try:
+            tree.mark_tested(node, booked_hyps(os.path.join(nd, "idea.md")))
+        except Exception as e:
+            print(f"[warn] could not mark tested hypotheses: {e}", flush=True)
         hit = kwargs.get("budget_seconds") and res.get("budget_hit")
         tree.set_status(node, "timeout" if hit else "done")
     else:

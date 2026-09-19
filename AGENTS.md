@@ -195,6 +195,7 @@ configs/            read-only reference configs
 | F_max=5 hyper-param refinements | phase 2; v1 authors config once | cost discipline |
 | Reference model provided | N0001_champion (our proven artifact) + migrated 8-hypothesis ledger | exploration starts from strength |
 | Bootstrap K=5 random roots | K=1 certified seed root | see §9 "reference" above |
+| Q_t composition on every test | when a NEW hypothesis is explicitly booked (`hypo --new/--book <parent>`), Q_t adjoins are capped at ONE compatible hypothesis and any co-composed pair sharing a head component (or config switch) is rejected at booking time | structurally infeasible / un-attributable joint compositions (N0006/N0007 case); selection scoring (Eq.5-6) untouched — `src/cac/expt/mechanisms.py` |
 
 Everything else (selection, dual hypothesis selection, Eq.1 confidence,
 confirmation/refutation thresholds, calibration, honesty gates, append-only

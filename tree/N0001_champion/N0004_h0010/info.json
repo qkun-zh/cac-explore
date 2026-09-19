@@ -7,6 +7,9 @@
   "best_metric": null,
   "train_seconds": null,
   "epochs": null,
-  "tested_hypotheses": [],
-  "updated_ts": "2026-09-19T14:09:29+0800"
+  "tested_hypotheses": [
+    "H0010",
+    "H0009"
+  ],
+  "updated_ts": "2026-09-19T15:24:31+0800"
 }

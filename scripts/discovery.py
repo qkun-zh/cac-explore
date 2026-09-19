@@ -43,6 +43,9 @@ def _parse_args(argv):
     d.add_argument("--seed", type=int, default=None, help="manual seed (disables default seed)")
     d.add_argument("--new", action="append", dest="new_hyps", metavar="\"IF ... DISPROVED IF ...\"",
                    help="pre-register 1+ NEW hypotheses (format + novelty gated) and add them to the pool")
+    d.add_argument("--book", action="append", dest="book_hyps", metavar="H0012",
+                   help="mandate 1+ EXISTING hypothesis ids into this child (selected adjoins are then "
+                        "capped at one compatible hypothesis per the composition-feasibility rule)")
 
     d = sub.add_parser("validate", help="format-gate the ledger")
     d.add_argument("--all", action="store_true", help="report all violations (not just first per hyp)")
@@ -106,6 +109,14 @@ def cmd_hypo(args) -> None:
         sys.exit(f"no such node: {parent}")
 
     # pre-register NEW hypotheses (the paper's generator role) — gated only
+    mandated: list[str] = []
+    if args.book_hyps:
+        for hid in args.book_hyps:
+            if hid not in idx.get("hypotheses", {}):
+                sys.exit(f"--book unknown hypothesis id: {hid}")
+            mandated.append(hid)
+        print(f"[ledger] mandated existing: {', '.join(mandated)}")
+
     if args.new_hyps:
         for text in args.new_hyps:
             errs, _ = validate(text)
@@ -117,9 +128,10 @@ def cmd_hypo(args) -> None:
             nid = _next_hyp_id(mem)
             mem.create(nid, text, source=parent)
             idx = mem.build_index()
+            mandated.append(nid)
             print(f"[ledger] created {nid}")
 
-    rs = select_hypo(parent, idx, seed=args.seed, verbose=True)
+    rs = select_hypo(parent, idx, seed=args.seed, verbose=True, mandated=mandated or None)
     if not rs:
         print("no candidates — all uncertain hypotheses already tested on this ancestry")
         print("hint: pre-register new hypotheses with `hypo <parent> --new \"IF ...\"` "

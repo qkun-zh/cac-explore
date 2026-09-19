@@ -187,6 +187,34 @@ def test_select_hypo_filters_tested(tmp_path):
     assert "H0001" in q or "H0002" in q or "H0003" in q
 
 
+def test_select_hypo_mandated_caps_adjoin(tmp_path):
+    m = seed_ledger(str(tmp_path))
+    t = make_repo(str(tmp_path))
+    idx = m.build_index()
+    q = select_hypo("N0001_root", idx, seed=1, verbose=False, tree=t,
+                    mandated=["H0001"])
+    assert q[0] == "H0001", q
+    assert len(q) <= 2, q
+
+
+def test_select_hypo_feasibility_drops_conflict(tmp_path):
+    # H0009 (content-conditioned channel gate) and H0011 (frozen-random input
+    # to the SAME gate) conflict on the channel_gate component. Booking H0009
+    # must NOT admit H0011 as an adjoin.
+    m = Memory(str(tmp_path))
+    for i in range(4):
+        m.create(f"H{i:04d}", GOOD, source="N0001_root")
+    m.create("H0009", GOOD, source="N0001_root")
+    m.create("H0011", GOOD, source="N0001_root")
+    t = make_repo(str(tmp_path))
+    idx = m.build_index()
+    q = select_hypo("N0001_root", idx, seed=1, verbose=False, tree=t,
+                    mandated=["H0009"])
+    assert "H0009" in q, q
+    assert "H0011" not in q, f"conflicting adjoin admitted: {q}"
+    assert len(q) <= 2, q
+
+
 def _pytest_runner():
     qs = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
     import inspect
