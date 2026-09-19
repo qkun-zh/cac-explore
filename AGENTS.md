@@ -150,6 +150,9 @@ before accepting it.
     child differs from its parent only by the new component. The runner pins the
     data stream to `config.seed` (FSC147DataModule augment/seed wiring) and the
     model has zero dropout, so nothing else consumes RNG during training.
+14. Journal events are appended ONLY via `scripts/journal.py` (single-line JSON
+    + trailing newline enforced). Hand-appends glue objects onto one line and
+    break conformance.
 
 ## 6. Hypothesis format & fidelity
 ```
@@ -163,6 +166,14 @@ DISPROVED IF [falsification criterion with a number/comparison].
 - Confidence: η=0.20 · support `c←c+η·w·(1−c)` · contradict `c←c−η·w·c` ·
   neutral logs but does NOT move c. Confirmed >0.75, refuted <0.25.
   These live ONLY in `src/cac/expt/`; agents never recompute them by hand.
+- Falsifier bars are **semantics, not literals**: "≥0.30 lower" binds to the
+  *live parent number under the current protocol*. If the protocol version
+  changes between booking and verdict, re-instantiate the numeric line from the
+  live parent and state BOTH numbers in the evidence note. Never edit the
+  hypothesis text.
+- Verdicts are **same-seed paired contrasts** (precision ~0.02 under the
+  canonical harness): never compare absolute levels across seeds at the 0.30
+  bar — level noise is ~±1 MAE. Level claims need multi-seed.
 
 ## 7. Server cheat-sheet
 | Item | Value |
@@ -173,6 +184,8 @@ DISPROVED IF [falsification criterion with a number/comparison].
 | Data | `/data/dataset/FSC147` (VarV2 protocol: images_384_VarV2, gt_density_map_adaptive_384_VarV2, annotation_FSC147_384.json, Train_Test_Val_FSC_147.json) |
 | Runs | node-local `run/latest/` on the server copy (best.pth, result.json, tensorboard) |
 | GPU | single RTX3060 12 GB — one card per node run |
+| Protocol (canonical) | augment=false, EMA eval, seeded loaders, cudnn deterministic · 32ep/1800s · every comparison same-seed vs the canonical baseline — pre-2026-09-19-evening runs are historical record only |
+| GPU queue | one training tmux chain + one `has-session` watchdog for the next batch; when aborting, kill the WATCHDOG session first, then the chain (else the watchdog fires immediately); never `pkill -f` with a pattern that also appears in the killer's own command line |
 
 ## 8. Directory map
 ```

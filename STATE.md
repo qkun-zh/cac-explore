@@ -86,6 +86,11 @@ journal/ first). Read AGENTS.md before anything below.
   - 32 epochs expected; the 1800s budget has only ~30-60s headroom — a run can
     stop at ep31 and must be recorded `timeout`.
   - smoke no longer flips node status (restores pre-run status).
+  - Protocol pins now live in DURABLE docs (internalized 2026-09-19 pm):
+    AGENTS §6 anchor rule + paired-contrast doctrine, §5 rule 14 (journal ONLY
+    via scripts/journal.py), §7 canonical-protocol + GPU-queue/kill-order rows,
+    conformance protocol pins on the runner wiring. STATE keeps live status
+    only; anything load-bearing belongs in AGENTS/code/tests.
   - HF offline-first (hub.setup_hf_env() at top of entrypoints).
   - CAC = Class-Agnostic Counting (FSC147 few-shot: count ANY class given
     exemplars), NOT crowd/people counting. Hypothesis inspiration must come from
