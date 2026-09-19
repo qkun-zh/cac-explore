@@ -32,6 +32,21 @@ journal/ first). Read AGENTS.md before anything below.
   as module-fed sink, per-run tb isolation. All committed+pushed.
 - **Server**: cac-server RTX 3060 12GB; N0006/N0007 running in tmux `runN6`
   (~35 min each, ETA ~16:20).
+- **Paper backlog (researcher 2026-09-19; all arXiv+code links fetched-verified)**:
+  1. SAFECount dual-norm similarity + query enhance `use_safe_enhance` ~33-65k
+     (2201.08959, code zhiyuanyou/SAFECount) — best fit, biggest paper gain.
+  2. BMNet+ per-exemplar channel gate `use_dyn_exemplar_gate` ~33k
+     (2203.08354, code flyinglynx/Bilinear-Matching-Network) — the clean-solo
+     H0010 test we never ran.
+  3. DAVE-lite verify-and-suppress mask `use_verify_mask` ~1-17k (2404.16622,
+     code jerpelhan/DAVE) — only false-positive mechanism, near-zero params.
+  4. LOCA-lite iterative prototype adapt `use_iter_proto_adapt` ~20-60k
+     bottlenecked (2211.08217, code djukicn/loca).
+  5. SQLNet-lite size-prompt fusion `use_size_prompt_fusion` <35k (2311.10011,
+     code HCPLab-SYSU/SQLNet, thinnest train script).
+  All falsifiers ≥0.30 vs champion 21.459. Rejected on fit: CounTR / GeCo /
+  PSECO (backbone or loss violations). → book at next synthesis after
+  N0006/N0007 land.
 - **Gotchas**:
   - run artifacts gitignored (`**/run/`, tmp_ideas_round2/); never `git add -A`
     blindly.
