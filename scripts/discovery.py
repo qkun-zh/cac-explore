@@ -79,10 +79,8 @@ def cmd_tree(args) -> None:
     t = TrajectoryTree()
     mat = t.materialize()
     if args.json:
-        out = {}
-        for nid, r in t.walk_node_dirs():
-            info = r
-            out[nid] = {k: info.get(k) for k in ("status", "best_metric", "parent", "title")}
+        out = {nid: {k: r.get(k) for k in ("status", "best_metric", "parent", "title")}
+               for nid, r in mat.items()}
         print(json.dumps(out, indent=2, sort_keys=True))
         return
     print(t.render())
