@@ -27,11 +27,11 @@ journal/ first). Read AGENTS.md before anything below.
   seeds). Methodology fork for user: (A) multi-seed promotion [recommend —
   formalize what just worked]; (B) larger bars; (C) longer schedules (needs
   tau_max change); (D) accept screening role. No math change needed for A.
-- **DAY CLOSE 2026-09-19 ~23:05**: all committed+pushed. GPU left RUNNING
-  unattended (tmux `spread`: champion seed20260832 in flight, seed20260833
-  queued) — results land in /data/cac/repro/champion_seed*/repro.json. Next
-  session: collect spread -> methodology decision (A/B/C/D) -> next bookings
-  (LOCA-lite/SQLNet-lite backlog or rule-15 fresh survey).
+- **DAY CLOSE 2026-09-19 ~23:05**: all committed+pushed. NOTE 23:10 — user
+  ordered full stop: tmux `spread` killed mid-run (seed20260832 partial
+  discarded in scratch, seed20260833 never started), GPU idle, no sessions.
+  Seed-spread quantification is UNFINISHED (have 2 points: 23.293/21.313).
+  Next session: re-queue spread or decide methodology (A/B/C/D) first.
 - **H0016 mechanism separated**: post-hoc damping diagnostic (frozen champion,
   n=1286): raw 23.2909, learned-gate 23.3336, uniform x0.91 24.498 → uniform
   account REFUTED; gate selective but co-adaptation-dependent (neutral evidence,
