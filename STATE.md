@@ -3,33 +3,43 @@
 One session block; REWRITE it each session open (archive stale content to
 journal/ first). Read AGENTS.md before anything below.
 
-## Session (2026-09-19T14:30)
-- **Mode**: Free-Research. Cycle 1 CLOSED (H0009 refuted, lab committed+pushed
-  `6420e08`). Cycle 2 ACTIVE: **N0004_h0010** full budget run in flight (tmux
-  `runN4`, `--budget-seconds 1800`); then N0005_h0010 queued (single GPU).
-- **Tree**: N0001_champion (seeded baseline now **21.459** @ep32, result.json
-  updated) → N0003_h0009 (H0009 DISPROVED, Δ=−1.149 vs +0.30 bar) → N0005_h0010
-  (frozen-random gate control, H0010+H0011); and N0004_h0010 (H0010 per-exemplar
-  gate + H0009, child of champion). Both coded: 2 switches, 31.36M, exemplar-gate
-  identity init (bias +3), N0004 smoke + run launched, N0005 smoke green.
-- **Memory**: H0010 (per-exemplar gate 0.500), H0011 (const-input control 0.500)
-  booked. H0009 0.400 (contradicts). Standings: H0003 confirmed 0.770, H0005
-  refuted 0.215, rest uncertain. Calibration: reliability error **0.195** (<0.2,
-  WARN cleared), 23 tests, direction 14/14.
-- **Engine fixes (this session)**: (1) budget phase was training on the smoke
-  datamodule → real FSC147DataModule now used; (2) BestCheckpoint hook ordering
-  → now a sink fed by the module with the fresh MAE; (3) per-run tb dir cleared
-  so event files never mix across runs.
-- **Server**: cac-server live (RTX 3060 12GB); tensorboard installed (tuna
-  mirror). Runs: N0003 done, N0001 seeded rerun done (21.459), N0004 running.
+## Session (2026-09-19T15:35)
+- **Mode**: Free-Research. Cycles 1+2 CLOSED (N0003 H0009 refuted; N0004 joint
+  gates refuted D=+1.92; N0005 H0011 refuted +0.202). Cycle 3 ACTIVE: two SOLO
+  children of champion in flight (tmux `runN6`): **N0006_h0012** (H0012
+  count-temp) then **N0007_h0013** (H0013 subpixel-up), each
+  `--budget-seconds 1800`, single GPU sequential.
+- **Mechanism change (rule-10, user-approved 'A', commits 4eb5b49 + 923ef76)**:
+  composition-feasibility filter (`src/cac/expt/mechanisms.py` registry):
+  co-composing hypotheses that share a head component or config switch are
+  rejected; hypotheses whose `requires` switches are absent from the parent
+  config are dropped (H0011 needs use_channel_gate); on explicit `--book/--new`,
+  adjoins capped at ONE compatible (`--solo` = none). `run_node` now back-fills
+  tested_hypotheses from idea.md (Eq.5-6 "not-yet-tested-on-ancestry" was
+  silently disabled, re-testing hyps forever). Historical backfill done for
+  N0003/N0004/N0005. Eq.5-6 SCORING untouched.
+- **Tree**: N0001_champion (seeded **21.459**) → N0003_h0009 (H0009 refuted
+  22.6076) → N0005_h0010 (H0011 refuted 22.8102); N0004_h0010 (joint refuted
+  23.3824). Old infeasible N0006_h0009/N0007_h0013 pruned; re-booked SOLO:
+  N0006_h0012=[H0012], N0007_h0013=[H0013]. Both coded (single-switch, 31.39M /
+  31.37M), smoke green.
+- **Memory**: H0009 0.320 refuted-track, H0010 0.400 (2 contradicts + 1 neutral;
+  STILL never tested cleanly solo — recommend champion-only use_exemplar_gate
+  next cyclically), H0011 0.400 (inert capacity), H0012 0.500 (untested), H0013
+  0.500 (untested). H0003 confirmed 0.770, H0005 refuted 0.215. Calibration:
+  reliability error **0.176** (<0.2), 25 tests, direction 15/15.
+- **Engine fixes (earlier this session)**: real-data budget fit, BestCheckpoint
+  as module-fed sink, per-run tb isolation. All committed+pushed.
+- **Server**: cac-server RTX 3060 12GB; N0006/N0007 running in tmux `runN6`
+  (~35 min each, ETA ~16:20).
 - **Gotchas**:
-  - run artifacts are gitignored (`**/run/`, tmp_ideas_round2/); do not `git add -A`
-    blindly after syncing runs back.
-  - run_node flags: `--budget-seconds N` AND `--budget-seconds=N` both valid.
-  - HF is offline-first: set HF_* at the TOP of any ad-hoc server python before
-    heavy imports (entrypoints do this via hub.setup_hf_env()).
-  - Server copy is /data/cac; sync via tar-over-ssh (no rsync on this box);
-    result.json lives at the NODE ROOT, run_node.log at run/latest/.
-  - Champion's honest baseline is the SEEDED 21.459 (20260830), NOT the historic
-    migration 19.647.
-  - `local/` creds gitignored — check mtime before each lab session.
+  - run artifacts gitignored (`**/run/`, tmp_ideas_round2/); never `git add -A`
+    blindly.
+  - `--book H --solo` = one-hyp inference; `--book H` default = mandated + 1
+    compatible adjoin. Read the node's idea.md BEFORE trusting which hyps a node
+    actually tests.
+  - run expected completeness = 32 epochs; budget 1800s may early-stop; mark
+    `timeout` honestly if it does.
+  - HF offline-first (hub.setup_hf_env() at top of entrypoints).
+  - Server copy /data/cac not a git repo — sync src/scripts/tree via tar-over-ssh.
+  - Champion honest baseline is seeded **21.459**, not migration 19.647.
