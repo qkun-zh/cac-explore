@@ -44,6 +44,7 @@ def _reg() -> dict[str, dict]:
         "H0013": {"components": {"upsample"}, "switches": {"use_subpixel_up"}, "requires": set()},
         "H0014": {"components": {"safe_enhance"}, "switches": {"use_safe_enhance"}, "requires": set()},
         "H0015": {"components": {"exemplar_gate"}, "switches": {"use_dyn_exemplar_gate"}, "requires": set()},
+        "H0016": {"components": {"verify_mask"}, "switches": {"use_verify_mask"}, "requires": set()},
     }
 
 
