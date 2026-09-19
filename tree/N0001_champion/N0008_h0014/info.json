@@ -1,0 +1,12 @@
+{
+  "id": "N0008_h0014",
+  "parent": "N0001_champion",
+  "status": "proposed",
+  "created_ts": "2026-09-19T16:12:38+0800",
+  "title": "evolve N0001_champion on H0014 (+0)",
+  "best_metric": null,
+  "train_seconds": null,
+  "epochs": null,
+  "tested_hypotheses": [],
+  "updated_ts": "2026-09-19T16:12:38+0800"
+}
