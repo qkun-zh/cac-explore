@@ -16,9 +16,15 @@ journal/ first). Read AGENTS.md before anything below.
   0.6, -0.32, bar cleared by 0.024 — fragile)**; **N0009_h0015 23.6818 (H0015
   contradicts 0.4, +0.39)**; **N0010_h0016 22.8831 (H0016 SUPPORTS 0.6, -0.41,
   bar cleared by 0.11; learned gate (a,b)=(0.166,0.189), mild damper)**;
-  N0011_h0010 (clean H0010 solo) RUNNING. v1 history: N0003 22.6076, N0005
-  22.8102, N0004 23.3824, N0006 21.4952, N0007 22.4545 (record only).
+  N0011_h0010 (clean H0010 solo) 23.4581 (contradicts 0.32, +0.165) — exemplar-
+  gating family RETIRED (rule 11). v1 history: record only.
   Falsifier bars use live-parent semantics (anchor rule).
+- **H0016 mechanism separated**: post-hoc damping diagnostic (frozen champion,
+  n=1286): raw 23.2909, learned-gate 23.3336, uniform x0.91 24.498 → uniform
+  account REFUTED; gate selective but co-adaptation-dependent (neutral evidence,
+  no conf move). **Confirmations QUEUED** (tmux `confirm`, scored within-seed
+  vs the 21.3126 seed+1 parent, support iff <=21.0126): N0010@seed20260831,
+  N0008@seed20260831 (~1h).
 - **Server queue after N0007**: (1) smoke N0008+N0009 (new run_node no-ops
   status on smoke); (2) tmux `python scripts/repro_run.py N0001_champion --out
   /data/cac/repro/champion_r2` — **noise-floor diagnostic (determinism on);
