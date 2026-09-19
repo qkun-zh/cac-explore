@@ -46,6 +46,7 @@ def _parse_args(argv):
     d.add_argument("--book", action="append", dest="book_hyps", metavar="H0012",
                    help="mandate 1+ EXISTING hypothesis ids into this child (selected adjoins are then "
                         "capped at one compatible hypothesis per the composition-feasibility rule)")
+    d.add_argument("--solo", action="store_true", help="test ONLY the mandated/new hypothesis, no adjoin")
 
     d = sub.add_parser("validate", help="format-gate the ledger")
     d.add_argument("--all", action="store_true", help="report all violations (not just first per hyp)")
@@ -131,7 +132,8 @@ def cmd_hypo(args) -> None:
             mandated.append(nid)
             print(f"[ledger] created {nid}")
 
-    rs = select_hypo(parent, idx, seed=args.seed, verbose=True, mandated=mandated or None)
+    rs = select_hypo(parent, idx, seed=args.seed, verbose=True, mandated=mandated or None,
+                     max_adjoin=0 if args.solo else 1)
     if not rs:
         print("no candidates — all uncertain hypotheses already tested on this ancestry")
         print("hint: pre-register new hypotheses with `hypo <parent> --new \"IF ...\"` "

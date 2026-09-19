@@ -88,7 +88,8 @@ def _parent_switches(mat: dict[str, Any], parent: str) -> frozenset:
 def select_hypo(parent: str, index: dict[str, Any], seed: int | None = None,
                 k_hypo: int = K_HYPO, verbose: bool = True,
                 tree: "TrajectoryTree" | None = None,
-                mandated: list[str] | None = None) -> list[str]:
+                mandated: list[str] | None = None,
+                max_adjoin: int = 1) -> list[str]:
     if tree is None:
         tree = __import__("cac.expt.node", fromlist=["TrajectoryTree"]).TrajectoryTree()
     hyp = index.get("hypotheses", index)
@@ -139,7 +140,7 @@ def select_hypo(parent: str, index: dict[str, Any], seed: int | None = None,
     if mandated:
         qt_paper = qt[:]
         qt = list(mandated)
-        while qt_paper and len(qt) < len(mandated) + 1:
+        while qt_paper and len(qt) < len(mandated) + max_adjoin:
             h = qt_paper.pop(0)
             if any(conflicts(h, m) for m in qt):
                 if verbose:
