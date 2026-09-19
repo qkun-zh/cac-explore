@@ -19,6 +19,14 @@ journal/ first). Read AGENTS.md before anything below.
   N0011_h0010 (clean H0010 solo) 23.4581 (contradicts 0.32, +0.165) — exemplar-
   gating family RETIRED (rule 11). v1 history: record only.
   Falsifier bars use live-parent semantics (anchor rule).
+- **Confirmations DONE (both FAILED)**: N0010@seed31 21.538 (+0.226) and
+  N0008@seed31 21.579 (+0.266) vs same-seed parent 21.3126 — seed-30 supports
+  (-0.41/-0.32) do NOT replicate. H0014/H0016 -> 0.48 each. Lesson: mechanism
+  effects (~0.3-0.4) sit BELOW seed spread (~+-1); single-seed verdicts screen
+  but cannot graduate. Quantifying spread now (tmux `spread`: 2 more champion
+  seeds). Methodology fork for user: (A) multi-seed promotion [recommend —
+  formalize what just worked]; (B) larger bars; (C) longer schedules (needs
+  tau_max change); (D) accept screening role. No math change needed for A.
 - **H0016 mechanism separated**: post-hoc damping diagnostic (frozen champion,
   n=1286): raw 23.2909, learned-gate 23.3336, uniform x0.91 24.498 → uniform
   account REFUTED; gate selective but co-adaptation-dependent (neutral evidence,
