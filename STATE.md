@@ -55,6 +55,15 @@ journal/ first). Read AGENTS.md before anything below.
   then (noaug,raw). Historic 19.647 likely needs BOTH augment and raw-eval (old
   engine had no EMA) — protocol decision + re-anchored canonical baseline
   immediately after the cells land; no node runs until then.
+  **2x2 DONE**: (noaug,EMA)=21.459 (v1), (aug,EMA)=23.482, (aug,raw)=23.605,
+  (noaug,raw)=22.782. Augmentation costs ~2.0 at 32ep; EMA helps under noaug;
+  historic 19.647 NOT reproducible from the migrated config (README says 30ep;
+  the claim predates the micro-tune) -> **canonical protocol = augment=false,
+  EMA kept, seeded loaders + determinism**; configs updated (champion +
+  N0008-N0011). GPU queue: tmux `canon` = canonical baseline (run_node) ->
+  same-seed replicate -> seed+1; tmux `nodes` watchdog = N0008 -> N0009 ->
+  N0010 -> N0011 under canonical. Compare everything against the NEW canonical
+  baseline number (do not use 21.459 once the new one lands).
 - **Paper backlog (researcher 2026-09-19, links fetched-verified; class-agnostic
   counting literature ONLY)**: booked: SAFECount `use_safe_enhance` (2201.08959,
   zhiyuanyou/SAFECount) = H0014; BMNet+ `use_dyn_exemplar_gate` (2203.08354,
