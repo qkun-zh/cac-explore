@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import Any
 
 import lightning.pytorch as L
+import torch
 from lightning.pytorch.callbacks import (EarlyStopping, LearningRateMonitor,
                                          ModelCheckpoint)
 from lightning.pytorch.loggers import TensorBoardLogger
@@ -59,6 +60,9 @@ def run_train(cfg: dict[str, Any], log_dir: str, node_dir: str | None = None,
     cfg = dict(cfg)
     seed = int(cfg.get("seed", 20260830))
     L.seed_everything(seed, workers=True)
+    if bool(cfg.get("deterministic", False)):
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
     use_ema = bool(cfg.get("use_ema", True))
     grad_clip = float(cfg.get("grad_clip", 1.0))
 
