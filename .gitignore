@@ -6,4 +6,8 @@ __pycache__/
 runs/
 .env
 local/
-.venv/tmp_ideas_round2/
+
+
+tmp_ideas_round2/
+
+**/run/
