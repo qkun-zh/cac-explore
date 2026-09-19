@@ -28,7 +28,7 @@ use_verify_mask = true
 
 # --- data ---
 data_root = "/data/dataset/FSC147"
-augment = true          # random horizontal flip (seeded)
+augment = false          # random horizontal flip (seeded)
 num_workers = 4
 
 # --- TRAINING STRATEGY ---
