@@ -2,7 +2,7 @@
   "_meta": {
     "eta": 0.2
   },
-  "rebuilt": "2026-09-19T12:46:21+0800",
+  "rebuilt": "2026-09-19T14:09:31+0800",
   "hypotheses": {
     "H0001": {
       "text": "IF we attach a global-count auxiliary head that pools the fine feature map and the exemplar mean and adds a scaled soft-count bias onto the density output IN the CountingHead decoder of the frozen DINOv3-ConvNeXt-Tiny champion THEN final val MAE on FSC147 is at least 0.30 lower than the plain decoder BECAUSE a global count anchor disambiguates scale between sparse and dense scenes, an ambiguity that per-box exemplars cannot represent, so the decoder avoids systematic undercount. DISPROVED IF final val MAE is not at least 0.30 lower than the plain decoder",
@@ -294,17 +294,53 @@
     },
     "H0009": {
       "text": "IF we pool the fine feature map globally and emit one scalar gating coefficient that reweights the exemplar tokens per feature channel IN the Condenser of the CountingHead THEN final val MAE improves by at least 0.30 over the unconditional condenser BECAUSE a per-exemplar channel-gain lets the decoder express count-dependent attention that a fixed affine readout cannot, steering the condenser toward scale-consistent exemplar weights. DISPROVED IF val MAE is not at least 0.30 lower than the unconditional condenser",
+      "confidence": 0.4,
+      "status": "uncertain",
+      "n_tested": 1,
+      "log": [
+        {
+          "type": "create",
+          "ts": "2026-09-19T12:19:37+0800",
+          "source_node": "N0001_champion"
+        },
+        {
+          "type": "evidence",
+          "ts": "2026-09-19T14:08:08+0800",
+          "evidence_type": "contradicts",
+          "strength": 1.0,
+          "source_node": "N0003_h0009",
+          "note": "Seeded same-protocol rerun: parent N0001 21.459 vs gated child 22.608 -> D=-1.149, far below the +0.30 bar. Mechanism-fidelity failure: image-global per-channel gate cannot express per-exemplar steering claimed in BECAUSE. Gate hurt by ~1.15 MAE."
+        }
+      ],
+      "created": "2026-09-19T12:19:37+0800"
+    },
+    "H0010": {
+      "text": "IF we compute a per-exemplar reliability gate as sigmoid of a linear read-out of each exemplar token and rescale that exemplar embedding before it enters the condenser cross-attention IN the CountingHead of the champion counter THEN final val MAE is at least 0.30 lower than the champion without any exemplar gating BECAUSE a gate that varies between exemplars of the same image lets the condenser down-weight a weakly-localized prototype whose ROI features are dominated by background or occlusion, so attention concentrates on trustworthy prototypes and count error on mixed-quality exemplar scenes falls, while a fixed or image-global gate cannot make this per-exemplar choice. DISPROVED IF final val MAE is not at least 0.30 lower than the champion with the gate removed",
       "confidence": 0.5,
       "status": "uncertain",
       "n_tested": 0,
       "log": [
         {
           "type": "create",
-          "ts": "2026-09-19T12:19:37+0800",
+          "ts": "2026-09-19T14:09:29+0800",
           "source_node": "N0001_champion"
         }
       ],
-      "created": "2026-09-19T12:19:37+0800"
+      "created": "2026-09-19T14:09:29+0800"
+    },
+    "H0011": {
+      "text": "IF we keep the same 33,024-parameter exemplar channel gate that the gated child tests but sever its conditioning by feeding the gate a fixed frozen random vector of the same shape instead of the pooled fine features IN the CountingHead of the gated champion THEN final val MAE is at least 0.30 worse than the content-conditioned gate result of 22.608 BECAUSE an equal-capacity gate whose input carries no information can only absorb into the condenser projections as a constant rescale, so if it reproduces the conditioned gate score then the gate benefit is inert capacity not feature conditioning, and the two runs separate mechanism from padding. DISPROVED IF final val MAE with the frozen-random gate is within 0.30 of the content-conditioned gate result of 22.608",
+      "confidence": 0.5,
+      "status": "uncertain",
+      "n_tested": 0,
+      "log": [
+        {
+          "type": "create",
+          "ts": "2026-09-19T14:09:31+0800",
+          "source_node": "N0003_h0009"
+        }
+      ],
+      "created": "2026-09-19T14:09:31+0800"
     }
   }
 }

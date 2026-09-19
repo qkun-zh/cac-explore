@@ -1,13 +1,14 @@
 {
-  "node": "N0001_champion",
-  "kind": "bootstrap_migration",
-  "source": "/home/qkun/cac_explore/baseline",
-  "val_mae": 19.647,
-  "val_rmse": 74.05,
-  "params_total_M": 31.32,
+  "code": "ok",
+  "log_dir": "/data/cac/tree/N0001_champion/run/latest",
   "epochs": 32,
-  "train_seconds_est": 1760,
-  "config_sha256": null,
-  "model_sha256": "seed file — byte-identical to src/cac/models/counter.py",
-  "notes": "Migration artifact: original run predates seeding and is not bit-reproducible as-is; re-running with config seed 20260830 is the reproducible artifact."
+  "best_mae": 21.458858489990234,
+  "best_epoch": 32,
+  "elapsed": 1699.1245362758636,
+  "n_epochs_done": 32,
+  "budget_hit": false,
+  "node": "N0001_champion",
+  "elapsed_s": 1704.5,
+  "config_sha256": "7954b5f6bb4829ab",
+  "model_sha256": "eaf2a8b93c280cba"
 }

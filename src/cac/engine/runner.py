@@ -9,6 +9,7 @@ from __future__ import annotations
 import hashlib
 import importlib.util
 import os
+import shutil
 import sys
 import time
 from pathlib import Path
@@ -105,6 +106,7 @@ def run_train(cfg: dict[str, Any], log_dir: str, node_dir: str | None = None,
         callbacks.append(ModelCheckpoint(dirpath=os.path.join(log_dir, "ckpt/"),
                                          every_n_epochs=int(cfg.get("val_every_n_epochs", 1))))
 
+    shutil.rmtree(os.path.join(log_dir, "tb"), ignore_errors=True)
     tb = TensorBoardLogger(log_dir, name="tb", version="t")
     pl = CountingLit(cfg, model=model)
     pl._best_sink = save_best
