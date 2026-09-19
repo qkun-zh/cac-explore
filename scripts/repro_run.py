@@ -26,13 +26,27 @@ from cac.expt.node import TrajectoryTree  # noqa: E402
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
+def _coerce(v: str):
+    if v.lower() in ("true", "false"):
+        return v.lower() == "true"
+    try:
+        return int(v)
+    except ValueError:
+        pass
+    try:
+        return float(v)
+    except ValueError:
+        return v
+
+
 def main() -> int:
     args = sys.argv[1:]
     if not args:
-        sys.exit("usage: python scripts/repro_run.py <node_id> --out <dir> [--budget-seconds S]")
+        sys.exit("usage: python scripts/repro_run.py <node_id> --out <dir> [--budget-seconds S] [--set k=v ...]")
     node = args[0]
     out = None
     budget = None
+    overrides: dict = {}
     i = 1
     while i < len(args):
         if args[i] == "--out" and i + 1 < len(args):
@@ -47,6 +61,14 @@ def main() -> int:
         elif args[i].startswith("--budget-seconds="):
             budget = float(args[i].split("=", 1)[1])
             i += 1
+        elif args[i] == "--set" and i + 1 < len(args):
+            k, _, v = args[i + 1].partition("=")
+            overrides[k] = _coerce(v)
+            i += 2
+        elif args[i].startswith("--set="):
+            k, _, v = args[i][6:].partition("=")
+            overrides[k] = _coerce(v)
+            i += 1
         else:
             sys.exit(f"unknown argument: {args[i]}")
     if not out:
@@ -57,6 +79,10 @@ def main() -> int:
         sys.exit(f"node {node} not in tree/")
     nd = mat[node]["path"]
     cfg = load_config(os.path.join(nd, "config.toml"))
+    if overrides:
+        cfg = dict(cfg)
+        cfg.update(overrides)
+        print(f"[repro] cfg overrides: {overrides}")
     res = run_train(cfg, out, node_dir=nd, budget_seconds=budget)
     keep = {k: res.get(k) for k in ("best_mae", "best_epoch", "n_epochs_done",
                                     "budget_hit", "elapsed")}
