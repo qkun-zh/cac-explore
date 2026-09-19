@@ -239,5 +239,10 @@ Prominent goals: GCA⚠(H0001 uncertain) XScale⚠(H0002 uncertain) — re-verif
 only via the paper rules, never via a pre-decided outcome.
 - never: DDCA (H0006), extra spatial summaries/RGA (H0008), final-layer
   readout (H0007), backbone unfreeze (H0005).
+- never (2026-09-19): pre-condenser exemplar gating in ANY granularity —
+  image-global channel gate (H0009), frozen-input control (H0011), per-exemplar
+  scalar gate (H0010, incl. clean solo N0011), per-exemplar channel gate
+  (H0015). Live directions are query/similarity-side (H0014) and decoder-side
+  (H0016); confirmations pending.
 - frozen hs(2,3) readout + cross-attn condenser (H0003/H0004) = load-bearing;
   don't quietly break them.
