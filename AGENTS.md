@@ -95,10 +95,14 @@ before accepting it.
 2. **Select hypotheses** `discovery hypo <parent>` — Q_t (≤2·K_HYPO) over
    uncertain hypotheses untested on this ancestry; child dir is created nested
    under the parent (the filesystem lineage IS the trajectory tree).
-3. **Idea Agent** — always multi-angle (≥ pure-mathematics lens, ≥
-   champion-lineage lens, ≥ one counter-intuitive/low-cost lens). Each proposal
-   is 1–2 targeted changes from the parent, each change maps to **exactly one
-   testable hypothesis** with a pre-registered falsification criterion.
+3. **Idea Agent** — MUST survey the web first: latest adjacent mechanisms
+   (papers WITH code repos preferred), then think unconstrained from first
+   principles to the essence of the problem — novelty-gate originality is the
+   floor, not the ceiling; closed-door derivation alone is never acceptable.
+   Always multi-angle (≥ pure-mathematics lens, ≥ champion-lineage lens, ≥ one
+   counter-intuitive/low-cost lens). Each proposal is 1–2 targeted changes from
+   the parent, each change maps to **exactly one testable hypothesis** with a
+   pre-registered falsification criterion.
 4. **Novelty gate** — `python scripts/novelty_check.py "<text>" [hyp_id]` must
    exit 0 (top TF-IDF sim < 0.82 AND no structural twin). Duplicate → regenerate
    once; second failure kills the proposal. (Local stand-in for the paper's
@@ -153,6 +157,10 @@ before accepting it.
 14. Journal events are appended ONLY via `scripts/journal.py` (single-line JSON
     + trailing newline enforced). Hand-appends glue objects onto one line and
     break conformance.
+15. No closed-door ideas: every hypothesis must be preceded by a web survey of
+    current adjacent mechanisms (code repos preferred). The survey informs;
+    first-principles reasoning to the essence decides — "SOTA did it" is still
+    not a mechanism (§6).
 
 ## 6. Hypothesis format & fidelity
 ```
