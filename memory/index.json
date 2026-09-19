@@ -2,7 +2,7 @@
   "_meta": {
     "eta": 0.2
   },
-  "rebuilt": "2026-09-19T21:34:43+0800",
+  "rebuilt": "2026-09-19T22:46:25+0800",
   "hypotheses": {
     "H0001": {
       "text": "IF we attach a global-count auxiliary head that pools the fine feature map and the exemplar mean and adds a scaled soft-count bias onto the density output IN the CountingHead decoder of the frozen DINOv3-ConvNeXt-Tiny champion THEN final val MAE on FSC147 is at least 0.30 lower than the plain decoder BECAUSE a global count anchor disambiguates scale between sparse and dense scenes, an ambiguity that per-box exemplars cannot represent, so the decoder avoids systematic undercount. DISPROVED IF final val MAE is not at least 0.30 lower than the plain decoder",
@@ -428,9 +428,9 @@
     },
     "H0014": {
       "text": "IF we bolt a similarity-aware enhancement block onto the fused fine feature map that projects the fine map and the exemplar tokens into a shared score space, softmax-normalizes each query-exemplar similarity map jointly across the exemplar axis and the spatial axis, and adds a similarity-weighted mix of value-projected exemplar tokens back onto every spatial location as a residual before the map enters the condenser IN the CountingHead of the champion counter THEN final val MAE is at least 0.30 lower than the champion without the enhancement BECAUSE the condenser gives every location the same exemplar attention distribution, so background patches that weakly match any prototype still pass feature evidence to the density head, while a dual-normalized similarity map selects which prototype matches at each location and sharpens the locations where that prototype matches, injecting the match decision into the feature the decoder sums and leaving the residual features untouched where no prototype matches, which cuts false-positive density on clutter. DISPROVED IF final val MAE is not at least 0.30 lower than the champion N0001 seed of 21.459, that is, final val MAE is above 21.159",
-      "confidence": 0.6,
+      "confidence": 0.48,
       "status": "uncertain",
-      "n_tested": 1,
+      "n_tested": 2,
       "log": [
         {
           "type": "create",
@@ -444,6 +444,14 @@
           "strength": 1.0,
           "source_node": "N0008_h0014",
           "note": "Solo H0014 (SAFECount dual-norm similarity + query enhance) child best 22.9697 @ep32, 32/32, budget not hit (1787.2s); canonical parent 23.2932 -> delta -0.3235. Literal text line 21.159 (v1 anchor) superseded by anchor rule: semantics = 0.30 below live parent -> line 22.9932; child clears by 0.0235. Tail ep24-32 runs ~0.3 below parent tail (sustained, not single-epoch). CAVEAT: margin is knife-edge vs harness replicate noise 0.019; parent level is one seed draw (spread +-1). Supports per the bar; confirmation, not confirmation-status."
+        },
+        {
+          "type": "evidence",
+          "ts": "2026-09-19T22:46:25+0800",
+          "evidence_type": "contradicts",
+          "strength": 1.0,
+          "source_node": "N0008_h0014",
+          "note": "Different-seed confirmation (seed 20260831, canonical protocol, repro_run --set): child 21.5785 @ep32, 32/32, budget not hit; same-seed parent 21.3126 -> delta +0.2659 (worse); support line 21.0126 missed. The seed-20260830 support (-0.3235) does NOT replicate: treatment effect is seed-dependent. Contradicts."
         }
       ],
       "created": "2026-09-19T16:12:38+0800"
@@ -472,9 +480,9 @@
     },
     "H0016": {
       "text": "IF we add a verify-and-suppress stage that pools the fused fine feature at the top-scoring peaks of the preliminary density map, scores each pooled peak by cosine similarity against an exemplar prototype pooled in the same fine-feature space, and multiplies the density map by a learned-threshold verification gate before the loss IN the CountingHead of the champion counter THEN final val MAE is at least 0.30 lower than the champion without the verifier BECAUSE the decoder is trained only to deposit mass at salient regions, so distractor objects and textured background that match nothing in the exemplars still receive spurious mass that inflates count error, while a verification gate whose offset is learned through the density loss suppresses mass exactly at peaks whose appearance disagrees with the exemplar prototype and leaves verified peaks intact, removing false positives without touching the frozen backbone. DISPROVED IF final val MAE is not at least 0.30 lower than the champion N0001 seed of 21.459, that is, final val MAE is above 21.159",
-      "confidence": 0.6,
+      "confidence": 0.48,
       "status": "uncertain",
-      "n_tested": 1,
+      "n_tested": 3,
       "log": [
         {
           "type": "create",
@@ -488,6 +496,22 @@
           "strength": 1.0,
           "source_node": "N0010_h0016",
           "note": "Solo H0016 (DAVE-lite verify-and-suppress density mask) child best 22.8831 @ep32, 32/32, budget not hit (1751.4s); canonical parent 23.2932 -> delta -0.4101. Anchor-rule line 22.9932; child clears by 0.1101 (literal text line 21.159 superseded). Best@32, descending tail. Caveat: cross-seed level noise +-1 dwarfs margin; same-seed paired contrast exact. Supports per bar; needs confirmation for >0.75."
+        },
+        {
+          "type": "evidence",
+          "ts": "2026-09-19T21:46:17+0800",
+          "evidence_type": "neutral",
+          "strength": 1.0,
+          "source_node": "N0010_h0016",
+          "note": "Post-hoc damping diagnostic (frozen canonical champion best.pth, n=1286 val, inference-only): raw 23.2909 reproduces canonical; learned gate applied post-hoc 23.3336 (+0.04); uniform 0.89/0.91/0.93 damping 24.90/24.50/24.14 (+0.85..+1.61, hurts). Uniform-damping account of the -0.41 REFUTED; gate is selective (>1.1 better than uniform) but delivers gains only via training-time co-adaptation. Neutral: mechanism-informative, no verdict change. /data/cac/diag_damping.json."
+        },
+        {
+          "type": "evidence",
+          "ts": "2026-09-19T22:16:06+0800",
+          "evidence_type": "contradicts",
+          "strength": 1.0,
+          "source_node": "N0010_h0016",
+          "note": "Different-seed confirmation (seed 20260831, canonical protocol, repro_run --set): child 21.5383 @ep32, 32/32, budget not hit; same-seed parent 21.3126 -> delta +0.2257 (worse); support line 21.0126 missed. The seed-20260830 support (-0.4101) does NOT replicate: treatment effect is seed-dependent, not robust. Contradicts."
         }
       ],
       "created": "2026-09-19T16:47:11+0800"
