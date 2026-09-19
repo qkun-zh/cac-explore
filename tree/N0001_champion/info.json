@@ -1,12 +1,12 @@
 {
   "id": "N0001_champion",
   "parent": null,
-  "status": "synthesized",
+  "status": "done",
   "created_ts": "2026-09-19T10:03:00+0800",
-  "updated_ts": "2026-09-19T15:54:43+0800",
+  "updated_ts": "2026-09-19T18:40:20+0800",
   "title": "bootstrap champion — N0054_xscale_exemplar lineage (canonical seed root)",
-  "best_metric": 21.458858489990234,
-  "train_seconds": 1704.5,
+  "best_metric": 23.293153762817383,
+  "train_seconds": 1699.4,
   "epochs": 32,
   "tested_hypotheses": [
     "H0001",

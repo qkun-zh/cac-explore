@@ -2,7 +2,7 @@
   "_meta": {
     "eta": 0.2
   },
-  "rebuilt": "2026-09-19T20:09:20+0800",
+  "rebuilt": "2026-09-19T20:36:49+0800",
   "hypotheses": {
     "H0001": {
       "text": "IF we attach a global-count auxiliary head that pools the fine feature map and the exemplar mean and adds a scaled soft-count bias onto the density output IN the CountingHead decoder of the frozen DINOv3-ConvNeXt-Tiny champion THEN final val MAE on FSC147 is at least 0.30 lower than the plain decoder BECAUSE a global count anchor disambiguates scale between sparse and dense scenes, an ambiguity that per-box exemplars cannot represent, so the decoder avoids systematic undercount. DISPROVED IF final val MAE is not at least 0.30 lower than the plain decoder",
@@ -442,14 +442,22 @@
     },
     "H0015": {
       "text": "IF we add a small exemplar-conditioned gating MLP that maps each exemplar embedding to its own per-channel weight vector and multiplies that vector into the channels of that exemplar's token before the token enters the condenser cross-attention IN the CountingHead of the champion counter THEN final val MAE is at least 0.30 lower than the champion without the gate BECAUSE every exemplar token is a pooled ROI whose channels mix object appearance with that box's background and illumination, and one fixed or image-global gate cannot choose a different channel subspace for each exemplar, so a per-exemplar channel mask lets the condenser matching keys carry the object-bearing channels of that specific prototype and down-weight the context channels, which reduces both missed matches for unusual exemplars and false matches on textured background. DISPROVED IF final val MAE is not at least 0.30 lower than the champion N0001 seed of 21.459, that is, final val MAE is above 21.159",
-      "confidence": 0.5,
+      "confidence": 0.4,
       "status": "uncertain",
-      "n_tested": 0,
+      "n_tested": 1,
       "log": [
         {
           "type": "create",
           "ts": "2026-09-19T16:12:40+0800",
           "source_node": "N0001_champion"
+        },
+        {
+          "type": "evidence",
+          "ts": "2026-09-19T20:36:49+0800",
+          "evidence_type": "contradicts",
+          "strength": 1.0,
+          "source_node": "N0009_h0015",
+          "note": "Solo H0015 (BMNet+ dynamic per-exemplar channel gate) child best 23.6818 @ep23, 32/32, budget not hit (1703.5s); canonical parent 23.2932 -> delta +0.3886 (child worse). Pre-registered line (anchor rule, 0.30 below live parent) 22.9932 decisively missed. Second exemplar-gating variant to fail; scalar-gate clean test (H0010/N0011) queued next."
         }
       ],
       "created": "2026-09-19T16:12:40+0800"
