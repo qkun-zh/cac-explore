@@ -2,7 +2,7 @@
   "_meta": {
     "eta": 0.2
   },
-  "rebuilt": "2026-09-19T21:06:01+0800",
+  "rebuilt": "2026-09-19T21:34:43+0800",
   "hypotheses": {
     "H0001": {
       "text": "IF we attach a global-count auxiliary head that pools the fine feature map and the exemplar mean and adds a scaled soft-count bias onto the density output IN the CountingHead decoder of the frozen DINOv3-ConvNeXt-Tiny champion THEN final val MAE on FSC147 is at least 0.30 lower than the plain decoder BECAUSE a global count anchor disambiguates scale between sparse and dense scenes, an ambiguity that per-box exemplars cannot represent, so the decoder avoids systematic undercount. DISPROVED IF final val MAE is not at least 0.30 lower than the plain decoder",
@@ -324,9 +324,9 @@
     },
     "H0010": {
       "text": "IF we compute a per-exemplar reliability gate as sigmoid of a linear read-out of each exemplar token and rescale that exemplar embedding before it enters the condenser cross-attention IN the CountingHead of the champion counter THEN final val MAE is at least 0.30 lower than the champion without any exemplar gating BECAUSE a gate that varies between exemplars of the same image lets the condenser down-weight a weakly-localized prototype whose ROI features are dominated by background or occlusion, so attention concentrates on trustworthy prototypes and count error on mixed-quality exemplar scenes falls, while a fixed or image-global gate cannot make this per-exemplar choice. DISPROVED IF final val MAE is not at least 0.30 lower than the champion with the gate removed",
-      "confidence": 0.4,
+      "confidence": 0.32,
       "status": "uncertain",
-      "n_tested": 2,
+      "n_tested": 3,
       "log": [
         {
           "type": "create",
@@ -348,6 +348,14 @@
           "strength": 1.0,
           "source_node": "N0005_h0010",
           "note": "2nd H0010 test confounded: channel-gate conditioning severed in same node; cannot attribute -> no conf move."
+        },
+        {
+          "type": "evidence",
+          "ts": "2026-09-19T21:34:43+0800",
+          "evidence_type": "contradicts",
+          "strength": 1.0,
+          "source_node": "N0011_h0010",
+          "note": "Clean solo H0010 (per-exemplar scalar reliability gate, champion-only, no adjoin) child best 23.4581 @ep25, 32/32, budget not hit (1702.7s); canonical parent 23.2932 -> delta +0.1649 (child worse). Anchor-rule line 22.9932 decisively missed. Per N0009 causal pre-registration outcome (ii): with H0015 also failed, license retiring the pre-condenser exemplar-gating family; direction is query/similarity (H0014) and decoder-side (H0016)."
         }
       ],
       "created": "2026-09-19T14:09:29+0800"
