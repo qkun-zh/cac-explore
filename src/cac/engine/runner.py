@@ -94,7 +94,8 @@ def run_train(cfg: dict[str, Any], log_dir: str, node_dir: str | None = None,
         )
 
     smk = FSC147DataModule(cfg, smoke=True, img_size=384,
-                           batch_size=min(int(cfg.get("batch_size", 16)), 4))
+                           batch_size=min(int(cfg.get("batch_size", 16)), 4),
+                           seed=int(cfg.get("seed", 20260830)))
     pl_smoke = CountingLit(cfg, model=model)
     _mk_trainer(max_epochs=2, logger=False, smoke_=True).fit(pl_smoke, datamodule=smk)
     print(f"[smoke] one step fits: ok (model={type(model).__name__})")
@@ -116,7 +117,10 @@ def run_train(cfg: dict[str, Any], log_dir: str, node_dir: str | None = None,
     pl._best_sink = save_best
     dm = FSC147DataModule(cfg, smoke=False,
                           img_size=int(cfg.get("input_size", 384)),
-                          batch_size=int(cfg.get("batch_size", 16)))
+                          batch_size=int(cfg.get("batch_size", 16)),
+                          num_workers=int(cfg.get("num_workers", 4)),
+                          augment=bool(cfg.get("augment", False)),
+                          seed=int(cfg.get("seed", 20260830)))
     t_start = time.time()
     trainer = _mk_trainer(max_epochs=max_epochs, logger=tb, smoke_=False)
     trainer.fit(pl, datamodule=dm)

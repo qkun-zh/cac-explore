@@ -145,6 +145,11 @@ before accepting it.
     id — and it must have a NEW falsifier, else it dies.
 12. Every node run records `config_sha256` + `model_sha256` in `result.json`
     (runner does this) so "same config" claims are checkable.
+13. A pluggable component is constructed AFTER all parent modules (append-only
+    RNG order): shared-module init draws stay identical to the parent's, so a
+    child differs from its parent only by the new component. The runner pins the
+    data stream to `config.seed` (FSC147DataModule augment/seed wiring) and the
+    model has zero dropout, so nothing else consumes RNG during training.
 
 ## 6. Hypothesis format & fidelity
 ```

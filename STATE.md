@@ -39,6 +39,15 @@ journal/ first). Read AGENTS.md before anything below.
   honest baseline**.
   (4) New `scripts/repro_run.py` replicates a node config into a scratch dir
   (no tree writes) -> noise floor for verdict bars (0.30) never measured before.
+  (5) **PROTOCOL v2 (2026-09-19 16:45)**: runner never passed `cfg.augment` or
+  `cfg.seed` to FSC147DataModule since the migration -> every v1 run (incl. the
+  21.459 baseline) trained with augmentation OFF + unpinned loader RNG; the
+  historic pre-migration engine trained augment-on (old train.py L189). Fixed:
+  augment/seed/num_workers wired; AGENTS rule 13 = append-only construction
+  order (new component built after all parent modules; dropout=0 so no other
+  training RNG). **The v1 chain was aborted**; a fresh `N0001_champion` v2 run
+  becomes the canonical baseline; v1 numbers (21.459, all child results) stay as
+  historical record. Do not silently re-run v1-refuted hyps (rule 11).
 - **Paper backlog (researcher 2026-09-19, links fetched-verified; class-agnostic
   counting literature ONLY)**: booked: SAFECount `use_safe_enhance` (2201.08959,
   zhiyuanyou/SAFECount) = H0014; BMNet+ `use_dyn_exemplar_gate` (2203.08354,
