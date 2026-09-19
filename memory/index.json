@@ -2,7 +2,7 @@
   "_meta": {
     "eta": 0.2
   },
-  "rebuilt": "2026-09-19T20:36:49+0800",
+  "rebuilt": "2026-09-19T21:06:01+0800",
   "hypotheses": {
     "H0001": {
       "text": "IF we attach a global-count auxiliary head that pools the fine feature map and the exemplar mean and adds a scaled soft-count bias onto the density output IN the CountingHead decoder of the frozen DINOv3-ConvNeXt-Tiny champion THEN final val MAE on FSC147 is at least 0.30 lower than the plain decoder BECAUSE a global count anchor disambiguates scale between sparse and dense scenes, an ambiguity that per-box exemplars cannot represent, so the decoder avoids systematic undercount. DISPROVED IF final val MAE is not at least 0.30 lower than the plain decoder",
@@ -464,14 +464,22 @@
     },
     "H0016": {
       "text": "IF we add a verify-and-suppress stage that pools the fused fine feature at the top-scoring peaks of the preliminary density map, scores each pooled peak by cosine similarity against an exemplar prototype pooled in the same fine-feature space, and multiplies the density map by a learned-threshold verification gate before the loss IN the CountingHead of the champion counter THEN final val MAE is at least 0.30 lower than the champion without the verifier BECAUSE the decoder is trained only to deposit mass at salient regions, so distractor objects and textured background that match nothing in the exemplars still receive spurious mass that inflates count error, while a verification gate whose offset is learned through the density loss suppresses mass exactly at peaks whose appearance disagrees with the exemplar prototype and leaves verified peaks intact, removing false positives without touching the frozen backbone. DISPROVED IF final val MAE is not at least 0.30 lower than the champion N0001 seed of 21.459, that is, final val MAE is above 21.159",
-      "confidence": 0.5,
+      "confidence": 0.6,
       "status": "uncertain",
-      "n_tested": 0,
+      "n_tested": 1,
       "log": [
         {
           "type": "create",
           "ts": "2026-09-19T16:47:11+0800",
           "source_node": "N0001_champion"
+        },
+        {
+          "type": "evidence",
+          "ts": "2026-09-19T21:06:01+0800",
+          "evidence_type": "supports",
+          "strength": 1.0,
+          "source_node": "N0010_h0016",
+          "note": "Solo H0016 (DAVE-lite verify-and-suppress density mask) child best 22.8831 @ep32, 32/32, budget not hit (1751.4s); canonical parent 23.2932 -> delta -0.4101. Anchor-rule line 22.9932; child clears by 0.1101 (literal text line 21.159 superseded). Best@32, descending tail. Caveat: cross-seed level noise +-1 dwarfs margin; same-seed paired contrast exact. Supports per bar; needs confirmation for >0.75."
         }
       ],
       "created": "2026-09-19T16:47:11+0800"
