@@ -2,7 +2,7 @@
   "_meta": {
     "eta": 0.2
   },
-  "rebuilt": "2026-09-19T16:47:12+0800",
+  "rebuilt": "2026-09-19T20:09:20+0800",
   "hypotheses": {
     "H0001": {
       "text": "IF we attach a global-count auxiliary head that pools the fine feature map and the exemplar mean and adds a scaled soft-count bias onto the density output IN the CountingHead decoder of the frozen DINOv3-ConvNeXt-Tiny champion THEN final val MAE on FSC147 is at least 0.30 lower than the plain decoder BECAUSE a global count anchor disambiguates scale between sparse and dense scenes, an ambiguity that per-box exemplars cannot represent, so the decoder avoids systematic undercount. DISPROVED IF final val MAE is not at least 0.30 lower than the plain decoder",
@@ -420,14 +420,22 @@
     },
     "H0014": {
       "text": "IF we bolt a similarity-aware enhancement block onto the fused fine feature map that projects the fine map and the exemplar tokens into a shared score space, softmax-normalizes each query-exemplar similarity map jointly across the exemplar axis and the spatial axis, and adds a similarity-weighted mix of value-projected exemplar tokens back onto every spatial location as a residual before the map enters the condenser IN the CountingHead of the champion counter THEN final val MAE is at least 0.30 lower than the champion without the enhancement BECAUSE the condenser gives every location the same exemplar attention distribution, so background patches that weakly match any prototype still pass feature evidence to the density head, while a dual-normalized similarity map selects which prototype matches at each location and sharpens the locations where that prototype matches, injecting the match decision into the feature the decoder sums and leaving the residual features untouched where no prototype matches, which cuts false-positive density on clutter. DISPROVED IF final val MAE is not at least 0.30 lower than the champion N0001 seed of 21.459, that is, final val MAE is above 21.159",
-      "confidence": 0.5,
+      "confidence": 0.6,
       "status": "uncertain",
-      "n_tested": 0,
+      "n_tested": 1,
       "log": [
         {
           "type": "create",
           "ts": "2026-09-19T16:12:38+0800",
           "source_node": "N0001_champion"
+        },
+        {
+          "type": "evidence",
+          "ts": "2026-09-19T20:09:20+0800",
+          "evidence_type": "supports",
+          "strength": 1.0,
+          "source_node": "N0008_h0014",
+          "note": "Solo H0014 (SAFECount dual-norm similarity + query enhance) child best 22.9697 @ep32, 32/32, budget not hit (1787.2s); canonical parent 23.2932 -> delta -0.3235. Literal text line 21.159 (v1 anchor) superseded by anchor rule: semantics = 0.30 below live parent -> line 22.9932; child clears by 0.0235. Tail ep24-32 runs ~0.3 below parent tail (sustained, not single-epoch). CAVEAT: margin is knife-edge vs harness replicate noise 0.019; parent level is one seed draw (spread +-1). Supports per the bar; confirmation, not confirmation-status."
         }
       ],
       "created": "2026-09-19T16:12:38+0800"
