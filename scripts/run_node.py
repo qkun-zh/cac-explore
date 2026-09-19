@@ -64,6 +64,7 @@ def main() -> int:
     cfg = load_config(cfgp)
 
     log_dir = os.path.join(nd, "run", "latest")
+    prior_status = mat[node].get("status", "proposed")
     tree.set_status(node, "running")
     t0 = time.time()
     try:
@@ -107,7 +108,9 @@ def main() -> int:
         hit = kwargs.get("budget_seconds") and res.get("budget_hit")
         tree.set_status(node, "timeout" if hit else "done")
     else:
-        tree.set_status(node, "done" if res.get("off") else "done")
+        # smoke/--off runs are not node outcomes: restore the pre-run status so a
+        # smoke test can never make an untrained node look done/expandable.
+        tree.set_status(node, prior_status)
     print(json.dumps(res, indent=2))
     return 0
 
