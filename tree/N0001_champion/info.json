@@ -1,0 +1,16 @@
+{
+  "id": "N0001_champion",
+  "parent": null,
+  "status": "synthesized",
+  "created_ts": "2026-09-19T10:03:00+0800",
+  "updated_ts": "2026-09-19T10:05:00+0800",
+  "title": "bootstrap champion — N0054_xscale_exemplar lineage (canonical seed root)",
+  "best_metric": 19.647,
+  "train_seconds": 1760,
+  "epochs": 32,
+  "tested_hypotheses": [
+    "H0001", "H0002", "H0003", "H0004",
+    "H0005", "H0006", "H0007", "H0008"
+  ],
+  "source": "migrated from /home/qkun/cac_explore/baseline (model.py + config.toml + README.md); all evidence in memory/hypotheses.jsonl migrated from cac_explore per-run ablation history"
+}

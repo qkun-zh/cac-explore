@@ -1,14 +1,9 @@
 __pycache__/
 *.pyc
-.ipynb_checkpoints/
-locks/
 *.pth
 *.ckpt
 *.pt
+runs/
 .env
-data_local/
-runs_full/
-.DS_Store
-
-# machine-local secrets (never committed)
 local/
+.venv/

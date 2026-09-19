@@ -1,151 +1,216 @@
-# AGENTS.md — Hypothesis-Driven Discovery
+# AGENTS.md — Active Hypothesis Exploration for Crowd Counting
 
-Implementation of [HypoExplore (arXiv:2604.12999)](https://arxiv.org/abs/2604.12999) adapted for FSC147 crowd counting. Deviations from the paper are explicit (§9), never silent.
+Implementation of **HypoExplore — Agentic Discovery with Active Hypothesis
+Exploration** (Koo et al., [arXiv:2604.12999](https://arxiv.org/abs/2604.12999))
+adapted for FSC147 crowd counting. The paper's evolutionary machinery is the
+load-bearing contract of this repo: **quality × availability parent selection
+(Eq.2–4), dual Thompson-exploit + epistemic-explore hypothesis selection
+(Eq.5–6), evidential confidence updating (Eq.1), and confirmation/refutation
+thresholds**. We deviate from the paper ONLY where §9 of this file explicitly
+records a deviation. Deviations that silently weaken the machinery are a hard
+violation.
 
-**Mission**: ≤32M total params · same-parameter-class SOTA MAE on FSC147 test.
-**Regime (since 2026-08-30, user directive)**: PARTIAL-FT backbone — middle layers (stages 1-2, hs_map 2/3) MAY be fine-tuned with differential LR (backbone 0.1× head). Innovation in pluggable head parts (§5.14) remains primary, but backbone mid-layer tuning is now in-scope to test intermediate-vs-final readout. Optimizer/loss/schedule are fixed (AdamW 1e-3 head / 1e-4 backbone, wd0.05, cosine, bs16, AMP, 30ep, MSE(+SmoothL1)). Unfreezing early stem (stage0) or all stages is out of scope. See README for champion and empirical lessons.
+## Mission
+**≤32M total params · same-parameter-class SOTA MAE on FSC147 test.**
 
-**Engine contract (frozen)**: `config.py` → `cfg=dict(...)`; `model.py` → `build_model(cfg)` → `forward(imgs,bboxes[,bboxes3])` → `{"density", optional "n_aux"}`. Engine loss = MSE(dens,gt_d)+w_cnt·L1(sum(dens),gt_c); **only `out["density"]`** feeds the loss/gradients. Asserts `params ≤ max_params_M`.
+## Standing regime (user directive — NOT negotiable)
+- Backbone **frozen**, head-only training. Unfreezing is proven net-harmful
+  (H0005 refuted, N0066/67) and out of scope.
+- Innovation lives in the **pluggable head**: components bolt onto the frozen
+  intermediate features hs(2,3) + the exemplar embedding ONLY — those are the
+  single stable interface. A component that cannot be cleanly ablated by
+  removing one switch (`use_<name>`) is **rejected before smoke**.
+- Optimizer/loss/schedule invariant: AdamW, MSE(+w_cnt·L1), cosine, AMP.
+- Every model must satisfy `build_model(cfg)` →
+  `forward(imgs, bboxes[, bboxes3]) → {"density", ...}`; only `out["density"]`
+  feeds the loss.
+
+## The mechanism, and who may move it
+The discovery mathematics lives in one place: `src/cac/expt/`. It is touched
+only through the CLI:
+
+| Gate | CLI | Guarded against |
+|---|---|---|
+| Parent selection (Eq.2–4) | `python scripts/discovery.py parent` | hand-picking a parent |
+| Hypothesis selection (Eq.5–6) | `python scripts/discovery.py hypo <parent>` | shaping Q_t to pre-commit |
+| Hypothesis authoring/format | `discovery validate` + `novelty_check.py` | malformed, unmeasured claims |
+| Confidence (Eq.1) | `discovery evidence <hyp_id> --type <t> --strength <w> [--node n] [--note s]` — **never hand-computed**, append-only | gaming confidence by math |
+| Tree state | `discovery` / `run_node` write info.json | silent info.json edits |
+| Calibration | `discovery calibration` | confidence at test drift |
+| Commit gate | `scripts/conformance.py` (must exit 0) | drift, phantom ids, lineage rot |
+
+**No agent writes confidence numbers.** A confidence value is the *derived*
+result of ledger evidence; neither the Lead nor any subagent may edit
+`memory/hypotheses.jsonl` except by appending events through approved
+commands. Editing ledger history, editing `info.json` by hand for status,
+creating a child node dir without `discovery hypo`, or skipping conformance is
+**gaming the machinery and is forbidden**.
 
 ## 1. Operating Modes
-
-Mode is set by the user at session start or mid-session. Switches are logged in the journal; the active mode lives in STATE.md's session block.
-
 | Mode | Behavior |
 |---|---|
-| **Free-Research** (default) | Lead autonomously drives the cycle (§4) under all gates and hard rules |
-| **User-Guided** | User directives override defaults, gates, cycle order; Lead executes then back-fills mandatory records (journal entry + tree/STATE honesty pass) |
+| **Free-Research** (default) | Lead autonomously drives the cycle under all gates |
+| **User-Guided** | User directives override defaults; Lead executes then back-fills journal + state |
 
-History integrity never breaks in User-Guided mode: append-only ledgers stay append-only, large files stay out of git. A directive conflicting with this document wins within its scope.
+History integrity never breaks: ledgers stay append-only, large files stay out
+of git, conformance stays green before every commit.
 
 ## 2. Startup Sequence (mandatory, in order)
+1. `git pull --ff-only`
+2. Read this file, then `STATE.md` (exactly one session block).
+3. Preflight `ssh -o ConnectTimeout=8 -o BatchMode=yes cac-server 'echo OK'`.
+   On timeout → read `local/address_and_password.md` (mtime!), run
+   `python scripts/install_key.py`, retry. (`local/` is gitignored; it is the
+   always source of truth for host/port creds.)
+4. Read `journal/events.jsonl` tail and `tree/` via `discovery tree`.
+5. Run `scripts/conformance.py` — any prior session that left it red must be
+   fixed before new work.
 
-1. `cd ~/cac_explore && git pull --ff-only`
-2. Read this document, then `STATE.md`. STATE.md holds exactly ONE session block; stale sections are archived to `journal/` first.
-3. Preflight: `ssh -o ConnectTimeout=8 -o BatchMode=yes cac-server 'echo SERVER_OK'`
-   - OK → proceed
-   - Timeout → check `local/address_and_password.md` (mtime) for fresh creds; rerun `python3 scripts/install_key.py`; retry
-   - Still down → degraded mode (idea/research/eval-lab only), ask user to rotate the server
-   - `local/address_and_password.md` is the ALWAYS source of truth for host/port/password — never assume yesterday's address still works
-4. Read on demand: `docs/PROTOCOL.md`, `tail journal/events.jsonl`, `memory/failure_modes.md`
-
-## 3. Roles — the Lead Is an Orchestrator
-
-The Lead NEVER personally writes idea.md, model.py, config.py, feedback/*.md, or synthesis.md. Every role is dispatched to an independent subagent via the Task tool: one card = one subagent = one fresh context. Independent work launches in parallel.
+## 3. Roles — the Lead is an orchestrator, never a writer
+The Lead NEVER personally authors `idea.md`, node `model.py`/`config.toml`,
+`feedback/*.md`, or `synthesis.md`. Every role is dispatched to its own
+subagent via the Task tool: **one card = one subagent = one fresh context =
+one GPU card**. Independent work launches in parallel; the Lead verifies every
+claim against the actual filesystem/git log (hallucinations have occurred).
 
 | Role | Who | Produces | Lead verifies |
 |---|---|---|---|
-| **Researcher** | Subagent | SOTA analysis, architecture landscape, facts folded into STATE.md | Depth and specificity |
-| **Idea Agent** | Subagent | `idea.md` + `novelty.json` + task card | Novelty gate passed |
-| **Coding Agent** | Subagent | `model.py` + `config.py` + green smoke + card done | Smoke passed + pluggability passed (§5.14) |
-| **Executor** | **Lead only** | Server training + collect | Log contains `done status=` |
-| **Feedback ×3+1** | Subagents in parallel | `feedback/{quant,qual,causal}.md` (+ `diagnostic.md` on failure) | Angles distinct |
-| **Synthesis** | Subagent | `synthesis.md` + hypothesis bookings + calibration table | Quality gate + confidence math |
-
-**Lead-exclusive ownership**: tree.json status flips · STATE.md · journal · git ops · hypotheses.jsonl bookings (when no synthesis subagent).
+| **Researcher** | Subagent(s) | SOTA/mechanism facts → STATE.md | Depth, specific refs |
+| **Idea Agent** | Subagent | `idea.md` + novelty `novelty.json` | Novelty gate green |
+| **Coding Agent** | Subagent | `model.py` + `config.toml` (delta from parent) + green smoke | Smoke + pluggable rule |
+| **Executor** | Lead + own card | `run_node` on server; collect result | result.json exists, honest |
+| **Feedback ×3+1** | Subagents parallel | `feedback/{quant,qual,causal}.md` (+`diagnostic.md` on failure) | Distinct angles |
+| **Synthesis** | Subagent | `synthesis.md` + K_SYNTH≤2 bookings | Confidence math + format gate |
 
 Subagent prompt template:
+    Read AGENTS.md + STATE.md, then execute the <Role> loop for <card>.
+    Do NOT commit/push. Report exactly what files you wrote and with what contents.
 
-    Read ~/cac_explore/AGENTS.md + STATE.md, then execute the <Role> loop for <card path>.
-    Do NOT commit/push. Report back what you wrote and found.
+No role merges: one subagent never wears two hats in one dispatch. If a
+subagent's own claim references a file it wrote, the Lead re-reads that file
+before accepting it.
 
-On network_error retry once. Second failure: Lead may do the work directly but MUST log the deviation in `journal/events.jsonl` and mark the node's synthesis.md "Lead-booked due to subagent unavailability".
+## 4. Discovery Cycle (one pass per iteration)
+1. **Select parent** `discovery parent` — deterministic max of score.
+2. **Select hypotheses** `discovery hypo <parent>` — Q_t (≤2·K_HYPO) over
+   uncertain hypotheses untested on this ancestry; child dir is created nested
+   under the parent (the filesystem lineage IS the trajectory tree).
+3. **Idea Agent** — always multi-angle (≥ pure-mathematics lens, ≥
+   champion-lineage lens, ≥ one counter-intuitive/low-cost lens). Each proposal
+   is 1–2 targeted changes from the parent, each change maps to **exactly one
+   testable hypothesis** with a pre-registered falsification criterion.
+4. **Novelty gate** — `python scripts/novelty_check.py "<text>" [hyp_id]` must
+   exit 0 (top TF-IDF sim < 0.82 AND no structural twin). Duplicate → regenerate
+   once; second failure kills the proposal. (Local stand-in for the paper's
+   embedding-API redundancy filter — §9.)
+5. **Coding Agent** — delta from parent config/model only. Smoke first. Up to
+   **3 fix retries** (R_max). After that, fail honestly (§9).
+6. **Run** — `python scripts/run_node.py <node> [--budget-seconds 1800]`.
+   Hard wall-clock ceiling τ_max = **1800 s**; on exceed, `_BudgetStop` halts
+   and node is marked `timeout` (not `done`).
+7. **Feedback** — Quantitative + Qualitative + Causal (3 agents); +Diagnostic on
+   failure/timeout. Lean path allowed only for a clean early-stop that meets the
+   pre-registered gate; zero feedbacks is never acceptable.
+8. **Synthesis** — consolidate, dedupe, apply quality gate: (a) each booking
+   passes format gate, (b) ≤ K_SYNTH=2 new hypotheses per node, (c) an
+   opposite-of-existing books as `contradicts` on the existing id (never a new
+   duplicate), (d) misattributed reasoning → remap or discard. Then run
+   `discovery calibration` and paste the bin table into synthesis.md.
+9. **Lab closure** — STATE.md session block → journal entry → `conformance` green
+   → commit & push (server pulls; local pushes only).
 
-## 4. Research Cycle (one pass per iteration)
+## 5. Hard Rules (anti-laziness, anti-gaming)
+1. Observed results are written as observed. Outcome shopping
+   (re-running until a hypothesis fits) is **fabrication**.
+2. `memory/hypotheses.jsonl` is append-only; corrections are new events. Never
+   edit a line, never reorder `ts`, never delete an event.
+3. No tree lines get status flips except via `run_node` (done/failed/timeout)
+   or explicit discovery commands. Never hand-write a second node's `info.json`.
+4. `conformance.py` must exit 0 **before every commit**. A red conformance is
+   the top block.
+5. Numbers you put into journal/synthesis/feedback must be verifiable from a
+   `result.json`/log you or a subagent actually read — no recollections.
+6. Never idle while the GPU runs: dispatch the next Idea/Coding in parallel;
+   polling = a single ssh grep, never a sleep-loop.
+7. A subagent `report` without file evidence is an unverified claim; verify or
+   reject.
+8. Doc drift is forbidden: environment/ops/creds changes land in the affected
+   docs same-session (§7 cheat-sheet, STATE gotchas) — never deferred.
+9. Anything longer than 1 min on the server runs in tmux; no blocking loops.
+10. **No silent paper edits**: if you believe the paper's dynamics need a
+    different constant or order, propose it to the user with evidence; do not
+    just reprogram the machinery and continue (§9 only).
+11. Refuted hypotheses are not retried silently. If a proposal re-encodes a
+    refuted mechanism, it must book as `contradicts`-evidence on the existing
+    id — and it must have a NEW falsifier, else it dies.
+12. Every node run records `config_sha256` + `model_sha256` in `result.json`
+    (runner does this) so "same config" claims are checkable.
 
-### Step 0 · Research phase — before root bootstrap or when stuck
-Dispatch websearch subagents IN PARALLEL on latest SOTA, unfamiliar concepts, error patterns. Fold findings into idea.md grounding and STATE.md verified facts.
+## 6. Hypothesis format & fidelity
+```
+IF [choice] IN [scope], THEN [measured effect], BECAUSE [mechanism ≥ sensible].
+DISPROVED IF [falsification criterion with a number/comparison].
+```
+- Markers `IF IN THEN BECAUSE DISPROVED` must appear in order (machine-checked).
+- Mechanism must identify a *reason the model improves*, not just "SOTA did it".
+- Hedging ("maybe", "might") fails the gate. The falsifier must be a specific,
+  testable bar (e.g. `final val MAE is not at least 0.30 lower ...`).
+- Confidence: η=0.20 · support `c←c+η·w·(1−c)` · contradict `c←c−η·w·c` ·
+  neutral logs but does NOT move c. Confirmed >0.75, refuted <0.25.
+  These live ONLY in `src/cac/expt/`; agents never recompute them by hand.
 
-### Step 1 · Root bootstrap — generation 0 only
-Generate K=4 fundamentally different paradigms from `docs/research_direction.md`; each explores a DIFFERENT corner of design space. Register all in tree.json with `parent: null, status: "proposed"`.
-
-### Step 2 · Dual selection — gen ≥ 1
-    python code/selection/select_next.py parent              # best parent by quality×avail
-    python code/selection/select_next.py hypo --parent <ID>  # Q_t hypothesis set
-
-### Step 3 · Idea agent — mandatory multi-angle dispatch
-Always parallel multi-angle, never a single agent:
-- ≥1 pure-mathematics lens (first principles: point processes, decision theory, equivariance, identifiability)
-- ≥1 pure-physics lens (measurement/inverse problems: particle counting, deconvolution, shot noise, super-resolution)
-- ≥1 champion-lineage agent building incrementally on the best node — champion benefits NEVER dropped while exploring disruption
-- Optional: counter-intuitive, low-cost/high-yield, training dynamics
-
-Zero-base lenses get NO champion anchoring, NO refuted-list foreclosure, NO minimal-experiment bias; each returns ONE sharpest proposal with mechanism + kill-or-confirm ladder. The Lead integrates and picks.
-
-The idea agent reads `memory/index.json` + parent synthesis.md and writes idea.md with 1–2 targeted changes from the parent (never a full redesign); each change maps to a hypothesis with pre-registered falsification criteria.
-
-**Novelty gate (mandatory before tree registration):**
-    python scripts/novelty_check.py --file <node>/idea.md   # stage 1: retrieval
-Stage 2 is structural: a judge subagent compares design principles (not surface wording) against top matches and writes `novelty.json` {novel, most_similar_to, shared_principles, new_contribution}. A duplicate regenerates ONCE with avoid-instructions; second rejection kills the proposal.
-
-### Step 4 · Coding agent
-Writes model.py + config.py, then smoke-tests on the server. Only a green smoke completes the card. On smoke failure: diagnose, retry up to 2 times, else fail honestly (§9).
-
-### Step 5 · Executor (Lead only)
-Launch real training via `scripts/run_node.sh`. Poll with SINGLE ssh commands, never loops. Early-stop when at ep16+ and same-epoch train is ≥+1.5 worse than parent best.
-
-### Step 6 · Feedback — always 3 agents, +1 on failure
-Quantitative + Qualitative + Causal always run, each reading the full node directory independently. **Diagnostic** also runs whenever a node FAILED, timed out, or was early-stopped: root-causes the failure and appends notes to `memory/failure_modes.md`.
-Lean path (clean early-stop meeting the pre-registered gate): minimum = Quantitative + Diagnostic; skipping even those requires a journal-documented deviation. Zero feedbacks is never acceptable.
-
-### Step 7 · Synthesis
-Consolidates feedbacks, deduplicates overlaps, resolves disagreements by specificity. Before booking, apply the **quality gate**:
-1. Each new hypothesis passes `python scripts/check_hypothesis.py --text "..."` — malformed → revise or discard
-2. Max 2 new hypotheses per node (K_synth=2); prefer updating existing over new
-3. Contradiction remap: a proposal stating the opposite of an existing mechanism books as `contradicts` instead of a new hypothesis
-4. Misattribution check: reasoning must match the hypothesis text, else remap or discard
-
-After booking run `python scripts/calibration_report.py`; paste the bin table into synthesis.md.
-
-### Closing trio — after every role returns
-Update STATE.md (REWRITE the single session block, never append duplicates) → append a journal line (real UTC+8 timestamp; refs must be existing paths) → commit & push.
-
-## 5. Hard Rules
-
-1. Only local pushes; the server pulls
-2. Large files never enter git
-3. Task claiming = atomic rename
-4. hypotheses.jsonl is append-only — corrections are new events, never edits
-5. Remote tasks >1min go in tmux; never blocking sleep-loops
-6. Smoke before real data
-7. Read failure_modes.md before coding; append after incidents
-8. Websearch when stuck (2+ failed attempts) or before designing
-9. Never-idle: while the GPU runs, dispatch the next Idea/Coding in parallel; polling = single ssh grep
-10. Verify subagent claims against the actual filesystem / git log (hallucinations have occurred)
-11. **Target stability**: the mission target changes ONLY via `docs/research_direction.md` at session start with a journal entry — mid-session drift invalidates early-stop bars and evidence weights
-12. **Gate order**: no tree registration without the novelty gate; no booking without check_hypothesis; no session close without a calibration table in the latest synthesis
-13. **Docs-sync on ops changes**: environment/ops changes (tools, creds rotation, paths, server quirks) are documented IMMEDIATELY in the affected docs (STATE gotchas, `memory/failure_modes.md`, §7) and committed — never deferred to session close
-14. **Pluggable-only architecture**: every component bolted onto the frozen backbone MUST be an independent, self-contained module. Components may serialize (串联) or parallelize (并联), but MUST NOT couple tightly to each other. No module passes its output into another module's internals; no gate depends on another module's state. Coupling is limited to (a) frozen-backbone features and (b) exemplar embeddings — the shared, stable interfaces. This guarantees single-switch ablations: toggling a component on/off must not require touching another. A design that cannot be cleanly ablated by removing one component is REJECTED before smoke.
-
-## 6. Documentation Budget
-
-README ≤120 · AGENTS ≤180 · PROTOCOL ≤160 · STATE.md ≤60 · idea.md ≤80 · feedback ≤60 · synthesis.md ≤100
-
-## 7. Server Cheat-Sheet
-
+## 7. Server cheat-sheet
 | Item | Value |
 |---|---|
-| Creds (source of truth) | `local/address_and_password.md` — check mtime EVERY session; after rotation run `python3 scripts/install_key.py` once |
-| Connection | `ssh cac-server` (alias rewritten by install_key.py on rotation) |
+| Connection | `ssh cac-server` (alias maintained by install_key.py) |
 | Python | `/data/miniconda/envs/cac/bin/python` |
-| HF cache | `/data/asset/hf` with `HF_ENDPOINT=https://hf-mirror.com` |
-| Network | GitHub via revproxy if direct fails; pip needs Tsinghua mirror |
-| Runs | `/data/runs/<NODE>/` holds live training (best.pth, result.json, train.log); stale runs move to `/data/runs/archive_<date>/` — never delete the active lineage |
+| HF cache | `/data/asset/hf`, offline-first (`hub.setup_hf_env()`: mirror endpoint, `HF_HUB_OFFLINE=1`; HF_* before heavy imports) |
+| Data | `/data/dataset/FSC147` (VarV2 protocol: images_384_VarV2, gt_density_map_adaptive_384_VarV2, annotation_FSC147_384.json, Train_Test_Val_FSC_147.json) |
+| Runs | node-local `run/latest/` on the server copy (best.pth, result.json, tensorboard) |
+| GPU | single RTX3060 12 GB — one card per node run |
 
-## 8. Hypothesis Format & Memory Bank
+## 8. Directory map
+```
+src/cac/expt/       the paper's machinery, single source (constants, node, hypothesis,
+                    select, gates) — change only via §mechanism CLI & §10
+src/cac/engine/     runner (smoke→budget, checksums)   src/cac/models/  champion + pl_module
+src/cac/data/       FSC147 VarV2 datamodule            src/cac/calls/   best.pth, EMA
+scripts/            discovery, conformance, novelty_check, run_node, install_key
+tree/               THE trajectory tree (filesystem lineage = parent/child)
+  N0001_champion/   seed root: info.json, idea.md, model.py, config.toml, result.json,
+                      synthesis.md, feedback/ ... and its children NESTED inside it
+memory/             hypotheses.jsonl (append-only) + index.json (rebuilt, not edited)
+journal/            events.jsonl
+docs/               research_direction.md (mission changes ONLY here, journaled)
+configs/            read-only reference configs
+```
 
-    IF [choice] IN [scope], THEN [effect], BECAUSE [mechanism]. DISPROVED IF [criterion].
-
-Confidence: η=0.20 · support: c←c+η·w·(1−c) · contradict: c←c−η·w·c · confirmed >0.75 · refuted <0.25.
-Under η=0.20 a single strong contradiction cannot cross 0.25 — STATE.md's operational refuted list governs retries; ledger confidences are advisory.
-
-Tools: `scripts/check_hypothesis.py` (pre-booking gate) · `scripts/novelty_check.py` (pre-registration gate) · `scripts/calibration_report.py` (per-synthesis health check).
-
-## 9. Recorded Deviations from arXiv:2604.12999
-
-| Paper component | Local practice | Why |
+## 9. Recorded deviations from arXiv:2604.12999
+| Paper | Local | Why |
 |---|---|---|
-| Coding error-recovery R_max=10 | Smoke-first + max 2 fix retries, else honest fail | tau_max budget + server queue make 10 retries unaffordable |
-| Hyperparameter refinement F_max=5 | None — config authored once | Same budget reason; revisit if smoke-fail rate rises |
-| Qualitative VLM heatmaps | Text-log qualitative when no dump exists | Eval-lab dumps only when needed |
-| Embedding API redundancy filter | TF-IDF retrieval + LLM structural judge | No external embedding dependency |
+| Hand-written training loop | Lightning (smoke→budget) | same dynamics, less agent-written engine drift |
+| Redundancy: embedding API + K_synth rejection | local TF-IDF (scripts/novelty_check.py) + structural judge | no external embedding dependency |
+| Qualitative VLM heatmap reads | text-log qualitative analysis per node | no stored feature dumps at runtime |
+| R_max=10 coding retries | ≤3 fix retries, then honest fail | τ_max budget + single-GPU queue |
+| F_max=5 hyper-param refinements | phase 2; v1 authors config once | cost discipline |
+| Reference model provided | N0001_champion (our proven artifact) + migrated 8-hypothesis ledger | exploration starts from strength |
+| Bootstrap K=5 random roots | K=1 certified seed root | see §9 "reference" above |
+
+Everything else (selection, dual hypothesis selection, Eq.1 confidence,
+confirmation/refutation thresholds, calibration, honesty gates, append-only
+memory) is implemented as the paper specifies.
+
+## 10. Changing the machinery itself
+To change MATHLE constants, selection order, thresholds, or evidence types:
+1. Edit ONLY `src/cac/expt/constants.py` + the corresponding module, with a
+   journal entry citing the paper section being overridden.
+2. Re-run `scripts/conformance.py` + `python -m tests`.
+3. Commit separately as a mechanism change; never bundle with a node's run.
+
+## 11. Don't-repeat register (refuted / settled)
+Prominent goals: GCA⚠(H0001 uncertain) XScale⚠(H0002 uncertain) — re-verify
+only via the paper rules, never via a pre-decided outcome.
+- never: DDCA (H0006), extra spatial summaries/RGA (H0008), final-layer
+  readout (H0007), backbone unfreeze (H0005).
+- frozen hs(2,3) readout + cross-attn condenser (H0003/H0004) = load-bearing;
+  don't quietly break them.

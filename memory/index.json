@@ -1,573 +1,310 @@
 {
   "_meta": {
-    "description": "Snapshot of the hypothesis memory bank. Materialized from hypotheses.jsonl by Synthesis; rebuildable via scripts/rebuild_index.py",
-    "eta": 0.2,
-    "bounds": [
-      0.01,
-      0.99
-    ],
-    "init_confidence": 0.5,
-    "thresholds": {
-      "confirmed_gt": 0.75,
-      "refuted_lt": 0.25
-    }
+    "eta": 0.2
   },
+  "rebuilt": "2026-09-19T12:21:52+0800",
   "hypotheses": {
-    "H0030": {
-      "text": "IF point detection with focal+L1 replaces density regression IN FSC147 THEN val MAE <=15 BECAUSE discrete output eliminates kernel mismatch. DISPROVED IF MAE>18.",
-      "confidence": 0.3403,
-      "n_tested": 2,
+    "H0001": {
+      "text": "IF we attach a global-count auxiliary head that pools the fine feature map and the exemplar mean and adds a scaled soft-count bias onto the density output IN the CountingHead decoder of the frozen DINOv3-ConvNeXt-Tiny champion THEN final val MAE on FSC147 is at least 0.30 lower than the plain decoder BECAUSE a global count anchor disambiguates scale between sparse and dense scenes, an ambiguity that per-box exemplars cannot represent, so the decoder avoids systematic undercount. DISPROVED IF final val MAE is not at least 0.30 lower than the plain decoder",
+      "confidence": 0.664,
       "status": "uncertain",
-      "tags": [
-        "detect",
-        "paradigm",
-        "R001"
-      ],
+      "n_tested": 2,
       "log": [
         {
-          "source_node": "R001_point_detect",
-          "evidence_type": "contradicts",
-          "strength": 0.9,
-          "reasoning": "E17 best 52.57 vs parent E17 ~25; threshold barrier: RetinaNet prior init keeps sigmoid<0.3 for most cells even after training; focal loss with 95% negative cells converges too slowly for 40ep budget"
+          "type": "create",
+          "ts": "2026-09-19T09:00:00+0800",
+          "source_node": "N0001_champion"
         },
         {
-          "source_node": "N0021_dino_fullft",
-          "evidence_type": "contradicts",
-          "strength": 0.85,
-          "reasoning": "Full FT at lr=1e-3/1e-4 caused E5 instability spike (loss 93.9) then plateaued at MAE 48.4 — WORSE than frozen 21.53. Backbone feature drift outpaces head adaptation under tau_max=30min. Full FT requi"
-        }
-      ]
-    },
-    "H0031": {
-      "text": "IF progressive upsampling decoder 28->56->112 IN FSC147 THEN MAE<=19 BECAUSE finer grid separates adjacent instances. DISPROVED IF MAE>25 @ ep16.",
-      "confidence": 0.405,
-      "n_tested": 1,
-      "status": "uncertain",
-      "tags": [
-        "upsampling",
-        "highres-output",
-        "N0023"
-      ],
-      "log": [
-        {
-          "source_node": "N0023_dino_hires_out",
-          "evidence_type": "contradicts",
-          "strength": 0.95,
-          "reasoning": "E8 best 45.5 vs parent E8 28.0; gap +17.5; 16x more output cells need more training than tau_max allows"
-        }
-      ]
-    },
-    "H0032": {
-      "text": "IF only backbone blocks 10-11 + final norm are unfrozen at lr_mult=0.1 IN the frozen DINOv2-S reg4 champion recipe THEN val best MAE beats frozen inference (target <21.53, stretch <=18) BECAUSE top-block drift adds dataset-specific count abstraction while 10 frozen blocks anchor the feature distribution (drift rate < head fit rate = timescale separation). DISPROVED IF best MAE >= 21.53 OR training destabilizes (loss spike / plateau like full-FT).",
-      "confidence": 0.5175,
-      "n_tested": 2,
-      "status": "uncertain",
-      "tags": [
-        "partial-ft",
-        "backbone-lr-mult",
-        "fine-tuning",
-        "N0021"
-      ],
-      "log": [
-        {
-          "source_node": "N0021_dino_partialft",
+          "type": "evidence",
+          "ts": "2026-09-19T10:01:00+0800",
           "evidence_type": "supports",
-          "strength": 0.75,
-          "reasoning": "Best MAE 20.438@E25 (-5.1% vs frozen parent 21.53), stable 40/40ep (worst epoch 25.2, no OOM/NaN) while full-FT sibling collapsed to 48.4 with E5 loss spike 93.9 — narrow scope x low lr jointly restor"
+          "strength": 1.0,
+          "source_node": "N0001_champion",
+          "note": "migration from cac_explore N0051 GCA-only ablation"
         },
         {
-          "source_node": "N0024_ebc_partialft",
-          "evidence_type": "contradicts",
+          "type": "evidence",
+          "ts": "2026-09-19T10:02:00+0800",
+          "evidence_type": "supports",
+          "strength": 0.8,
+          "source_node": "N0001_champion",
+          "note": "secondary migration weight"
+        }
+      ],
+      "created": "2026-09-19T09:00:00+0800"
+    },
+    "H0002": {
+      "text": "IF we add a coarse multi-scale exemplar summary that pools each exemplar ROI at a second scales and additively fuses its pooled summary into the exemplar token before the condenser IN the ExemplarEncoder of the N0054 interface THEN final val MAE improves by at least 0.30 over the single-scale exemplar BECAUSE exemplar appearance is scale-invariant only when the encoder sees both fine and coarse views, so cross-scale exemplar contrast helps the condenser separate objects from backgrounds. DISPROVED IF final val MAE does not improve by at least 0.30 over the single-scale exemplar",
+      "confidence": 0.664,
+      "status": "uncertain",
+      "n_tested": 2,
+      "log": [
+        {
+          "type": "create",
+          "ts": "2026-09-19T09:00:01+0800",
+          "source_node": "N0001_champion"
+        },
+        {
+          "type": "evidence",
+          "ts": "2026-09-19T10:01:01+0800",
+          "evidence_type": "supports",
+          "strength": 1.0,
+          "source_node": "N0001_champion",
+          "note": "migration from cac_explore N0054 vs N0051"
+        },
+        {
+          "type": "evidence",
+          "ts": "2026-09-19T10:02:01+0800",
+          "evidence_type": "supports",
+          "strength": 0.8,
+          "source_node": "N0001_champion",
+          "note": "secondary migration weight"
+        }
+      ],
+      "created": "2026-09-19T09:00:01+0800"
+    },
+    "H0003": {
+      "text": "IF we read the frozen backbone at the intermediate hidden states stages 2 and 3 instead of the final stage IN the Backbone of the champion counter THEN final val MAE is at least 1.00 lower than the final-layer readout BECAUSE intermediate features of the frozen ConvNeXt carry the fine-grained and detection-like semantics needed for count supervision that later global-context stages wash out, matching the paper increasing-depth prior on readout choice. DISPROVED IF final val MAE is not at least 1.00 lower than the final-layer readout",
+      "confidence": 0.7696,
+      "status": "confirmed",
+      "n_tested": 4,
+      "log": [
+        {
+          "type": "create",
+          "ts": "2026-09-19T09:00:02+0800",
+          "source_node": "N0001_champion"
+        },
+        {
+          "type": "evidence",
+          "ts": "2026-09-19T10:01:02+0800",
+          "evidence_type": "supports",
+          "strength": 1.0,
+          "source_node": "N0001_champion",
+          "note": "migration from cac_explore N0054 vs N0068 2x2 intermediate readout"
+        },
+        {
+          "type": "evidence",
+          "ts": "2026-09-19T10:01:03+0800",
+          "evidence_type": "supports",
+          "strength": 1.0,
+          "source_node": "N0001_champion",
+          "note": "repeat confirmation N0068 final-layer readout"
+        },
+        {
+          "type": "evidence",
+          "ts": "2026-09-19T10:01:04+0800",
+          "evidence_type": "supports",
+          "strength": 1.0,
+          "source_node": "N0001_champion",
+          "note": "repeat confirmation third probe"
+        },
+        {
+          "type": "evidence",
+          "ts": "2026-09-19T10:02:02+0800",
+          "evidence_type": "supports",
           "strength": 0.5,
-          "reasoning": "Cross-paradigm transfer test: partial FT (blocks10-11 @lr0.1) inside EBC pipeline early-stopped at E16 gate (best 26.15 vs pre-registered bar <=22.80; champion-lineage E16 was 21.30). Narrow-scope dri"
+          "source_node": "N0001_champion",
+          "note": "weaker backup probe on readout depth"
         }
-      ]
-    },
-    "H0033": {
-      "text": "IF density field is rescaled per-image by median-over-exemplar-boxes inverse gain (each exemplar box holds exactly 1 object IN FSC147 GT) at eval THEN val MAE <=19.5 BECAUSE prompt-conditioned scalar gain drift is the dominant first-order systematic of the intensity readout. DISPROVED IF val MAE >20.64 or >50% of images have |gain-1|<0.01.",
-      "confidence": 0.41,
-      "n_tested": 1,
-      "status": "uncertain",
-      "tags": [
-        "ttnorm",
-        "eval-only",
-        "N0025"
       ],
+      "created": "2026-09-19T09:00:02+0800"
+    },
+    "H0004": {
+      "text": "IF we consume exemplar tokens with a cross-attention condenser, a learned multi-head-attention plus feed-forward consumer, instead of a simpler aggregation operator IN the Condenser of the CountingHead THEN final val MAE is at least 0.40 lower than the best non-attention aggregator BECAUSE learned soft attention over exemplars lets each density location attend to the most scale- and appearance-relevant prototypes, which fixed operators cannot express, so localization error falls. DISPROVED IF final val MAE improves by less than 0.40 over the best non-attention aggregator",
+      "confidence": 0.664,
+      "status": "uncertain",
+      "n_tested": 2,
       "log": [
         {
-          "source_node": "N0025_eval_readout",
-          "evidence_type": "contradicts",
-          "strength": 0.9,
-          "reasoning": "Eval-lab on champion ckpt: exemplar-box density integrals 0.03-0.19 not ~1; median gain clamps at 5.0; ttnorm MAE 20.44->108.26. Head mass scale has NO per-object anchoring - TT-Norm recipe from Count"
-        }
-      ]
-    },
-    "H0034": {
-      "text": "IF predicted counts are passed through a monotone map fit by split-half isotonic regression (fit half A, apply to half B, report both directions) THEN held-out-half MAE improves >=0.6 BECAUSE MSE-training regresses toward the count prior (attenuation slope<1) and L1-optimal readout is conditional median not mean. DISPROVED IF improvement <0.3 or fitted curve within +/-5% of identity.",
-      "confidence": 0.415,
-      "n_tested": 1,
-      "status": "uncertain",
-      "tags": [
-        "calibration",
-        "eval-only",
-        "N0025"
-      ],
-      "log": [
+          "type": "create",
+          "ts": "2026-09-19T09:00:03+0800",
+          "source_node": "N0001_champion"
+        },
         {
-          "source_node": "N0025_eval_readout",
-          "evidence_type": "contradicts",
-          "strength": 0.85,
-          "reasoning": "Split-half isotonic hurts BOTH halves (17.18->19.34, 23.70->25.26); trimmed-sum monotonically hurts (+0.24/+0.76/+2.24). No global count miscalibration exists; errors are not spurious-peak-cell artifa"
-        }
-      ]
-    },
-    "H0035": {
-      "text": "IF champion is evaluated at resolutions {224,308,448,518} THEN some non-392 resolution improves RMSE >=3 without MAE regression >0.5 BECAUSE the fixed 14px cell grid quantizes dense scenes irreducibly at 392 while 1x1-conv head + normalized prompts are resolution-equivariant by construction. DISPROVED IF every non-392 res degrades MAE >2.0.",
-      "confidence": 0.585,
-      "n_tested": 1,
-      "status": "uncertain",
-      "tags": [
-        "resolution",
-        "quantization",
-        "N0026"
-      ],
-      "log": [
-        {
-          "source_node": "N0026_res_sweep",
+          "type": "evidence",
+          "ts": "2026-09-19T10:01:05+0800",
           "evidence_type": "supports",
-          "strength": 0.85,
-          "reasoning": "Eval sweep on champion ckpt: S=448 RMSE -7.97 (71.88 vs 79.86) with dMAE -0.089; tail bucket [500,inf) error falls monotonically with res (487->406->319 MAE at 392/448/518) confirming cell-quantizatio"
-        }
-      ]
-    },
-    "H0036": {
-      "text": "IF images are routed by raw self-prediction (N_hat@392 >= 200) to 518px eval readout ELSE kept at 392/448 THEN val MAE <=19.5 AND RMSE <=70 BECAUSE the 14px-cell quantization floor binds only dense scenes while bulk images are already resolved. DISPROVED IF routed MAE >20.44 or RMSE >76.",
-      "confidence": 0.585,
-      "n_tested": 1,
-      "status": "uncertain",
-      "tags": [
-        "resolution",
-        "routing",
-        "eval-only"
-      ],
-      "log": [
+          "strength": 1.0,
+          "source_node": "N0001_champion",
+          "note": "all aggregation swaps negative, condenser held"
+        },
         {
-          "source_node": "N0026_res_sweep",
+          "type": "evidence",
+          "ts": "2026-09-19T10:02:03+0800",
           "evidence_type": "supports",
-          "strength": 0.85,
-          "reasoning": "Offline per-image routing on existing dump: N>=200->518 else 392 gives MAE 19.178 (-6.2%) RMSE 66.37 (-16.9%); else-448 variant gives 19.95/64.79. Threshold plateau 150-300 (19.95-19.84 range on varia"
+          "strength": 0.8,
+          "source_node": "N0001_champion",
+          "note": "secondary migration weight"
         }
-      ]
-    },
-    "H0037": {
-      "text": "IF imgs are normalized with timm default ImageNet mean=(0.485,0.456,0.406), std=(0.229,0.224,0.225) applied to the /255 tensor (node-local, inside model.forward) IN the champion partial-FT recipe kept otherwise identical THEN val best MAE <=19.94 (=20.44-0.5) BECAUSE frozen blocks 0-9 currently consume off-distribution input (fsc147.py:68 emits imgs/255 only) and realigning with DINOv2 pretraining statistics restores discriminative frozen features. DISPROVED IF MAE in [20.14, 20.74]. NOTE: lr retune deliberately excluded from this arm (one follow-up lr_mult arm only if disproof lands in noise band).",
-      "confidence": 0.445,
-      "n_tested": 1,
-      "status": "uncertain",
-      "tags": [
-        "input-norm",
-        "hygiene",
-        "N0027"
       ],
+      "created": "2026-09-19T09:00:03+0800"
+    },
+    "H0005": {
+      "text": "IF we release the backbone for training with a differential lower learning rate IN the Backbone regime of the champion counter THEN final val MAE is at least 1.00 worse than the fully frozen champion BECAUSE the frozen intermediate readout is the load-bearing interface and unfreezing it destabilizes the features that every head component is anchored to, which the earlier unfreeze probes confirmed. DISPROVED IF the unfrozen run ends within 1.00 of the frozen champion",
+      "confidence": 0.21504,
+      "status": "refuted",
+      "n_tested": 4,
       "log": [
         {
-          "source_node": "N0027_norm_flip_swa",
+          "type": "create",
+          "ts": "2026-09-19T09:00:04+0800",
+          "source_node": "N0001_champion"
+        },
+        {
+          "type": "evidence",
+          "ts": "2026-09-19T10:01:06+0800",
           "evidence_type": "contradicts",
-          "strength": 0.55,
-          "reasoning": "Joint arm (norm+flip): best 20.403 vs champion 20.438 (-0.17%, inside noise); bar <=19.94 missed, lands in pre-registered disproof band [20.14,20.74]. Convergence much faster (22.47@E10 vs ~28@E10) bu"
-        }
-      ]
-    },
-    "H0038": {
-      "text": "IF the existing horizontal-flip augment (p=0.5, train split only, fsc147.py:63-66, img+density+bbox consistent) is enabled via cfg['augment'] on top of the H0037 norm fix IN a single JOINT training arm of the champion lineage THEN joint best MAE <=19.74 BECAUSE mirror symmetry doubles effective train data at zero cost while counts are flip-invariant. DISPROVED IF joint MAE >20.44. HONEST LIMIT: flip is NOT separately testable in the same run as norm; individual attribution runs ONLY as a norm-only second arm IF the joint arm wins.",
-      "confidence": 0.5,
-      "n_tested": 0,
-      "status": "uncertain",
-      "tags": [
-        "aug-flip",
-        "hygiene",
-        "N0027"
-      ],
-      "log": []
-    },
-    "H0039": {
-      "text": "IF a uniform running average of TRAINABLE parameters over epoch ends E14-E28 is saved as swa.pth and evaluated once after the training loop IN the shared engine (zero extra training time) THEN swa-MAE < best-single-MAE - 0.2 BECAUSE parameter averaging selects the flat-minimum basin and cancels the late-epoch RMSE tail-drift observed in the champion (79.8->83.1 over E26-40). DISPROVED IF swa-MAE >= best-single-MAE - 0.2.",
-      "confidence": 0.42,
-      "n_tested": 1,
-      "status": "uncertain",
-      "tags": [
-        "swa",
-        "dynamics",
-        "N0027"
-      ],
-      "log": [
+          "strength": 1.0,
+          "source_node": "N0001_champion",
+          "note": "unfreeze probe N0066"
+        },
         {
-          "source_node": "N0027_norm_flip_swa",
+          "type": "evidence",
+          "ts": "2026-09-19T10:01:07+0800",
+          "evidence_type": "contradicts",
+          "strength": 1.0,
+          "source_node": "N0001_champion",
+          "note": "unfreeze probe N0067"
+        },
+        {
+          "type": "evidence",
+          "ts": "2026-09-19T10:01:08+0800",
+          "evidence_type": "contradicts",
+          "strength": 1.0,
+          "source_node": "N0001_champion",
+          "note": "third independent unfreeze confirmation"
+        },
+        {
+          "type": "evidence",
+          "ts": "2026-09-19T10:02:04+0800",
           "evidence_type": "contradicts",
           "strength": 0.8,
-          "reasoning": "SWA over E14-28 gives 21.083 vs best-single 20.403 (+0.68 WORSE). Iterate averaging fails here - late-phase epochs are not bouncing in one basin but drifting (consistent with causal.md RMSE-creep acco"
+          "source_node": "N0001_champion",
+          "note": "secondary migration weight"
         }
-      ]
-    },
-    "H0046": {
-      "text": "IF foreground-biased mixed sampling p_s=0.5 with jitter 3sigma IS used in the INR training loop IN cac_si THEN val MAE <24.89 (base) BECAUSE INR denser supervision near GT points improves high-density region estimation. DISPROVED IF TEST MAE >= 24.89.",
-      "confidence": 0.44,
-      "n_tested": 1,
-      "status": "uncertain",
-      "tags": [
-        "si-inr",
-        "sampling",
-        "fg_sampling"
       ],
+      "created": "2026-09-19T09:00:04+0800"
+    },
+    "H0006": {
+      "text": "IF we add a dilated-context branch that runs a parallel dilated depthwise convolution over the fine feature map IN the FineFuser of the CountingHead THEN final val MAE is at least 0.40 worse than with the branch absent BECAUSE dilated context reuses the same exemplar-aligned evidence at a coarser scale, adding redundant cues that the density decoder then double-counts, which raises false positives in dense regions. DISPROVED IF val MAE with the branch is not at least 0.40 worse than without it",
+      "confidence": 0.336,
+      "status": "uncertain",
+      "n_tested": 2,
       "log": [
         {
-          "source_node": "cac_si_fgsamp_224",
+          "type": "create",
+          "ts": "2026-09-19T09:00:05+0800",
+          "source_node": "N0001_champion"
+        },
+        {
+          "type": "evidence",
+          "ts": "2026-09-19T10:01:09+0800",
           "evidence_type": "contradicts",
-          "strength": 0.6,
-          "reasoning": "TEST MAE 24.81 vs base 24.89: delta -0.08 within noise. 32ep, same config as base, only fg_sampling=0.5. No improvement detected."
-        }
-      ]
-    },
-    "H0047": {
-      "text": "IF 2D sincos positional encoding (DETR-style) IS added to Q and KV in the cross-attention of cac_si THEN val MAE <24.89 (base) BECAUSE spatial awareness improves exemplar-to-image spatial alignment in cross-attention. DISPROVED IF TEST MAE >= 24.89.",
-      "confidence": 0.43,
-      "n_tested": 1,
-      "status": "uncertain",
-      "tags": [
-        "si-inr",
-        "pos_enc",
-        "attention"
-      ],
-      "log": [
+          "strength": 1.0,
+          "source_node": "N0001_champion",
+          "note": "migration from cac_explore N0052/53 DDCA +1.8"
+        },
         {
-          "source_node": "cac_si_pos_224",
+          "type": "evidence",
+          "ts": "2026-09-19T10:02:05+0800",
           "evidence_type": "contradicts",
-          "strength": 0.7,
-          "reasoning": "TEST MAE 25.62 vs base 24.89: delta +0.73 (WORSE). Pos-enc disrupted cross-attention dynamics rather than helping. 32ep, same config as base, only pos_enc=true."
+          "strength": 0.8,
+          "source_node": "N0001_champion",
+          "note": "secondary migration weight"
         }
-      ]
-    },
-    "H0048": {
-      "text": "IF B_H multi-scale operation (3 scales) IS removed (scales=[1.0], single-forward) IN cac_si THEN val MAE stays within +0.5 of base (24.89) BECAUSE B_H adds 3x compute but multi-scale features may be misaligned or redundant. DISPROVED IF TEST MAE > 25.39.",
-      "confidence": 0.56,
-      "n_tested": 1,
-      "status": "uncertain",
-      "tags": [
-        "si-inr",
-        "ablation",
-        "b_h_multiscale"
       ],
+      "created": "2026-09-19T09:00:05+0800"
+    },
+    "H0007": {
+      "text": "IF we read the backbone density-relevant features from its final layer only instead of the intermediate stages 2 and 3 IN the Backbone readout of the champion counter THEN final val MAE is at least 1.00 worse than the intermediate readout BECAUSE final-layer features collapse high-frequency detail needed for precise localization while intermediate ones retain it, and the frozen network never adapts that choice back, so count and localization both degrade. DISPROVED IF val MAE with the final-layer readout is within 1.00 of the intermediate readout",
+      "confidence": 0.2688,
+      "status": "uncertain",
+      "n_tested": 3,
       "log": [
         {
-          "source_node": "cac_si_single_224",
-          "evidence_type": "supports",
-          "strength": 0.6,
-          "reasoning": "TEST MAE 25.16 vs base 24.89: delta +0.27 (within noise). Epoch time dropped from 51s to 31.5s (-38%). B_H multi-scale contributes no measurable benefit at this scale while costing 3x backbone compute"
-        }
-      ]
-    },
-    "H0076": {
-      "text": "IF XScale-Key (coarse exemplar prototype supplied as a SEPARATE second condenser key, fine+coarse = 2K keys) IS added IN frozen N0054 base (GCA+XScale, use_ddca=False) THEN val MAE < 19.647 BECAUSE the condenser can weight fine-vs-coarse exemplar evidence per query, improving cross-scale exemplar matching. DISPROVED IF val MAE >= 19.65.",
-      "confidence": 0.5,
-      "n_tested": 0,
-      "status": "uncertain",
-      "tags": [
-        "frozen",
-        "exemplar-attn",
-        "xscale-key"
-      ],
-      "log": [
-        {
-          "source_node": "N0055_xscale_key",
-          "evidence_type": "refutes",
-          "strength": 1.0,
-          "reasoning": "N0055 val MAE 20.835 vs parent N0054 19.647: delta +1.19, past the +1.5 early-stop but within run. 2K condenser keys dilute cross-attn weighting; single fused prototype is better. H0076 refuted."
-        }
-      ]
-    },
-    "H0077": {
-      "text": "IF XFine (fine h2 1/8 exemplar ROI -> GAP -> proj -> additive fusion into the SAME single fused prototype) IS added IN frozen N0054 base (GCA+XScale, use_ddca=False) THEN val MAE < 19.647 BECAUSE a sharp higher-resolution exemplar appearance summary within the prototype improves cross-scale matching with no key-structure change. DISPROVED IF val MAE >= 19.65.",
-      "confidence": 0.5,
-      "n_tested": 0,
-      "status": "uncertain",
-      "tags": [
-        "frozen",
-        "exemplar-attn",
-        "xfine"
-      ],
-      "log": [
-        {
-          "source_node": "N0056_xfine_exemplar",
-          "evidence_type": "refutes",
-          "strength": 1.0,
-          "reasoning": "N0056 early-stopped at EP17 with best 24.313, +3.06 vs parent N0054 at same epoch (21.250), far past the +1.5 bar and stuck ~24.3 since E11. Extra fine-scale exemplar entropy degrades the head under f"
-        }
-      ]
-    },
-    "H0079": {
-      "text": "IF condenser REPLACED by cosine-similarity prototype matcher (no learned MHA/FFN/LN) IN frozen N0054 base (use_ddca=False) THEN val MAE within +0.5 of N0054 (i.e. <=20.15) BECAUSE the simpler matcher fits the same exemplar evidence with less to optimize. DISPROVED IF val MAE > 20.15.",
-      "confidence": 0.5,
-      "n_tested": 0,
-      "status": "uncertain",
-      "tags": [
-        "frozen",
-        "condenser-replacement",
-        "less-is-more"
-      ],
-      "log": [
-        {
-          "source_node": "N0057_cond_matcher",
-          "evidence_type": "refutes",
-          "strength": 1.0,
-          "reasoning": "N0057 val MAE 21.076 vs parent N0054 19.647: delta +1.43, past the +0.5 keep threshold. The matcher peaked at E15=21.076 and never improved, while N0054's cross-attn condenser dropped from 21.25 to 19"
-        }
-      ]
-    },
-    "H0080": {
-      "text": "IF per-exemplar aggregation operator is replaced by a part-wise 2nd-order polynomial-moment summary (PMOM) IN the frozen N0054 base (GCA+XScale, use_ddca=False, 30ep @384) THEN val MAE < 19.647 BECAUSE 2x2 part-wise mean+square polynomial moments + part-gating should capture category-discriminative part statistics and inject them through the unchanged single fused prototype into the load-bearing condenser cross-attention. DISPROVED IF val MAE >= 20.4.",
-      "confidence": 0.5,
-      "n_tested": 0,
-      "status": "uncertain",
-      "tags": [
-        "frozen",
-        "exemplar-agg",
-        "operator-swap",
-        "pmom",
-        "N0058"
-      ],
-      "log": [
-        {
-          "source_node": "N0058_pompart_exemplar",
-          "evidence_type": "refutes",
-          "strength": 1.0,
-          "reasoning": "N0058 early-stopped E15: best val 23.151 @E13, E15 23.805 = +2.17 same-epoch vs N0054 21.635; converged-gap floor +3.50 (19.647). Pre-registered KILL (>=20.4) fired E7, never left the lethal zone. PMO"
-        }
-      ]
-    },
-    "H0081": {
-      "text": "IF a learned aggregation operator at the exemplar producer (exemplar ROI self-attention) OR at the consumer (condenser cross-attention) is replaced by a lower-capacity non-attention operator IN the frozen 30ep head-only regime THEN val MAE degrades by at least +1.4 BECAUSE data-dependent token mixing on the exemplar pathway is load-bearing and its benefit accrues in the late-training window (E18-27), as shown by N0057 (consumer swap +1.43) and N0058 (producer swap +2.17); the boundary is aggregation swaps only, NOT granularity/scale enrichment (XScale remains the one positive axis, +0.95) and NOT interface-cardinality/density-side changes. DISPROVED IF an operator swap that keeps at least 1.5M trainable params (a param-matched control) beats N0054's val MAE 19.647, given that capacity and expressivity are confounded absent such a control.",
-      "confidence": 0.59,
-      "n_tested": 1,
-      "status": "uncertain",
-      "tags": [
-        "frozen",
-        "attention-law",
-        "operator-swap",
-        "load-bearing",
-        "N0058"
-      ],
-      "log": [
-        {
-          "source_node": "N0059_pom_morph",
-          "evidence_type": "supports",
-          "strength": 0.9,
-          "reasoning": "H0081 confirmed-by-failure: its pre-registered falsifier N0059 (the exact param-matched control the law demanded — PoM-PolyMorpher swap, 3.52M trainable head vs 3.505M, 49 tokens, residual-kept, no pa"
-        }
-      ]
-    },
-    "H0082": {
-      "text": "IF param-matched non-attention operator (PoM-PolyMorpher, k=2, D=352, residual-kept, 49 tokens, no part-pool) replaces the exemplar producer self-attention in frozen N0054 IN frozen N0054, matched 3.5M trainable THEN val MAE < 19.647 BECAUSE cross-token 2nd-order moments + nonlinear gating supply aggregation at matched capacity → producer self-attention not load-bearing. DISPROVED IF best val MAE ≥ 20.40.",
-      "confidence": 0.5,
-      "n_tested": 0,
-      "status": "uncertain",
-      "tags": [
-        "frozen",
-        "exemplar-agg",
-        "operator-swap",
-        "attn-law",
-        "N0059"
-      ],
-      "log": [
-        {
-          "source_node": "N0059_pom_morph",
-          "evidence_type": "refutes",
-          "strength": 1.0,
-          "reasoning": "N0059 30/30ep success: best val 20.958 @E18, final 21.415, RMSE 76.06; floor delta +1.31 vs N0054 19.647; ep16+ same-epoch bar fired E16 (+2.13); KILL gate (>=19.90) both prongs. Param-matched (head 3"
-        }
-      ]
-    },
-    "H0083": {
-      "text": "IF a second single-slot coarse additive summary (additional GAP pooling granularity over h3 beyond XScale's xscale_size=3, fused additively into the same single fused exemplar prototype, producer and consumer attention untouched) IS added IN frozen N0054 champion (GCA+XScale, use_ddca=False, 30ep @384) THEN val MAE < 19.647 BECAUSE the only positive frozen-regime axis is XScale-style granularity enrichment (single-slot, additive, coarse); N0055 degraded by splitting the prototype across 2K keys and N0056 by adding fine-scale entropy, so a second coarse single-slot GAP pool exploits the champion's winning axis while violating neither failed mechanism. DISPROVED IF val MAE >= 19.65.",
-      "confidence": 0.5,
-      "n_tested": 0,
-      "status": "uncertain",
-      "tags": [
-        "frozen",
-        "exemplar-agg",
-        "xscale",
-        "granularity",
-        "N0059"
-      ],
-      "log": [
-        {
-          "source_node": "N0060_xscale_max",
-          "evidence_type": "run",
-          "strength": 1.0,
-          "reasoning": "N0060 launches as the executable test of H0083: a second single-slot coarse additive summary, concretized as the MAX-order statistic over the same already-aligned 7x7 ROI (mean-XScale retained), the o"
+          "type": "create",
+          "ts": "2026-09-19T09:00:06+0800",
+          "source_node": "N0001_champion"
         },
         {
-          "source_node": "N0060_xscale_max",
-          "evidence_type": "refutes",
+          "type": "evidence",
+          "ts": "2026-09-19T10:01:10+0800",
+          "evidence_type": "contradicts",
           "strength": 1.0,
-          "reasoning": "N0060 clean 30/30ep: best 22.886 @E23, final 23.010, floor +3.24 vs N0054 19.647 (RMSE 85.11 vs 74.05). H0083's DISPROVED bar (>=19.65) beaten by +3.24; FAIL gate >20.0 fired. A second single-slot coa"
-        }
-      ]
-    },
-    "H0084": {
-      "text": "IF a coarse MAX-order-statistic summary (adaptive_max_pool2d over the already-aligned 7x7 ROI, xproj to 256, additive onto the SAME fused exemplar prototype alongside the retained mean XScale) is added IN the frozen N0054 champion (GCA+XScale, use_ddca=False, 30ep @384, producer/condenser/GCA untouched) THEN val MAE < 19.647 BECAUSE the single positive portable axis is coarse single-slot additive granularity; the max is an order statistic near-orthogonal to XScale's per-channel mean under heavy-tailed ConvNeXt activations, supplying peak/foreground signal a mean-only prototype lacks, violating neither N0055's cardinality nor N0056's fine entropy. DISPROVED IF best val MAE > 20.0.",
-      "confidence": 0.5,
-      "n_tested": 0,
-      "status": "uncertain",
-      "tags": [
-        "frozen",
-        "exemplar-agg",
-        "xscale",
-        "max-order-stat",
-        "N0060"
-      ],
-      "log": [
-        {
-          "source_node": "N0060_xscale_max",
-          "evidence_type": "refutes",
-          "strength": 1.0,
-          "reasoning": "N0060 clean 30/30ep, params 31.42M, single switch use_xscale_max: best 22.886 @E23 / final 23.010, floor +3.24 vs champion 19.647; FAIL gate (>20.0) fired decisively (+2.886 margin, ~3.3 sigma). RMSE "
-        }
-      ]
-    },
-    "H0085": {
-      "text": "IF a second additive coarse single-slot ROI summary of ANY statistic (mean / MAX / grid / part-pool) is fused into the same exemplar prototype beside the retained mean-XScale IN the frozen N0054 champion (GCA+XScale, 30ep @384) THEN best val MAE does NOT beat 19.647 (harms or neutral) BECAUSE the exemplar coarse-summary slot is a SINGLE slider: exactly one additive coarse summary (the mean-XScale, +0.95) is positive, a second summary over the same spatial source is redundant (2nd mean corr 0.85-0.97) or destructive (MAX N0060 +3.24 floor, part-pool N0058 +3.50 floor), and the axis is mapped negative elsewhere (N0055 +1.19, N0056 +3.06, N0057 +1.43, N0059 +1.31). DISPROVED IF a second coarse single-slot ROI summary over the same spatial source reaches best val MAE < 19.647.",
-      "confidence": 0.5,
-      "n_tested": 0,
-      "status": "uncertain",
-      "tags": [
-        "frozen",
-        "exemplar-agg",
-        "xscale",
-        "single-slider",
-        "axis-mapped",
-        "N0060"
-      ],
-      "log": []
-    },
-    "H0088": {
-      "text": "IF density output is re-scaled by a count-consistency factor density*n_hat/sum(density) with n_hat from a shared-interface count trunk IN frozen N0054, density MSE, 30ep THEN val MAE < 19.647 BECAUSE the engine MSE becomes count-weighted; the multiplicative count-consistency autoscale pins the total count to a variance-stabilized log-space estimate, shrinking the RMSE-tail (N>=500 images) without any spatial/ROI/operator change. DISPROVED IF best val MAE > 20.4.",
-      "confidence": 0.5,
-      "n_tested": 0,
-      "status": "uncertain",
-      "tags": [
-        "frozen",
-        "count-normalized-readout",
-        "multiplicative-autoscale",
-        "H0088",
-        "N0061"
-      ],
-      "log": [
-        {
-          "source_node": "N0061_countnorm",
-          "evidence_type": "run",
-          "strength": 1.0,
-          "reasoning": "N0061 launches as the pre-registered executable test of H0088: CountNormHead bolts parallel to GCA reading only GAP(fine)+e_mean, z=clamp(W2*GELU(W1*feat),-2,2) with W2 zero-init (identity-at-init f=1"
+          "source_node": "N0001_champion",
+          "note": "migration from cac_explore N0068 final-layer readout"
         },
         {
-          "source_node": "N0061_countnorm",
-          "evidence_type": "refutes",
+          "type": "evidence",
+          "ts": "2026-09-19T10:01:11+0800",
+          "evidence_type": "contradicts",
           "strength": 1.0,
-          "reasoning": "N0061 clean 30/30ep, params 31.35M, single switch use_countnorm: best 23.502 @E27 / final 23.718, floor +3.855 vs champion N0054 19.647 (RMSE 87.61 vs 74.05); FAIL gate >20.0 fired (early-stop E18 +2."
-        }
-      ]
-    },
-    "H0089": {
-      "text": "IF the density-MSE count-weighted readout is implemented as an output multiplier (out[density] = champion_density * f) IN the frozen N0054 engine where gt_d is raw non-unit-mass Gaussian blobs (sum=count) and only out[density] carries gradients THEN it does NOT achieve count-weighting and harms val MAE (multiplicative count-autoscale closed: N0037 N*p +0.5 and N0061 +3.855), leaving GCA (additive, 0.02-attenuated, zero-init) as the unique positive count-side module BECAUSE an output multiplier only rescales MSE by f^2 per image on the raw count-scaled target and cannot reweight the target's c^2 curvature that tail-steering requires. DISPROVED IF a readout-side output multiplier reaches best val MAE < 19.647.",
-      "confidence": 0.5,
-      "n_tested": 0,
-      "status": "uncertain",
-      "tags": [
-        "frozen",
-        "count-normalized-readout",
-        "premise-error",
-        "axis-mapped",
-        "GCA-unique",
-        "N0061"
-      ],
-      "log": []
-    },
-    "H0090": {
-      "text": "IF [a frozen native-1/4 backbone feature h1 is injected as extra input channels to the DensityDecoder (receiver-resolution enrichment, exemplar/condenser/GCA/attention untouched)] IN [frozen N0054, 30ep @384, no engine change] THEN [val MAE < 19.647] BECAUSE [the dense-image tail (76% SSE in 17 imgs N>=500) fails by cell-quantization mass loss from reading only upsampled-from-1/8 fine; native 1/4 per-cell fidelity places peak mass correctly (N0026: tail error falls with resolution), and this decoder-RECEIVER axis is orthogonal to N0056 exemplar-aggregation entropy and RGA output-bias]. DISPROVED IF best val MAE > 20.4.",
-      "confidence": 0.5,
-      "n_tested": 0,
-      "status": "uncertain",
-      "tags": [
-        "frozen",
-        "decoder-resolution",
-        "native-1/4",
-        "N0062"
-      ],
-      "log": [
-        {
-          "source_node": "N0062_fine_decoder",
-          "evidence_type": "run",
-          "strength": 1.0,
-          "reasoning": "N0062 launches as executable test of H0090: native-1/4 h1 injector 96->8 + GN into DensityDecoder input (in_ch 192->200, +19k params), exemplar/condenser/GCA/attention untouched, use_fine_decoder=Fals"
+          "source_node": "N0001_champion",
+          "note": "repeat probe final-layer readout"
         },
         {
-          "source_node": "N0062_fine_decoder",
-          "evidence_type": "refutes",
-          "strength": 1.0,
-          "reasoning": "N0062 clean 30/30ep, params 31.34M, single switch use_fine_decoder: best 21.323 @E17 / final 22.298, floor +1.676 vs champion 19.647 (RMSE 75.96 vs 74.05); FAIL gate >20.0 fired (early-stop E19 +3.66)"
+          "type": "evidence",
+          "ts": "2026-09-19T10:02:06+0800",
+          "evidence_type": "contradicts",
+          "strength": 0.8,
+          "source_node": "N0001_champion",
+          "note": "secondary migration weight"
         }
-      ]
-    },
-    "H0091": {
-      "text": "IF [frozen backbone is swapped from dinov3-convnext-tiny (27M) to convnext_small.in12k (49.5M, same channel dims, deeper) IN frozen N0054 head (GCA+XScale, 30ep @384, no recipe change)] THEN [best val MAE < 19.647] BECAUSE [larger frozen representation supplies richer count-semantic features the pluggable head can exploit, and the 32M cap was the bottleneck]. DISPROVED IF best val MAE >= 19.647.",
-      "confidence": 0.5,
-      "n_tested": 0,
-      "status": "uncertain",
-      "tags": [
-        "User-Guided",
-        "large-backbone",
-        "param-cap",
-        "N0063"
       ],
+      "created": "2026-09-19T09:00:06+0800"
+    },
+    "H0008": {
+      "text": "IF we feed the density decoder extra spatial summaries such as key, fine, and max pooling statistics or a regional count auxiliary IN the CountingHead of the champion counter THEN final val MAE is at least 0.40 worse than the decoder fed only the fused fine feature and condensed exemplar tokens BECAUSE extra summaries duplicate the same counting evidence under different pooling views, inflating parameter budget and giving the decoder redundant channels that worsen generalization on unseen densities. DISPROVED IF val MAE with the extra summaries is not at least 0.40 worse than without them",
+      "confidence": 0.2688,
+      "status": "uncertain",
+      "n_tested": 3,
       "log": [
         {
-          "source_node": "N0063_large_backbone",
-          "evidence_type": "run",
-          "strength": 1.0,
-          "reasoning": "N0063 launches as executable test of H0091: timm convnext_small.in12k frozen backbone swap (49.5M vs 27M tiny, same 192/384 dims) under identical GCA+XScale head, 30ep, deviation allows >32M (total ~5"
+          "type": "create",
+          "ts": "2026-09-19T09:00:07+0800",
+          "source_node": "N0001_champion"
         },
         {
-          "source_node": "N0063_large_backbone",
-          "evidence_type": "refutes",
+          "type": "evidence",
+          "ts": "2026-09-19T10:01:12+0800",
+          "evidence_type": "contradicts",
           "strength": 1.0,
-          "reasoning": "N0063 32/32ep (norm-fixed) best 25.893 @E08 vs champion 19.647 (+6.25, RMSE 81.5 vs 74.05), 37.49M total. Larger frozen backbone (34M vs 27.8M, +22%) did NOT help; actually worse after E08. H0091 refu"
+          "source_node": "N0001_champion",
+          "note": "extra spatial summaries negative N0055/56/60"
+        },
+        {
+          "type": "evidence",
+          "ts": "2026-09-19T10:01:13+0800",
+          "evidence_type": "contradicts",
+          "strength": 1.0,
+          "source_node": "N0001_champion",
+          "note": "RGA regional aux negative N0053"
+        },
+        {
+          "type": "evidence",
+          "ts": "2026-09-19T10:02:07+0800",
+          "evidence_type": "contradicts",
+          "strength": 0.8,
+          "source_node": "N0001_champion",
+          "note": "secondary migration weight"
         }
-      ]
-    },
-    "H0092": {
-      "text": "IF [a learned scale embedding (20 bins, BMNet+-inspired relative bbox size w/img_w+h/img_h) is additively injected into ExemplarEncoder output] IN [frozen N0054 128ep @384, GCA+XScale unchanged] THEN [best val MAE < 19.647] BECAUSE [scale-aware exemplar representation helps cross-scale count invariance]. DISPROVED IF best val MAE >= 19.647 or training becomes unstable (nan/divergence).",
-      "confidence": 0.5,
-      "n_tested": 0,
-      "status": "uncertain",
-      "tags": [
-        "frozen",
-        "scale-embed",
-        "exemplar",
-        "N0065"
       ],
+      "created": "2026-09-19T09:00:07+0800"
+    },
+    "H0009": {
+      "text": "IF we pool the fine feature map globally and emit one scalar gating coefficient that reweights the exemplar tokens per feature channel IN the Condenser of the CountingHead THEN final val MAE improves by at least 0.30 over the unconditional condenser BECAUSE a per-exemplar channel-gain lets the decoder express count-dependent attention that a fixed affine readout cannot, steering the condenser toward scale-consistent exemplar weights. DISPROVED IF val MAE is not at least 0.30 lower than the unconditional condenser",
+      "confidence": 0.5,
+      "status": "uncertain",
+      "n_tested": 0,
       "log": [
         {
-          "source_node": "N0065_scale_embed",
-          "evidence_type": "run",
-          "strength": 1.0,
-          "reasoning": "N0065 launches as executable test of H0092: champion + scale embedding (20x256=5120 params, 31.33M total) 128ep, resume+36h patch."
-        },
-        {
-          "source_node": "N0065_scale_embed",
-          "evidence_type": "refutes",
-          "strength": 1.0,
-          "reasoning": "N0065 ran 81/128ep, best 20.429 @E28 vs champion 19.647 (+0.78), 31.33M. Never broke champion; 22 epochs (E28-50) plateau at 20.4-22.5, then 10 consecutive nan @E64-73 and divergence to 62.4 @E81. H00"
+          "type": "create",
+          "ts": "2026-09-19T12:19:37+0800",
+          "source_node": "N0001_champion"
         }
-      ]
+      ],
+      "created": "2026-09-19T12:19:37+0800"
     }
   }
 }

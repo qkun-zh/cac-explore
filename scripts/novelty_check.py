@@ -1,131 +1,100 @@
 #!/usr/bin/env python3
-"""Novelty gate stage-1: TF-IDF similarity retrieval over past ideas.
+"""Novelty check — a local stand-in for the paper's embedding-similarity gate.
 
-Paper analog (arXiv:2604.12999 §2.3 Redundancy Filtering): retrieve top-k
-most similar archived concepts; an LLM judge then decides duplicate-vs-novel
-on structural principles (stage-2 lives in the Idea dispatch prompt).
-This script never blocks by itself — it surfaces candidates for judgment.
+Two-part judge against memory/index.json:
+  1. TF-IDF cosine similarity of the hypothesis text against every prior
+     hypothesis; the paper gates on embedding distance inside K_SYNTH ties.
+  2. Structural judge: same (scope, effect), (mechanism), or (falsifier)
+     signature as an existing hypothesis is flagged — the paper's black-box
+     observer would not distinguish them either.
 
-Corpus: tree/nodes/*/idea.md, tree/archive*/**/idea.md, plus hypothesis
-texts from memory/hypotheses.jsonl (create events).
-
-Usage:
-  python3 scripts/novelty_check.py --file tree/nodes/N0028_x/idea.md
-  python3 scripts/novelty_check.py --text "proposed idea ..." [--top 3]
-Exit 0 always; verdict field is advisory.
+Exit 0 on a genuine novelty, 2 on a near-duplicate restatement.
 """
-import argparse
-import json
+from __future__ import annotations
+
 import math
+import os
 import re
 import sys
-from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
-STOP = set("""a an and are as at be by for from has have how in into is it its of on or
-that the their then there these they this to was were will with within without which
-what when where who why can could should would may might must not no nor but if than
-using use used uses new based via each per more most less least very much many also
-between among during after before under over above below out up down off same other
-""".split())
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "src"))
 
-TOK = re.compile(r"[a-z]{3,}")
+from cac.expt.hypothesis import Memory
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
-def tokens(text):
-    return [t for t in TOK.findall(text.lower()) if t not in STOP]
+def _tokens(text: str) -> list[str]:
+    return [t for t in re.split(r"[^a-zA-Z0-9_]+", text.lower()) if t and len(t) > 1]
 
 
-def tfidf_matrix(docs):
-    tfs, df = [], {}
-    for d in docs.values():
-        counts = {}
-        for t in d:
-            counts[t] = counts.get(t, 0) + 1
-        tfs.append(counts)
-        for t in counts:
-            df[t] = df.get(t, 0) + 1
+def _tfidf(texts: list[str]) -> tuple[dict[str, tuple[float, ...]], list[str]]:
+    vocab: dict[str, int] = {}
+    docs = [_tokens(t) for t in texts]
     n = len(docs)
-    idf = {t: math.log(n / c) + 1.0 for t, c in df.items()} if n else {}
-    vecs = []
-    for counts in tfs:
-        total = sum(counts.values()) or 1
-        v = {t: (c / total) * idf.get(t, 1.0) for t, c in counts.items()}
-        norm = math.sqrt(sum(x * x for x in v.values())) or 1.0
-        vecs.append((v, norm))
-    return vecs
+    for d in docs:
+        for t in set(d):
+            vocab.setdefault(t, 0)
+            vocab[t] += 1
+    keys = sorted(vocab)
+    vecs = {}
+    for i, d in enumerate(docs):
+        tf = {t: d.count(t) for t in d}
+        v = []
+        for t in keys:
+            idf = math.log((n + 1) / (1 + vocab[t])) + 1.0
+            v.append(tf.get(t, 0.0) * idf)
+        nrm = math.sqrt(sum(x * x for x in v)) or 1.0
+        vecs[i] = tuple(x / nrm for x in v)
+    return vecs, keys
 
 
-def cosine(a, an, b, bn):
-    if len(a) > len(b):
-        a, b = b, a
-    dot = sum(x * b.get(t, 0.0) for t, x in a.items())
-    return dot / (an * bn)
+def _cosine(a: tuple[float, ...], b: tuple[float, ...]) -> float:
+    return sum(x * y for x, y in zip(a, b))
 
 
-def load_corpus():
-    docs = {}
-    for pat in ("tree/nodes/*/idea.md", "tree/archive*/*/idea.md"):
-        for p in ROOT.glob(pat):
-            docs[str(p.relative_to(ROOT))] = p.read_text(errors="ignore")
-    for line in (ROOT / "memory" / "hypotheses.jsonl").read_text().splitlines():
-        line = line.strip()
-        if not line:
-            continue
-        ev = json.loads(line)
-        if ev.get("type") == "create" and ev.get("text"):
-            docs[f"hypothesis:{ev.get('hyp_id', '?')}"] = ev["text"]
-    return docs
+def _signature(text: str) -> tuple[str, str, str]:
+    m = re.search(r"IF\s+(.+?)\s+IN\s+(.+?)\s+THEN\s+(.+?)\s+BECAUSE", text)
+    return (m.group(1).strip(), m.group(2).strip(), m.group(3).strip()) if m else ("", "", "")
 
 
-def main():
-    ap = argparse.ArgumentParser()
-    g = ap.add_mutually_exclusive_group(required=True)
-    g.add_argument("--file")
-    g.add_argument("--text")
-    ap.add_argument("--top", type=int, default=3)
-    args = ap.parse_args()
-
-    cand_text = (ROOT / args.file).read_text(errors="ignore") if args.file else args.text
-    cand_path = None
-    if args.file:
-        p = Path(args.file)
-        p = p if p.is_absolute() else ROOT / p
-        try:
-            cand_path = str(p.resolve().relative_to(ROOT))
-        except ValueError:
-            cand_path = str(p)
-
-    corpus = load_corpus()
-    if cand_path:
-        corpus.pop(cand_path, None)
-    if not corpus:
-        print("corpus empty — nothing to compare", file=sys.stderr)
-        sys.exit(0)
-
-    docs = {k: tokens(v) for k, v in corpus.items()}
-    docs["__CANDIDATE__"] = tokens(cand_text)
-    vecs = tfidf_matrix(docs)
-    cv, cn = vecs[-1]
-
-    scored = []
-    for (name, _), (v, norm) in zip(docs.items(), vecs):
-        if name == "__CANDIDATE__":
-            continue
-        scored.append((cosine(cv, cn, v, norm), name))
-    scored.sort(reverse=True)
-
-    top = scored[: args.top]
-    best = top[0][0] if top else 0.0
-    verdict = "NOVEL" if best < 0.30 else "REVIEW" if best < 0.55 else "LIKELY-DUPLICATE"
-
-    print(f"candidate: {cand_path or '(text)'}")
-    print(f"{'sim':>6}  document")
-    for s, name in top:
-        print(f"{s:>6.3f}  {name}")
-    print(f"\nverdict(stage-1): {verdict}  (best={best:.3f})")
-    print("stage-2: LLM judge on structural principles required before registration.")
+def check(text: str, hyp_id: str | None = None, threshold: float = 0.82,
+          k_synth: int = 3, verbose: bool = True) -> int:
+    mem = Memory()
+    idx = mem.build_index().get("hypotheses", {})
+    existing = [(hid, h["text"]) for hid, h in sorted(idx.items())]
+    if not existing:
+        if verbose:
+            print("(memory empty — nothing to compare against; treat as novel)")
+        return 0
+    texts = [t for _, t in existing] + [text]
+    vecs, _ = _tfidf(texts)
+    newvec = vecs[len(existing)]
+    sims = [(hid, _cosine(newvec, vecs[i])) for i, (hid, _) in enumerate(existing)]
+    sims.sort(key=lambda x: -x[1])
+    t_s, m_s, e_s = _signature(text)
+    sibling = None
+    for hid, _ in existing:
+        t2, m2, e2 = _signature(mem.build_index().get("hypotheses", {}).get(hid, {}).get("text", ""))
+        if hid != hyp_id and t2 and (t_s == t2 and (m_s == m2 or e_s == e2)):
+            sibling = hid
+            break
+    s, worst = sims[0][1], sims[0][0]
+    tail = f"{s:.3f} {worst}"
+    if verbose:
+        print(f"top similarities: " + ", ".join(f"{hid}={v:.3f}" for hid, v in sims[:k_synth]))
+        if sibling:
+            print(f"structural twin of {sibling}")
+    if not sibling and s < threshold:
+        if verbose:
+            print(f"NOVEL (top sim {s:.3f} < {threshold})")
+        return 0
+    if verbose:
+        print(f"DUPLICATE-ish (top sim {s:.3f} >= {threshold}" + (f" AND structural twin {sibling}" if sibling else "") + ")")
+    return 2
 
 
 if __name__ == "__main__":
-    main()
+    text = sys.argv[1]
+    hid = sys.argv[2] if len(sys.argv) > 2 else None
+    sys.exit(check(text, hid))

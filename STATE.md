@@ -1,44 +1,32 @@
-# STATE — Session 2026-08-30 OPEN (Lead=qkun-local, User-Guided)
+# STATE.md
 
-**Mode**: User-Guided. Preflight SERVER_OK (fz58r...:42258, RTX3060 12G, tmux apt-installed). User directive 2026-08-30: probe intermediate vs final output + build consolidated baseline — RESOLVED (2×2 complete, intermediate frozen wins; baseline/ built).
-**Regime**: Backbone axis CLOSED (2×2 all negative vs champion): use frozen intermediate hs(2,3); unfreeze is out of scope. Head-side pluggable innovation remains the innovation channel.
+One session block; REWRITE it each session open (archive stale content to
+journal/ first). Read AGENTS.md before anything below.
 
-## Champion (canonical baseline)
-**`baseline/` = CONSOLIDATED baseline** — packages EVERY proven-effective decision: GCA + XScale +
-frozen intermediate hs(2,3) readout + cross-attn condenser + proven hyperparams (AdamW 1e-3, wd0.05,
-cosine, bs16, AMP, 30ep, 384). All proven-harmful excluded (DDCA off, no extra scale/swaps/no countnorm/
-no fine-inject/no big backbone/no FT). 19.647/74.05/31.32M. Byte-identical to N0054 (best validated).
-README documents in/out table. Smoke GREEN.
-
-### Definition note (the "proven-effective" set)
-Exactly these were empirically validated positive: **intermediate hs(2,3) frozen readout** (2×2 table,
-+7 over final), **GCA** (+1.6, N0051), **XScale** (+0.95, N0054), **cross-attn condenser** (all swaps
-negative). multires/SWA/ensemble exist in engine but were NEVER proven effective — NOT included.
-
-## 2×2 heuristic map — COMPLETE (all 4 cells run)
-Rows=readout layer, Cols=backbone state.
-| | hs(2,3) intermediate | hs(3,4) final |
-|---|---|---|
-| **FROZEN** | **N0054 = 19.65** ✓ | N0068 = 26.87 (+5.17@E22) FAIL |
-| **FT @1e-4** | N0066 = 28.36 (+6.02) FAIL | N0067 = 25.94 (+4.83) FAIL |
-
-**TWO LAWS (decisive, all 4 cells):**
-1. **Intermediate hs(2,3) is the load-bearing count-semantic readout.** Frozen-row: mid 19.65 vs final 26.87, intermediate wins ~7 pts. Final layer (1/32 res, 768ch) loses fine spatial count info.
-2. **Unfreezing backbone is net-harmful regardless of layer.** Frozen-intermediate (19.65) beats every FT config (25.9–28.4) by 6–9 pts.
-
-"Direct intermediate use" was ALREADY the champion N0054; N0066 conflated readout-layer w/ unfreeze (mis-attribution); N0068/N0067 finished the table. H0093/H0094/H0095 all REFUTED. Backbone layer/FT axis FULLY MAPPED & NEGATIVE vs champion.
-
-## Cleanup 2026-08-30
-- Deleted: cac_si/*, code/counting/*, docs/proto4dme/DISTILLED/arXiv/research_notes, scripts/axiom/coin/oir/verify/smoke/train_god/hf_prepare/check_data (31 files, commit 238794d, push main).
-- Weights: local/feedback_src_N*/best.pth 594M removed; server /data/runs/* archived to archive_2026-08-30 (1.9G), N0054 retained, smoke checkpoints cleared, cac_uot dir removed.
-- Probe via tmux: hs 1:96/2:192/3:384/4:768, stages 0:3/1:3/2:9/3:3; FineFuser size-adaptive to 96 (N0067/N0068 base).
-
-## Server gotchas (update)
-- New host fz58rq9zeriulqjksnow.deepln.com:42258 (was gxkkqy...44387 timeout), tmux installed via apt-get update.
-- HF_HUB_OFFLINE=1 for probes; /data/asset/hf cache holds dinov3-convnext-tiny.
-- Run dir hygiene: /data/runs holds only active lineage (N0054); stale moved to archive_2026-08-30.
-
-## Next
-1. Feedback ×3 + synthesis over N0066/N0067/N0068; book H0093 (refuted)/H0094/H0095; calibration bin; update tree/STATE; commit.
-2. Backbone axis is closed (all-negative). Remaining levers: head-side innovation (new pluggable component on N0054 interface) or lock 19.647 as deliverable. Suggest dispatching parallel idea agents (pure-math/lineage/counter-intuitive) on head-side only.
-3. tmux wrapper unreliable (libtinfo kills server); run_node.sh's freestanding train proc survives — use that. pkill -f self-kills the ssh (pattern in cmdline); match narrowly or re-ssh.
+## Session (2026-09-19T13:00)
+- **Mode**: Free-Research (next moves staged, no commit yet — awaiting go).
+- **Tree**: N0001_champion (seed root, synthesized, MAE 19.647) → child
+  **N0003_h0009** (proposed; first evolution child via `discovery hypo`, Q_t=[H0009]).
+- **Memory**: H0001–H0008 seeded + H0009 (channel-gate condenser).
+  Standings: H0003 confirmed (0.770), H0005 refuted (0.215),
+  H0001/2/4 uncertain (0.664), H0006 (0.336), H0007/8 (0.269), H0009 (0.500).
+- **Server**: onboarded — `ssh cac-server` live (RTX 3060 12GB;
+  yzkczmrjwdtrqpkhsnow.deepln.com:48769). GPU smoke PASSED on server copy
+  (`/data/cac`); champion model loads from `/data/asset/hf` offline, bf16 AMP.
+- **Mechanism**: calibration upgraded (reliability primary = P(hold|conf),
+  direction accuracy secondary, weighted reliability error >0.2 → WARN;
+  current 0.227 WARN, direction accuracy 14/14). New CLI
+  `discovery evidence <hyp_id> --type <t> --strength <w> [--node] [--note]`
+  is the only sanctioned way to append evidence (append-only, phantom-id ban).
+- **Open frontier**: multires (392/518), SWA, tail_reweight, dual_res_eval,
+  EMA, pluggable head parts above frozen hs(2,3) + exemplar embedding
+  (see docs/research_direction.md). Next evolution target: implement H0009
+  delta on N0003_h0009 (Coding Agent) → server run → feedback → synthesis.
+- **Gotchas**:
+  - `local/` (creds) gitignored — check mtime before every lab session.
+  - Server copy is `/data/cac`; sync code via tar-over-ssh (rsync absent on this box).
+  - `hub.setup_hf_env()` is offline-first (HF_HUB_OFFLINE=1, mirror endpoint);
+    set HF_* BEFORE heavy imports in entrypoints.
+  - Historic N0001 MAE 19.647 predates seeding; a fresh rerun with seed
+    20260830 is the reproducible artifact.
+  - conformance is the commit gate — never commit with it red (currently green).
