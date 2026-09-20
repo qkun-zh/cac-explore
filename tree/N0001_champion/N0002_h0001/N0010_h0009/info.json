@@ -1,12 +1,14 @@
 {
   "id": "N0010_h0009",
   "parent": "N0002_h0001",
-  "status": "proposed",
+  "status": "done",
   "created_ts": "2026-09-20T18:47:11+0800",
   "title": "evolve N0002_h0001 on H0009 (+0)",
-  "best_metric": null,
-  "train_seconds": null,
-  "epochs": null,
-  "tested_hypotheses": [],
-  "updated_ts": "2026-09-20T18:47:11+0800"
+  "best_metric": 24.049957275390625,
+  "train_seconds": 1794.9,
+  "epochs": 32,
+  "tested_hypotheses": [
+    "H0009"
+  ],
+  "updated_ts": "2026-09-20T19:53:57+0800"
 }

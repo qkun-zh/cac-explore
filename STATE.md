@@ -27,9 +27,17 @@
   gradient path into simprior projections is dead (4x: H0004-null, H0005 +1.02,
   H0006 +25.28, H0007 +5.07+NaN). New rule: NEVER share projections / second
   grad paths with the confirmed readout.
-- **Batch-4** (on N0002, decoder-side only): N0009_h0008 hires (post-decoder
-  detail residual, ~15.4k) + N0010_h0009 densexp (dense-tail expert, ~4.3k);
-  chain `train-b4` queued.
+- **Batch-4** (on N0002, decoder-side only): N0009_h0008 hires TIMEOUT 26.4535
+  @ep31 (+3.89, engaged-harmful: detach insufficient, shared-loss recentering
+  dragged temp 11.8x to floor 0.0033) — REFUTED, contradicts w=0.90, H0008
+  conf 0.410. N0010_h0009 densexp DONE 24.0500 @ep32 clean (+1.49,
+  null-and-dragging: expert never engaged yet temp 9x collapse + broad drift;
+  operating-point theory too narrow, runaway spans 4 nodes) — REFUTED,
+  contradicts w=0.85, H0009 conf 0.415. Bans now: 2nd-grad-path, shared
+  projection, ANY trainable post-decoder additive (even null), global
+  calibration. N0002 stands as local optimum.
+- **Open questions for user**: (1) augment=true protocol A/B? (2) test-set
+  eval of N0002? (3) consolidate vs new scope?
 - **Diagnostic (local/research/perimage_diagnostic.md)**: error heavy-tailed +
   count-correlated — top 1% val images ≈30% of Σ|Δ|, gt>500 (17 imgs) mean |Δ|≈512,
   dense images severely UNDER-counted; global count calibration has NO headroom

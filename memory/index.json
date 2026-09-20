@@ -2,7 +2,7 @@
   "_meta": {
     "eta": 0.2
   },
-  "rebuilt": "2026-09-20T18:48:47+0800",
+  "rebuilt": "2026-09-20T20:12:17+0800",
   "hypotheses": {
     "H0001": {
       "text": "IF dense exemplar-similarity prior readout IN N0002_h0001 child of N0001_champion with use_simprior=true, THEN final val MAE drops at least 0.30 below live parent 23.293, BECAUSE explicit per-cell cosine match evidence over K=3 exemplar embeddings supplies spatially sharp class-conditioned signal that 3-key cross-attention condensation smooths away and lets the decoder place density mass on true instances, DISPROVED IF final val MAE at seed 20260830 under 32ep/1800s protocol is not at or below 22.99.",
@@ -152,28 +152,44 @@
     },
     "H0008": {
       "text": "IF high-resolution decoder detail residual via use_hires IN a solo single-switch child of live parent N0002_h0001 trained under the canonical protocol at seed 20260830 for 32ep/1800s with the module constructed AFTER all parent modules with append-only RNG and decoder in_ch untouched at 15k added params, THEN final EMA val MAE falls at least 0.30 below live parent 22.5641 to 22.26 or lower AND gt>500 dense-image mean |Δ| falls below the parent 511.7 baseline, BECAUSE a zero-init post-decoder detail pass over joint density logits plus frozen h2-derived fine context restores small-peak sharpness that the single 96x96 cond path smooths away without touching the confirmed similarity readout and without sharing any projection so simprior gradients stay isolated, DISPROVED IF final EMA val MAE exceeds 22.26 under the canonical protocol at seed 20260830 AND gt>500 dense-image mean |Δ| is not reduced below the parent 511.7 baseline.",
-      "confidence": 0.5,
+      "confidence": 0.41,
       "status": "uncertain",
-      "n_tested": 0,
+      "n_tested": 1,
       "log": [
         {
           "type": "create",
           "ts": "2026-09-20T18:47:11+0800",
           "source_node": "N0002_h0001"
+        },
+        {
+          "type": "evidence",
+          "ts": "2026-09-20T19:37:53+0800",
+          "evidence_type": "contradicts",
+          "strength": 0.9,
+          "source_node": "N0009_h0008",
+          "note": "N0009_h0008 timeout 26.4535 @ep31 (32/32ep, marginal +9.7s, trustworthy plateau) vs 22.5641: +3.89 WORSE, bar missed by 4.19. Engaged-harmful: head 0.225, suppressive -19.5% bias; temp collapsed 11.8x to floor 0.0033 despite detach — joint-loss operating-point corruption. Train 6.00 vs 2.62. Harness excluded."
         }
       ],
       "created": "2026-09-20T18:47:11+0800"
     },
     "H0009": {
       "text": "IF dense-tail expert residual via use_densexp IN a solo single-switch child of live parent N0002_h0001 trained under the canonical protocol at seed 20260830 for 32ep/1800s with the module constructed AFTER all parent modules with append-only RNG and decoder in_ch untouched at 8k added params, THEN final EMA val MAE falls at least 0.30 below live parent 22.5641 to 22.26 or lower AND gt>500 dense-image mean |Δ| falls below the parent 511.7 baseline, BECAUSE a zero-init post-decoder expert branch gated per image by a stop-gradient dense-level proxy adds localized peak capacity on catastrophic-tail images where the single cond path saturates while staying silent on sparse images so sparse mass placement keeps the confirmed similarity readout isolated with own parameters only and no shared projection, DISPROVED IF final EMA val MAE exceeds 22.26 under the canonical protocol at seed 20260830 AND gt>500 dense-image mean |Δ| is not reduced below the parent 511.7 baseline.",
-      "confidence": 0.5,
+      "confidence": 0.415,
       "status": "uncertain",
-      "n_tested": 0,
+      "n_tested": 1,
       "log": [
         {
           "type": "create",
           "ts": "2026-09-20T18:47:11+0800",
           "source_node": "N0002_h0001"
+        },
+        {
+          "type": "evidence",
+          "ts": "2026-09-20T20:12:17+0800",
+          "evidence_type": "contradicts",
+          "strength": 0.85,
+          "source_node": "N0010_h0009",
+          "note": "N0010_h0009 done 24.0500 @ep32 clean (32/32ep, 1794.9s, no NaN) vs 22.5641: +1.49 WORSE, bar missed by 1.79. Null-and-dragging: expert never engaged (out 0.009, gate <=0.15) yet temp collapsed 9x to 0.0044 + broad drift; sharpening runaway spans 4 nodes. Train 5.35 vs 2.62. Harness excluded."
         }
       ],
       "created": "2026-09-20T18:47:11+0800"
