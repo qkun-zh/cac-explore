@@ -5,9 +5,15 @@
   32/32ep, 1755s, no budget hit). Future falsifier bars bind to 22.5641
   (next 0.30 bar = 22.26), not 23.293.
 - **Ledger**: H0001 `use_simprior` → supports w=0.85 @N0002 (conf 0.585,
-  uncertain); H0002 `use_gca_cal` → N0003_h0002 (training, ep8 28.8 @13:55).
-  Synthesis for N0002 booked ≤2: adopted refine card + new shuffled-exemplar
-  control (both validated, unbooked — book at batch-2 instantiation).
+  uncertain). H0002 `use_gca_cal` → N0003_h0002 **REFUTED** (23.2088 @ep32 vs
+  parent 23.293, margin 0.0844 << 0.30; params moved off null: s_pos 0.0084,
+  s_lin 0.0215, b_cal -0.12) → contradicts w=0.80, conf 0.420 (uncertain).
+- **Batch-1 outcome**: 1 confirm (simprior), 1 refute (GCACal), both clean
+  32/32 canonical passes. GPU idle after chain `train-b1`.
+- **Batch-2 candidates (validated, unbooked)**: N0002 synth booked refine +
+  shuffled-exemplar control; N0003 synth booked simbank (h2 1/8 exemplar-token
+  keys on the simprior parent) + oracle per-image signed-shift ceiling test.
+  All bars re-instantiate off live parent 22.5641 (next bar 22.26).
 - **Protocol (canonical, fixed)**: augment=false, EMA eval, seeded loaders,
   cudnn deterministic, 32ep/1800s. **Seed 20260830 forever**.
 - **Server**: `ssh cac-server`, python `/data/miniconda/envs/cac/bin/python`,
