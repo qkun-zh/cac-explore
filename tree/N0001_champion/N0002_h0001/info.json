@@ -7,6 +7,8 @@
   "best_metric": 22.564146041870117,
   "train_seconds": 1755.0,
   "epochs": 32,
-  "tested_hypotheses": [],
-  "updated_ts": "2026-09-20T13:40:06+0800"
+  "tested_hypotheses": [
+    "H0001"
+  ],
+  "updated_ts": "2026-09-20T14:20:09+0800"
 }
