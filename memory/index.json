@@ -2,7 +2,7 @@
   "_meta": {
     "eta": 0.2
   },
-  "rebuilt": "2026-09-20T16:39:02+0800",
+  "rebuilt": "2026-09-20T18:48:47+0800",
   "hypotheses": {
     "H0001": {
       "text": "IF dense exemplar-similarity prior readout IN N0002_h0001 child of N0001_champion with use_simprior=true, THEN final val MAE drops at least 0.30 below live parent 23.293, BECAUSE explicit per-cell cosine match evidence over K=3 exemplar embeddings supplies spatially sharp class-conditioned signal that 3-key cross-attention condensation smooths away and lets the decoder place density mass on true instances, DISPROVED IF final val MAE at seed 20260830 under 32ep/1800s protocol is not at or below 22.99.",
@@ -105,6 +105,78 @@
         }
       ],
       "created": "2026-09-20T15:48:53+0800"
+    },
+    "H0006": {
+      "text": "IF h2-pooled 3-key similarity bank via use_h2pool IN a solo single-switch child of live parent N0002_h0001 trained under the canonical protocol at seed 20260830 for 32ep/1800s with the module constructed AFTER all parent modules with append-only RNG and decoder in_ch untouched at 12.5k added params, THEN final EMA val MAE falls at least 0.30 below live parent 22.5641 to 22.26 or lower AND gt>500 dense-image mean |Δ| falls below the parent 511.7 baseline, BECAUSE per-exemplar h2-at-1/8 3x3 attention-pooled keys retain small-object part geometry that h3-pooled keys average into background while the proven 3-key K-normalized readout at 48x48 upsampled to 96x96 preserves optimizer-trusted comparison dynamics within the time budget, DISPROVED IF final EMA val MAE exceeds 22.26 under the canonical protocol at seed 20260830 AND gt>500 dense-image mean |Δ| is not reduced below the parent 511.7 baseline.",
+      "confidence": 0.405,
+      "status": "uncertain",
+      "n_tested": 1,
+      "log": [
+        {
+          "type": "create",
+          "ts": "2026-09-20T17:06:18+0800",
+          "source_node": "N0002_h0001"
+        },
+        {
+          "type": "evidence",
+          "ts": "2026-09-20T18:06:13+0800",
+          "evidence_type": "contradicts",
+          "strength": 0.95,
+          "source_node": "N0007_h0006",
+          "note": "N0007_h0006 done 47.8439 @ep32 (32/32ep, budget fine) vs live parent 22.5641: +25.28 WORSE, bar missed by 25.58. Catastrophic joint-interference: shared simprior.qproj reuse polluted confirmed readout (pool-attn uniform, h2 cosines zero-discrimination, q/k half-norms); train 13.93 vs 2.62. Same attractor as N0005. Harness excluded."
+        }
+      ],
+      "created": "2026-09-20T17:06:18+0800"
+    },
+    "H0007": {
+      "text": "IF similarity-distribution calibration via use_simcal IN a solo single-switch child of live parent N0002_h0001 trained under the canonical protocol at seed 20260830 for 32ep/1800s with the module constructed AFTER all parent modules with append-only RNG and decoder in_ch untouched at 3k added params, THEN final EMA val MAE falls at least 0.30 below live parent 22.5641 to 22.26 or lower AND gt>500 dense-image mean |Δ| falls below the parent 511.7 baseline, BECAUSE per-exemplar spatial de-meaning plus signal-to-noise re-weighting of the reused simprior similarity volume removes the anisotropic cosine baseline so the learned temperature acts on true margins while the magnitude-weighted consensus preserves absolute count scale that full spatial normalization destroys, DISPROVED IF final EMA val MAE exceeds 22.26 under the canonical protocol at seed 20260830 AND gt>500 dense-image mean |Δ| is not reduced below the parent 511.7 baseline.",
+      "confidence": 0.41,
+      "status": "uncertain",
+      "n_tested": 1,
+      "log": [
+        {
+          "type": "create",
+          "ts": "2026-09-20T17:06:18+0800",
+          "source_node": "N0002_h0001"
+        },
+        {
+          "type": "evidence",
+          "ts": "2026-09-20T18:46:50+0800",
+          "evidence_type": "contradicts",
+          "strength": 0.9,
+          "source_node": "N0008_h0007",
+          "note": "N0008_h0007 done 27.6371 @ep9 (32/32ep, NaN wall ep10-32 from step 2249) vs live parent 22.5641: +5.07 WORSE, bar missed by 5.38. Engaged-then-unstable: simcal out 0.27, q/k distorted -18%/-33%, simprior.out starved 0.22, temp oversharpened 0.0255; undetached S recompute + std Jacobians blew up. Miss decided while healthy ep6-9. Harness excluded."
+        }
+      ],
+      "created": "2026-09-20T17:06:18+0800"
+    },
+    "H0008": {
+      "text": "IF high-resolution decoder detail residual via use_hires IN a solo single-switch child of live parent N0002_h0001 trained under the canonical protocol at seed 20260830 for 32ep/1800s with the module constructed AFTER all parent modules with append-only RNG and decoder in_ch untouched at 15k added params, THEN final EMA val MAE falls at least 0.30 below live parent 22.5641 to 22.26 or lower AND gt>500 dense-image mean |Δ| falls below the parent 511.7 baseline, BECAUSE a zero-init post-decoder detail pass over joint density logits plus frozen h2-derived fine context restores small-peak sharpness that the single 96x96 cond path smooths away without touching the confirmed similarity readout and without sharing any projection so simprior gradients stay isolated, DISPROVED IF final EMA val MAE exceeds 22.26 under the canonical protocol at seed 20260830 AND gt>500 dense-image mean |Δ| is not reduced below the parent 511.7 baseline.",
+      "confidence": 0.5,
+      "status": "uncertain",
+      "n_tested": 0,
+      "log": [
+        {
+          "type": "create",
+          "ts": "2026-09-20T18:47:11+0800",
+          "source_node": "N0002_h0001"
+        }
+      ],
+      "created": "2026-09-20T18:47:11+0800"
+    },
+    "H0009": {
+      "text": "IF dense-tail expert residual via use_densexp IN a solo single-switch child of live parent N0002_h0001 trained under the canonical protocol at seed 20260830 for 32ep/1800s with the module constructed AFTER all parent modules with append-only RNG and decoder in_ch untouched at 8k added params, THEN final EMA val MAE falls at least 0.30 below live parent 22.5641 to 22.26 or lower AND gt>500 dense-image mean |Δ| falls below the parent 511.7 baseline, BECAUSE a zero-init post-decoder expert branch gated per image by a stop-gradient dense-level proxy adds localized peak capacity on catastrophic-tail images where the single cond path saturates while staying silent on sparse images so sparse mass placement keeps the confirmed similarity readout isolated with own parameters only and no shared projection, DISPROVED IF final EMA val MAE exceeds 22.26 under the canonical protocol at seed 20260830 AND gt>500 dense-image mean |Δ| is not reduced below the parent 511.7 baseline.",
+      "confidence": 0.5,
+      "status": "uncertain",
+      "n_tested": 0,
+      "log": [
+        {
+          "type": "create",
+          "ts": "2026-09-20T18:47:11+0800",
+          "source_node": "N0002_h0001"
+        }
+      ],
+      "created": "2026-09-20T18:47:11+0800"
     }
   }
 }

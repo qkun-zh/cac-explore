@@ -17,6 +17,19 @@
   plateau-trustworthy; evidence contradicts w=0.85, H0005 conf 0.415.
   Synthesis books use_h2pool (12.5k h2-pooled 3-key bank) + use_simcal (3k
   similarity calibration) next; hires deferred.
+- **Batch-3** (on N0002): N0007_h0006 h2pool DONE 47.8439 @ep32 (+25.28 —
+  catastrophic joint-interference: shared simprior.qproj reuse polluted the
+  confirmed readout; train 13.93 vs 2.62 stall from ep1; same train~14/val~48
+  attractor as N0005) — REFUTED, contradicts w=0.95, H0006 conf 0.405.
+  N0008_h0007 simcal DONE 27.6371 @ep9 (+5.07, NaN wall ep10-32 step 2249:
+  undetached S recompute + std Jacobians; miss decided healthy ep6-9) —
+  REFUTED, contradicts w=0.90, H0007 conf 0.410. Family expanded: ANY second
+  gradient path into simprior projections is dead (4x: H0004-null, H0005 +1.02,
+  H0006 +25.28, H0007 +5.07+NaN). New rule: NEVER share projections / second
+  grad paths with the confirmed readout.
+- **Batch-4** (on N0002, decoder-side only): N0009_h0008 hires (post-decoder
+  detail residual, ~15.4k) + N0010_h0009 densexp (dense-tail expert, ~4.3k);
+  chain `train-b4` queued.
 - **Diagnostic (local/research/perimage_diagnostic.md)**: error heavy-tailed +
   count-correlated — top 1% val images ≈30% of Σ|Δ|, gt>500 (17 imgs) mean |Δ|≈512,
   dense images severely UNDER-counted; global count calibration has NO headroom
