@@ -8,15 +8,6 @@
   "best_metric": 23.293153762817383,
   "train_seconds": 1699.4,
   "epochs": 32,
-  "tested_hypotheses": [
-    "H0001",
-    "H0002",
-    "H0003",
-    "H0004",
-    "H0005",
-    "H0006",
-    "H0007",
-    "H0008"
-  ],
-  "source": "migrated from /home/qkun/cac_explore/baseline (model.py + config.toml + README.md); all evidence in memory/hypotheses.jsonl migrated from cac_explore per-run ablation history"
+  "tested_hypotheses": [],
+  "source": "reset 2026-09-20: ledger wiped, tested_hypotheses cleared (old H-ids archived under tag pre-reset-2026-09-20)"
 }

@@ -207,8 +207,7 @@ src/cac/engine/     runner (smoke→budget, checksums)   src/cac/models/  champi
 src/cac/data/       FSC147 VarV2 datamodule            src/cac/calls/   best.pth, EMA
 scripts/            discovery, conformance, novelty_check, run_node, install_key
 tree/               THE trajectory tree (filesystem lineage = parent/child)
-  N0001_champion/   seed root: info.json, idea.md, model.py, config.toml, result.json,
-                      synthesis.md, feedback/ ... and its children NESTED inside it
+  N0001_champion/   seed root: info.json, idea.md, model.py, config.toml, result.json
 memory/             hypotheses.jsonl (append-only) + index.json (rebuilt, not edited)
 journal/            events.jsonl
 docs/               research_direction.md (mission changes ONLY here, journaled)
@@ -223,7 +222,7 @@ configs/            read-only reference configs
 | Qualitative VLM heatmap reads | text-log qualitative analysis per node | no stored feature dumps at runtime |
 | R_max=10 coding retries | ≤3 fix retries, then honest fail | τ_max budget + single-GPU queue |
 | F_max=5 hyper-param refinements | phase 2; v1 authors config once | cost discipline |
-| Reference model provided | N0001_champion (our proven artifact) + migrated 8-hypothesis ledger | exploration starts from strength |
+| Reference model provided | N0001_champion (our proven artifact) | exploration starts from strength |
 | Bootstrap K=5 random roots | K=1 certified seed root | see §9 "reference" above |
 | Q_t composition on every test | when a NEW hypothesis is explicitly booked (`hypo --new/--book <parent>`), Q_t adjoins are capped at ONE compatible hypothesis and any co-composed pair sharing a head component (or config switch) is rejected at booking time | structurally infeasible / un-attributable joint compositions (N0006/N0007 case); selection scoring (Eq.5-6) untouched — `src/cac/expt/mechanisms.py` |
 
@@ -238,15 +237,10 @@ To change MATHLE constants, selection order, thresholds, or evidence types:
 2. Re-run `scripts/conformance.py` + `python -m tests`.
 3. Commit separately as a mechanism change; never bundle with a node's run.
 
-## 11. Don't-repeat register (refuted / settled)
-Prominent goals: GCA⚠(H0001 uncertain) XScale⚠(H0002 uncertain) — re-verify
-only via the paper rules, never via a pre-decided outcome.
-- never: DDCA (H0006), extra spatial summaries/RGA (H0008), final-layer
-  readout (H0007), backbone unfreeze (H0005).
-- never (2026-09-19): pre-condenser exemplar gating in ANY granularity —
-  image-global channel gate (H0009), frozen-input control (H0011), per-exemplar
-  scalar gate (H0010, incl. clean solo N0011), per-exemplar channel gate
-  (H0015). Live directions are query/similarity-side (H0014) and decoder-side
-  (H0016); confirmations pending.
-- frozen hs(2,3) readout + cross-attn condenser (H0003/H0004) = load-bearing;
-  don't quietly break them.
+## 11. Don't-repeat register (settled mechanisms; ledger refs pruned 2026-09-20 reset)
+- never: DDCA, extra spatial summaries/RGA, final-layer readout, backbone unfreeze.
+- never: pre-condenser exemplar gating in ANY granularity (image-global channel
+  gate, frozen-input control, per-exemplar scalar gate incl. clean solo,
+  per-exemplar channel gate). Live directions were query/similarity-side and
+  decoder-side — unproven, re-book fresh if wanted.
+- frozen hs(2,3) readout + cross-attn condenser = load-bearing; don't quietly break them.
