@@ -23,10 +23,9 @@ journal/ first). Read AGENTS.md before anything below.
   N0008@seed31 21.579 (+0.266) vs same-seed parent 21.3126 — seed-30 supports
   (-0.41/-0.32) do NOT replicate. H0014/H0016 -> 0.48 each. Lesson: mechanism
   effects (~0.3-0.4) sit BELOW seed spread (~+-1); single-seed verdicts screen
-  but cannot graduate. Quantifying spread now (tmux `spread`: 2 more champion
-  seeds). Methodology fork for user: (A) multi-seed promotion [recommend —
-  formalize what just worked]; (B) larger bars; (C) longer schedules (needs
-  tau_max change); (D) accept screening role. No math change needed for A.
+  but cannot graduate. Seed FIXED at 20260830 forever (user directive
+  2026-09-20, AGENTS §6/§7): no new seeds, no spread runs, no cross-seed
+  checks; graduation only via multiple same-seed supports per Eq.1.
 - **DAY CLOSE 2026-09-19 ~23:05**: all committed+pushed. NOTE 23:10 — user
   ordered full stop: tmux `spread` killed mid-run (seed20260832 partial
   discarded in scratch, seed20260833 never started), GPU idle, no sessions.

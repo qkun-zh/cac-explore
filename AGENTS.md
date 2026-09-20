@@ -181,7 +181,11 @@ DISPROVED IF [falsification criterion with a number/comparison].
   hypothesis text.
 - Verdicts are **same-seed paired contrasts** (precision ~0.02 under the
   canonical harness): never compare absolute levels across seeds at the 0.30
-  bar — level noise is ~±1 MAE. Level claims need multi-seed.
+  bar — level noise is ~±1 MAE.
+- **Seed is FIXED at 20260830 for every run, forever** (user directive
+  2026-09-20): all bookings, replicates and diagnostics run at this seed;
+  `repro_run --set seed=` is FORBIDDEN without explicit user approval. No new
+  seeds, no spread quantification, no cross-seed checks, ever.
 
 ## 7. Server cheat-sheet
 | Item | Value |
@@ -192,7 +196,7 @@ DISPROVED IF [falsification criterion with a number/comparison].
 | Data | `/data/dataset/FSC147` (VarV2 protocol: images_384_VarV2, gt_density_map_adaptive_384_VarV2, annotation_FSC147_384.json, Train_Test_Val_FSC_147.json) |
 | Runs | node-local `run/latest/` on the server copy (best.pth, result.json, tensorboard) |
 | GPU | single RTX3060 12 GB — one card per node run |
-| Protocol (canonical) | augment=false, EMA eval, seeded loaders, cudnn deterministic · 32ep/1800s · every comparison same-seed vs the canonical baseline — pre-2026-09-19-evening runs are historical record only |
+| Protocol (canonical) | augment=false, EMA eval, seeded loaders (seed=20260830 FIXED, never overridden) , cudnn deterministic · 32ep/1800s · every comparison same-seed vs the canonical baseline — pre-2026-09-19-evening runs are historical record only |
 | GPU queue | one training tmux chain + one `has-session` watchdog for the next batch; when aborting, kill the WATCHDOG session first, then the chain (else the watchdog fires immediately); never `pkill -f` with a pattern that also appears in the killer's own command line |
 
 ## 8. Directory map
