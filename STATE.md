@@ -1,33 +1,33 @@
-# STATE — session 2026-09-20 (first post-reset loop closed for N0002; N0003 training)
+# STATE — session 2026-09-20 (batch 1+2 post-reset; N0005 training)
 
-- **Champion/live parent**: `tree/N0001_champion` (23.293 @ep26, seed 20260830).
-  New live reference: **N0002_h0001 = 22.5641 @ep30** (H0001 simprior, solo,
-  32/32ep, 1755s, no budget hit). Future falsifier bars bind to 22.5641
-  (next 0.30 bar = 22.26), not 23.293.
-- **Ledger**: H0001 `use_simprior` → supports w=0.85 @N0002 (conf 0.585,
-  uncertain). H0002 `use_gca_cal` → N0003_h0002 **REFUTED** (23.2088 @ep32 vs
-  parent 23.293, margin 0.0844 << 0.30; params moved off null: s_pos 0.0084,
-  s_lin 0.0215, b_cal -0.12) → contradicts w=0.80, conf 0.420 (uncertain).
-- **Batch-1 outcome**: 1 confirm (simprior), 1 refute (GCACal), both clean
-  32/32 canonical passes. GPU idle after chain `train-b1`.
-- **Batch-2 candidates (validated, unbooked)**: N0002 synth booked refine +
-  shuffled-exemplar control; N0003 synth booked simbank (h2 1/8 exemplar-token
-  keys on the simprior parent) + oracle per-image signed-shift ceiling test.
-  All bars re-instantiate off live parent 22.5641 (next bar 22.26).
+- **Live parent**: **N0002_h0001 = 22.5641 @ep30** (H0001 `use_simprior` CONFIRMED;
+  chain: 23.293 → 22.564). All falsifier bars bind to 22.5641 (next 0.30 bar = 22.26).
+- **Ledger**: H0001 `use_simprior` supports w=0.85 → conf 0.585 (uncertain).
+  H0002 `use_gca_cal` contradicts w=0.80 (23.2088 @ep32; margin 0.084) → conf 0.420.
+  H0003 `use_padapt` contradicts w=0.95 (**25.5661 @ep13, +3.00 worse**; active but
+  harmful) → conf 0.405. H0004 `use_simbank` (N0005_h0004) — training.
+- **Batch-2** (on N0002): N0004_h0003 padapt REFUTED (mechanism corruption of
+  Condenser K/V; 0 synthesis bookings — objectness-modulated re-encode failed the
+  new-falsifier gate per §11). N0005_h0004 simbank (h2 1/8 token similarity bank)
+  in chain `train-b2`.
+- **Diagnostic (local/research/perimage_diagnostic.md)**: error heavy-tailed +
+  count-correlated — top 1% val images ≈30% of Σ|Δ|, gt>500 (17 imgs) mean |Δ|≈512,
+  dense images severely UNDER-counted; global count calibration has NO headroom
+  (best oracle affine on val worsens MAE). => matching/evidence levers over
+  calibration/suppression. N0002's gain was broad, not tail.
 - **Protocol (canonical, fixed)**: augment=false, EMA eval, seeded loaders,
-  cudnn deterministic, 32ep/1800s. **Seed 20260830 forever**.
-- **Server**: `ssh cac-server`, python `/data/miniconda/envs/cac/bin/python`,
-  GPU RTX3060. Chain `train-b1` (N0002→N0003) in tmux; code synced via
-  `tar ... | ssh ... tar -C` (no rsync on either side). Smoke per node in
-  tmux `smoke-<node>` + `capture-pane` polls; kill session after.
-- **Gotchas (same-session doc rule)**: (1) `scripts/curve.py <id>` builds the
-  path as `tree/N0001_champion/<id>/…` — works for nested nodes, broken for
-  the root (use the events path directly for N0001). (2) Final `idea.md`
-  MUST keep one machine-readable booking line `1. **Hxxxx** — <text>`
-  (runner regex) or `tested_hypotheses` stays [] — happened on both batch-1
-  nodes, repaired via agent appends (N0003 fix synced to server pre-completion).
-  (3) `tar cf - --exclude=… <dir>` — excludes must precede the dir arg.
-  (4) Server python needs repo offline-HF setup for ad-hoc scripts
-  (`cac.hub.setup_hf_env()` first) or Hub connect fails.
+  cudnn deterministic, 32ep/1800s. **Seed 20260830 forever**. Open question
+  for user only: whether to authorize an augment=true protocol A/B.
+- **Server**: `ssh cac-server`, python `/data/miniconda/envs/cac/bin/python`, RTX3060.
+  Code sync via `tar | ssh tar` (no rsync). Smoke per node in tmux + capture-pane.
+  Watchdogs: none; session names `train-b1/b2`, `smoke-<node>`; kill watchdog first.
+- **Gotchas**: (1) `scripts/curve.py <id>` path assumes a DIRECT child of
+  N0001_champion; for nested nodes pass `N0002_h0001/<id>` (e.g.
+  `curve.py N0002_h0001/N0004_h0003`). (2) Every final idea.md must keep one
+  runner-parseable line `1. **Hxxxx** — <booked text>` or tested_hypotheses stays
+  [] (bit both batch-1 nodes; repaired). (3) `tar` excludes must precede the dir
+  arg. (4) Server ad-hoc scripts need `cac.hub.setup_hf_env()` first (offline HF).
+  (5) info.json writes only via run_node/`TrajectoryTree` API — N0002 tested list
+  repaired via the API after the runner-bug no-op, journaled.
 
 (End of file - session block)
