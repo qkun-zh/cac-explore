@@ -1,0 +1,14 @@
+{
+  "id": "N0005_h0004",
+  "parent": "N0002_h0001",
+  "status": "timeout",
+  "created_ts": "2026-09-20T14:20:05+0800",
+  "title": "evolve N0002_h0001 on H0004 (+0)",
+  "best_metric": 48.12007522583008,
+  "train_seconds": 1815.2,
+  "epochs": 32,
+  "tested_hypotheses": [
+    "H0004"
+  ],
+  "updated_ts": "2026-09-20T15:26:20+0800"
+}

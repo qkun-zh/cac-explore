@@ -9,7 +9,14 @@
 - **Batch-2** (on N0002): N0004_h0003 padapt REFUTED (mechanism corruption of
   Condenser K/V; 0 synthesis bookings — objectness-modulated re-encode failed the
   new-falsifier gate per §11). N0005_h0004 simbank (h2 1/8 token similarity bank)
-  in chain `train-b2`.
+  TIMEOUT-null (48.12, budget blow — token-max full-grid einsum past τ_max;
+  uninterpretable, not a verdict). N0006_h0005 verify (UpCount-style P×V gate,
+  H0005) TIMEOUT 23.5802 @ep31, 32/32ep, +1.016 vs 22.56 (bar 22.26 missed by
+  1.32) — REFUTED used-and-harmful (prop2 2.24, ver2 3.86, temp→0.021, train
+  2.946 vs 2.618); +9.8s overrun marginal/environmental (N0005 parity), best
+  plateau-trustworthy; evidence contradicts w=0.85, H0005 conf 0.415.
+  Synthesis books use_h2pool (12.5k h2-pooled 3-key bank) + use_simcal (3k
+  similarity calibration) next; hires deferred.
 - **Diagnostic (local/research/perimage_diagnostic.md)**: error heavy-tailed +
   count-correlated — top 1% val images ≈30% of Σ|Δ|, gt>500 (17 imgs) mean |Δ|≈512,
   dense images severely UNDER-counted; global count calibration has NO headroom

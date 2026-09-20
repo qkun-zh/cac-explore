@@ -2,7 +2,7 @@
   "_meta": {
     "eta": 0.2
   },
-  "rebuilt": "2026-09-20T15:00:02+0800",
+  "rebuilt": "2026-09-20T16:39:02+0800",
   "hypotheses": {
     "H0001": {
       "text": "IF dense exemplar-similarity prior readout IN N0002_h0001 child of N0001_champion with use_simprior=true, THEN final val MAE drops at least 0.30 below live parent 23.293, BECAUSE explicit per-cell cosine match evidence over K=3 exemplar embeddings supplies spatially sharp class-conditioned signal that 3-key cross-attention condensation smooths away and lets the decoder place density mass on true instances, DISPROVED IF final val MAE at seed 20260830 under 32ep/1800s protocol is not at or below 22.99.",
@@ -83,6 +83,28 @@
         }
       ],
       "created": "2026-09-20T14:20:05+0800"
+    },
+    "H0005": {
+      "text": "IF zero-init repetition-gated proposal-verification residual via use_verify IN a solo single-switch child of live parent N0002_h0001 trained under the canonical protocol at seed 20260830 for 32ep/1800s with the module constructed AFTER all parent modules with append-only RNG and decoder in_ch untouched at 20k added params, THEN final EMA val MAE falls at least 0.30 below live parent 22.5641 to 22.26 or lower AND gt>500 dense-image mean |Δ| falls below the parent 511.7 baseline, BECAUSE a dense proposal head multiplied by a sigmoid verification gate conditioned on fine features plus per-cell exemplar repetition suppresses smeared over-smooth blobs where repetition is low and sharpens surviving peaks where repetition is high, restoring small-object recall that MSE-blurred cond mass collapses on dense images with flag-off byte-identical forward and zero-init out giving all-zero residual at step 0, DISPROVED IF final EMA val MAE exceeds 22.26 under the canonical protocol at seed 20260830 AND gt>500 dense-image mean |Δ| is not reduced below the parent 511.7 baseline.",
+      "confidence": 0.415,
+      "status": "uncertain",
+      "n_tested": 1,
+      "log": [
+        {
+          "type": "create",
+          "ts": "2026-09-20T15:48:53+0800",
+          "source_node": "N0002_h0001"
+        },
+        {
+          "type": "evidence",
+          "ts": "2026-09-20T16:39:02+0800",
+          "evidence_type": "contradicts",
+          "strength": 0.85,
+          "source_node": "N0006_h0005",
+          "note": "N0006_h0005 23.5802 @ep31 (32/32ep, timeout marginal +9.8s over 1800s, trustworthy plateau) vs live parent N0002_h0001 22.5641: +1.016 WORSE, bar <=22.26 missed by 1.32. Used-and-harmful: prop2 norm 2.2408, ver2 3.8631, temp 0.07->0.0214, V polarized; train 2.946 vs 2.618 underfit; harness excluded (checksums re-verified)."
+        }
+      ],
+      "created": "2026-09-20T15:48:53+0800"
     }
   }
 }
