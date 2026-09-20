@@ -1,0 +1,14 @@
+{
+  "code": "ok",
+  "log_dir": "/data/cac/tree/N0001_champion/N0002_h0001/run/latest",
+  "epochs": 32,
+  "best_mae": 22.564146041870117,
+  "best_epoch": 30,
+  "elapsed": 1749.5315635204315,
+  "n_epochs_done": 32,
+  "budget_hit": false,
+  "node": "N0002_h0001",
+  "elapsed_s": 1755.0,
+  "config_sha256": "4d4c9baec459f657",
+  "model_sha256": "611be2a9d70768b5"
+}
