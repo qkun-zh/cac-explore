@@ -39,6 +39,19 @@ from cac.expt.node import TrajectoryTree  # noqa: E402
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
+def _coerce(v: str):
+    if v.lower() in ("true", "false"):
+        return v.lower() == "true"
+    try:
+        return int(v)
+    except ValueError:
+        pass
+    try:
+        return float(v)
+    except ValueError:
+        return v
+
+
 def _resolve_node(arg: str) -> str:
     if os.path.isdir(arg):
         return arg
@@ -72,11 +85,12 @@ def main() -> int:
     args = sys.argv[1:]
     if not args:
         sys.exit("usage: python scripts/eval_test.py <node> [--split val|test] "
-                 "[--dense-threshold 500] [--batch 16] [--workers 4]")
+                 "[--dense-threshold 500] [--batch 16] [--workers 4] [--set k=v ...]")
     node = args[0]
     split = "test"
     dense_thr = 500.0
     BATCH, WORKERS = 0, None
+    overrides: dict = {}
     i = 1
     while i < len(args):
         if args[i] == "--split" and i + 1 < len(args):
@@ -87,6 +101,12 @@ def main() -> int:
             BATCH = int(args[i + 1]); i += 2
         elif args[i] == "--workers" and i + 1 < len(args):
             WORKERS = int(args[i + 1]); i += 2
+        elif args[i] == "--set" and i + 1 < len(args):
+            k, _, v = args[i + 1].partition("=")
+            overrides[k] = _coerce(v); i += 2
+        elif args[i].startswith("--set="):
+            k, _, v = args[i][6:].partition("=")
+            overrides[k] = _coerce(v); i += 1
         else:
             sys.exit(f"unknown argument: {args[i]}")
 
@@ -96,6 +116,10 @@ def main() -> int:
     if not os.path.exists(cfgp):
         sys.exit(f"{node}: missing config.toml")
     cfg = load_config(cfgp)
+    if overrides:
+        cfg = dict(cfg)
+        cfg.update(overrides)
+        print(f"[eval_test] cfg overrides: {overrides}")
     best_path = _find_best(nd)
     out_json = os.path.join(nd, f"{split}_result.json")
     per_json = os.path.join(nd, f"{split}_perimage.json")
@@ -165,6 +189,8 @@ def main() -> int:
            "dense_threshold": dense_thr, "n_gt_gt_thr": tail_n, "mae_gt_gt_thr": tail_mae,
            "best_path": best_path, "ckpt_epoch": ckpt.get("epoch"),
            "config_sha256": checksum(cfgp), "model_sha256": checksum(os.path.join(nd, "model.py"))}
+    if overrides:
+        res["cfg_overrides"] = overrides
     if use_cf:
         cs = _counttau_state(ckpt["model"], (("counttau.w_g", "w_g"), ("counttau.w_t", "w_t"), ("simport.temp", "temp")))
         for k, v in cs.items():
