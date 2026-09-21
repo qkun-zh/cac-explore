@@ -45,6 +45,13 @@ def _model_from_cfg(cfg: dict[str, Any], node_dir: str | None = None,
     return make_model(cfg)
 
 
+def _BudgetStop_hit(trainer: L.Trainer) -> bool:
+    for c in trainer.callbacks:
+        if isinstance(c, _BudgetStop) and c.hit:
+            return True
+    return False
+
+
 def _FutilityStop_hit(trainer: L.Trainer) -> bool:
     for c in trainer.callbacks:
         if isinstance(c, _FutilityStop) and c.hit:
