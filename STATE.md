@@ -59,3 +59,31 @@
   repaired via the API after the runner-bug no-op, journaled.
 
 (End of file - session block)
+
+# STATE — session 2026-09-21 (server down, no-GPU research day)
+
+- **No training run** (server unreachable). Three local analyses → one fused
+  draft, all in `local/research/` + `local/ideas/` (gitignored, zero ledger/tree
+  writes; `memory/index.json` timestamp-only touch restored).
+- **runaway_meta.md**: temp is the highest-leverage scalar (dW/dtemp ∝ 1/temp²);
+  below ~0.02 top1≈consensus locks in. One attractor, 3 flavors
+  (interference-collapse N0006/N0008, starvation-stall N0007, loss-coupling
+  N0009/N0010). Escapes: two-phase frozen-readout, temp clamp/floor, frozen
+  readout (all argued regime-compliant: subset-freezing is stricter than
+  head-only; temp clamp lives in node model.py, not §10 machinery).
+- **frozen_addon_survey.md**: 9 methods (Side/Ladder-Side-Tuning, adapters,
+  ControlNet, LoRA, Progressive Nets, LP-FT, EWC, L2-SP, CLIP temp clamp).
+  Top pick: Ladder Side-Tuning + temp freeze (≥0.05 floor). Sharpest rule:
+  zero-init is necessary but NOT sufficient — **any trainable temp dies
+  before smoke** (N0009 proved it).
+- **n0002_success_anatomy.md**: N0002's +0.73 lives in D10 (gt≥139, 59% of
+  net; top-3 images = 47%); hurt is diffuse mid-count under-deepening;
+  per-image oracle headroom −1.53 (21.03).
+- **Draft ready**: `local/ideas/sidetune_frozen.md` — `use_sidetune` hypothesis
+  (novelty 0.518 green, validate clean) + shuffled-exemplar zero-training
+  control sketch (N0002 booking, never run) + go/no-go checklist. Honest flag:
+  0.05 floor sits above parent 0.0393 → step-0 not bit-identical (1.27×
+  softening, inside 2× guard).
+- **Server-return queue**: preflight → run shuffled-exemplar control (minutes,
+  inference-only) → book `use_sidetune` via `hypo --new --solo` → Idea/Coding
+  subagents → smoke → train.
