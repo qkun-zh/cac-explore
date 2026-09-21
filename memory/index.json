@@ -2,7 +2,7 @@
   "_meta": {
     "eta": 0.2
   },
-  "rebuilt": "2026-09-21T16:01:05+0800",
+  "rebuilt": "2026-09-21T16:34:08+0800",
   "hypotheses": {
     "H0001": {
       "text": "IF dense exemplar-similarity prior readout IN N0002_h0001 child of N0001_champion with use_simprior=true, THEN final val MAE drops at least 0.30 below live parent 23.293, BECAUSE explicit per-cell cosine match evidence over K=3 exemplar embeddings supplies spatially sharp class-conditioned signal that 3-key cross-attention condensation smooths away and lets the decoder place density mass on true instances, DISPROVED IF final val MAE at seed 20260830 under 32ep/1800s protocol is not at or below 22.99.",
@@ -328,17 +328,39 @@
     },
     "H0016": {
       "text": "IF additive energy-mass residual from self-normalized cell energy (use_enmass) IN the live N0015_h0014 head under v2 protocol seed 20260830, THEN final EMA val MAE falls at least 0.30 below 19.3431 AND gt>500 dense-tail mean |del| falls below 330.81 AND gt<50 sparse slice falls at or below 5.45, BECAUSE the similarity-independent additive projection places mass from cell energy alone where the cosine matcher is blind, restoring recall on mid-range collapse images whose fine-energy peaks are present while match evidence is absent, DISPROVED IF final EMA val MAE is not at least 0.30 below the live v2 parent or dense-tail mean |del| is not below the live dense baseline or sparse gt<50 slice exceeds 5.45 or the out-projection norm stays near zero or its mean weight is negative.",
+      "confidence": 0.415,
+      "status": "uncertain",
+      "n_tested": 1,
+      "log": [
+        {
+          "type": "create",
+          "ts": "2026-09-21T16:01:05+0800",
+          "source_node": "N0015_h0014"
+        },
+        {
+          "type": "evidence",
+          "ts": "2026-09-21T16:32:06+0800",
+          "evidence_type": "contradicts",
+          "strength": 0.85,
+          "source_node": "N0017_h0016",
+          "note": "in-tree N0017 (use_enmass) FUTILITY-HALTED at ep24 (best 22.37, need 0.416/ep -> HALT, saved ~8 epochs; result.json clean). best.pth verdict: val MAE 22.19 vs live 19.3431 (+2.85); dense 485.87 vs 330.81 (+155). Mechanism F1 quiet-null: proj norm 0.0536 (barely off zero after 24ep), mean weight -0.00079 (~0). Diagnosis (program-level): the mhat substrate is EXHAUSTED — cellcal already mines it via gain; the additive path is redundant, gradient ~0. Deeper bind: MSE vetoes imprecise mass (energy blobs place mass slightly-wrong => pixel-MSE up > L1-down), while precision only comes from similarity (dead on collapse images). So gains multiply dead evidence AND additive blobs get MSE-vetoed. Remaining outs: spatially-PRECISE additive mass (peak-gated) or resolution. Next: H0017 peak-placed mass."
+        }
+      ],
+      "created": "2026-09-21T16:01:05+0800"
+    },
+    "H0017": {
+      "text": "IF use_peakmass peak-gated additive placement IN the N0015_h0014 head THEN final EMA val MAE drops at least 0.30 below 19.3431 with dense-tail below 330.81 and sparse at or below 5.45 BECAUSE sharp-peak-gated additive mass places count mass only at spatially precise energy centers that survive the pixel-MSE veto and recover dense-block recall without similarity evidence DISPROVED IF final EMA val MAE is not at least 0.30 below 19.3431 or dense-tail is not below 330.81 or sparse exceeds 5.45.",
       "confidence": 0.5,
       "status": "uncertain",
       "n_tested": 0,
       "log": [
         {
           "type": "create",
-          "ts": "2026-09-21T16:01:05+0800",
+          "ts": "2026-09-21T16:34:08+0800",
           "source_node": "N0015_h0014"
         }
       ],
-      "created": "2026-09-21T16:01:05+0800"
+      "created": "2026-09-21T16:34:08+0800"
     }
   }
 }
