@@ -180,6 +180,19 @@ def main() -> int:
     tail = [d for d, (p, g) in zip(abs_d, zip(preds, gts)) if g > dense_thr]
     tail_n = len(tail)
     tail_mae = sum(tail) / tail_n if tail_n else None
+    # full slice statistics (sparse / mid / dense by gt + top-1% concentration)
+    slices = {}
+    for sname, lo, hi in (("sparse", 0.0, 50.0), ("mid", 50.0, 500.0), ("dense", 500.0, float("inf"))):
+        idx = [i for i in range(n) if lo <= gts[i] < hi]
+        if idx:
+            m = sum(abs_d[i] for i in idx) / len(idx)
+            sgn = sum(preds[i] - gts[i] for i in idx) / len(idx)
+            slices[sname] = {"n": len(idx), "mae": m, "mean_signed_delta": sgn}
+        else:
+            slices[sname] = {"n": 0, "mae": None, "mean_signed_delta": None}
+    k1 = max(1, n // 100)
+    top1 = sorted(abs_d, reverse=True)[:k1]
+    top1_share = sum(top1) / max(1e-9, sum(abs_d))
 
     res = {"node": node_id, "split": split, "seed": seed, "data_root": data_root,
            "input_size": S, "n": n, "mae": mae, "rmse": rmse,
@@ -187,6 +200,7 @@ def main() -> int:
            "n_under": len(under), "n_over": len(over),
            "sum_under": sum(g - p for p, g in under), "sum_over": sum(p - g for p, g in over),
            "dense_threshold": dense_thr, "n_gt_gt_thr": tail_n, "mae_gt_gt_thr": tail_mae,
+           "slices": slices, "top1pct_k": k1, "top1pct_share": top1_share,
            "best_path": best_path, "ckpt_epoch": ckpt.get("epoch"),
            "config_sha256": checksum(cfgp), "model_sha256": checksum(os.path.join(nd, "model.py"))}
     if overrides:
