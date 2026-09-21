@@ -1,5 +1,11 @@
 # AGENTS.md — Active Hypothesis Exploration for Crowd Counting
 
+> **🔥 IRON RULE #0 — NEVER IDLE WHILE THE GPU RUNS. No sleep-loops, no passive
+> waiting: every GPU minute must overlap research / coding / analysis dispatched
+> in parallel. A status poll is ONE ssh grep — never `sleep N; ssh`, never a
+> polling loop. Sleep-polling burns the scarcest resource in the lab and is a
+> hard violation on par with gaming the machinery.**
+
 Implementation of **HypoExplore — Agentic Discovery with Active Hypothesis
 Exploration** (Koo et al., [arXiv:2604.12999](https://arxiv.org/abs/2604.12999))
 adapted for FSC147 class-agnostic counting. The paper's evolutionary machinery is the
