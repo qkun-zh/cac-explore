@@ -100,7 +100,7 @@ def run_train(cfg: dict[str, Any], log_dir: str, node_dir: str | None = None,
             fast_dev_run=int(fast_dev_run) if fast_dev_run else False,
         )
 
-    smk = FSC147DataModule(cfg, smoke=True, img_size=384,
+    smk = FSC147DataModule(cfg, smoke=True, img_size=int(cfg.get("input_size", 384)),
                            batch_size=min(int(cfg.get("batch_size", 16)), 4),
                            seed=int(cfg.get("seed", 20260830)))
     pl_smoke = CountingLit(cfg, model=model)
