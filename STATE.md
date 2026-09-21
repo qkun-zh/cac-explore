@@ -164,6 +164,19 @@
      (19.3431, peakcal = dead code in it); next bars <=19.0431 + dense <330.81.**
      Sparse guard missed again (5.814 vs 5.45) — sparse false positives remain
      THE open target. Commit: honesty over headlines.
+  10. **SERVER RELEASE 22:22 2026-09-21 — SESSION CLOSED.**
+     H0021 exkern REFUTED (contradicts w=0.85, futility-halt ep24 + F1
+     quiet-null w_x=-0.04): 21.928 (+2.59), dense +123.6. CountingDINO transfer
+     fails under joint training. CountingDINO pipeline itself REPRODUCED
+     (ViT-S cached, training-free val 39.70; aligned tail table: cdino beats
+     live by 170-370 on 935/865/5059/3481/3482/2850/3483/7656 — paper-grade
+     evidence that the failure is training dynamics, not features).
+     FINAL NUMBERS: val 19.3431 (N0015) / test 19.066 (N0015) — both sub-20.
+     Local backup /home/qkun/cac_backup/: N0015_best.pth (125MB, verified),
+     N0015 val+test perimage/results, baseline v2 val perimage, cdino preds.
+     Git pushed clean (conformance green). NEXT SESSION: paper phase (numbers +
+     diagnosis corpus + sub-cell physics + collapse corpus + futility
+     machinery) OR new program if user lifts a constraint. GPU queue EMPTY.
 - **Paper framing (numbers-first)**: lightweight frozen-backbone counting
   (CounTR-class) + mechanism contribution (exemplar-selection entropy collapse
   corpus from the v1 refutations). FSC147-adjacent SOTA (LOCA 17.13 val) is out
