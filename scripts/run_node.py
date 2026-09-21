@@ -33,6 +33,19 @@ from cac.expt.node import TrajectoryTree
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
+def _coerce(v: str):
+    if v.lower() in ("true", "false"):
+        return v.lower() == "true"
+    try:
+        return int(v)
+    except ValueError:
+        pass
+    try:
+        return float(v)
+    except ValueError:
+        return v
+
+
 def booked_hyps(idea_md: str) -> list[str]:
     """Extract the hypothesis ids booked into a node from its idea.md
     ("1. **H0010** — text" lines). Empty list if unparsable."""
@@ -49,7 +62,7 @@ def booked_hyps(idea_md: str) -> list[str]:
 
 def main() -> int:
     if len(sys.argv) < 2:
-        sys.exit("usage: python run_node.py <node_id> [--epochs N] [--budget-seconds S] [--smoke] [--off]")
+        sys.exit("usage: python run_node.py <node_id> [--epochs N] [--budget-seconds S] [--smoke] [--off] [--set k=v ...]")
     node = sys.argv[1]
     flags = sys.argv[2:]
     tree = TrajectoryTree(ROOT)
@@ -69,11 +82,12 @@ def main() -> int:
     t0 = time.time()
     try:
         kwargs: dict = {}
+        overrides: dict = {}
         i = 0
         while i < len(flags):
             flag = flags[i]
             k, eq, v = flag.partition("=")
-            if not eq and k in ("--epochs", "--budget-seconds") and i + 1 < len(flags):
+            if not eq and k in ("--epochs", "--budget-seconds", "--set") and i + 1 < len(flags):
                 v = flags[i + 1]
                 i += 2
             else:
@@ -84,6 +98,16 @@ def main() -> int:
                 kwargs["smoke"] = True
             elif k == "--off":
                 kwargs["off"] = True
+            elif k == "--set":
+                sk, _, sv = v.partition("=")
+                if not sk:
+                    tree.set_status(node, prior_status)
+                    sys.exit(f"bad --set (expected k=v): {v}")
+                overrides[sk] = _coerce(sv)
+        if overrides:
+            cfg = dict(cfg)
+            cfg.update(overrides)
+            print(f"[run_node] cfg overrides: {overrides}", flush=True)
         res = run_train(cfg, log_dir, node_dir=nd, **kwargs)
     except Exception as e:
         tree.set_status(node, "failed")
@@ -94,6 +118,8 @@ def main() -> int:
     res["elapsed_s"] = round(time.time() - t0, 1)
     res["config_sha256"] = checksum(cfgp)
     res["model_sha256"] = checksum(os.path.join(nd, "model.py")) if os.path.exists(os.path.join(nd, "model.py")) else None
+    if overrides:
+        res["cfg_overrides"] = overrides
     json.dump(res, open(os.path.join(nd, "result.json"), "w"), indent=2)
 
     if not res.get("smoke") and not res.get("off"):

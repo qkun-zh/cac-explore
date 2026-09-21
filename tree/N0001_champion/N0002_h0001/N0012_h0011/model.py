@@ -157,8 +157,8 @@ class CountingHead(nn.Module):
         self.S = _get(cfg, "input_size", 384)
         # H0001 switch (non-module flag: no RNG consumption, safe before SimPrior wiring).
         self.use_simprior = _get(cfg, "use_simprior", False)
-        # H0010 switch (non-module flag: no RNG consumption, gates count-aware SimPrior scaling).
-        self.use_counttau = _get(cfg, "use_counttau", False)
+        # H0011 switch (non-module flag: no RNG consumption, same pattern as use_simprior).
+        self.use_msq = _get(cfg, "use_msq", False)
 
     def forward(self, h2, h3, bboxes_in):
         B = bboxes_in.shape[0]
@@ -172,6 +172,10 @@ class CountingHead(nn.Module):
         # Flag off -> line below is skipped and forward is the parent's byte-for-byte.
         if self.use_simprior:
             cond_map = cond_map + self.simprior(fine, e)
+        # H0011 (use_msq): additive image-query exemplar-key lane residual into cond.
+        # Flag off -> skipped; flag on at init -> lane is all-zeros (step-0 identity).
+        if self.use_msq:
+            cond_map = cond_map + self.msq(h2, e)
         dens = self.decoder(torch.cat([fine, cond_map], 1))
         e_mean = e.mean(dim=1)
         return dens, fine, e_mean
@@ -192,22 +196,6 @@ class GCA(nn.Module):
         return n_aux, bias
 
 
-class CountTau(nn.Module):
-    """H0010 count-anchored calibration scalars (`use_counttau`).
-
-    Zero-init scalar weights w_g (evidence gain) and w_t (temperature scale)
-    consumed as exp(w*g) inside SimPrior.forward. Constructed at the very END
-    of SimPrior.__init__ (append-only RNG, AGENTS rule 13): every parent and
-    SimPrior init draw keeps its position, only the 2 scalar draws append.
-    Zero-init uses torch.zeros (no RNG consumed) and exp(0*g)=1 so step-0
-    forward is bit-identical to the parent.
-    """
-    def __init__(self):
-        super().__init__()
-        self.w_g = nn.Parameter(torch.zeros(1))   # evidence gain on the count surrogate
-        self.w_t = nn.Parameter(torch.zeros(1))   # temperature scale on the count surrogate
-
-
 class SimPrior(nn.Module):
     """H0001 dense exemplar-similarity prior readout (`use_simprior`).
 
@@ -217,50 +205,64 @@ class SimPrior(nn.Module):
     decoder in_ch stays 192, no parent module shape/init is touched, `e`
     and `fine` are read-only (never gated/rescaled). Zero-init `out` makes
     step-0 forward numerically identical to the parent.
-
-    H0010 (`use_counttau`): a per-image stop-gradient count surrogate
-    g = log(1 + fine.detach().mean(dim=1, keepdim=True).clamp_min(0).sum(dim=(2,3)) / (Hf*Wf))
-    rescales the softmax-over-K temperature (tau' = temp*exp(w_t*g)) and the
-    evidence channels (ev' = ev*exp(w_g*g)). Both weights zero-init, so at
-    w_g=w_t=0 (and flag off) the forward is numerically identical to the parent.
     """
-    def __init__(self, d_fine=128, d_model=256, d_proj=64, cond_dim=64, n_ev=2, use_counttau=False):
+    def __init__(self, d_fine=128, d_model=256, d_proj=64, cond_dim=64, n_ev=2):
         super().__init__()
-        self.use_counttau = use_counttau
         self.qproj = nn.Conv2d(d_fine, d_proj, 1, bias=False)   # 128 -> 64
         self.kproj = nn.Linear(d_model, d_proj, bias=False)     # 256 -> 64
         self.temp = nn.Parameter(torch.tensor(0.07))            # learnable temperature (divisor)
         self.out = nn.Conv2d(n_ev, cond_dim, 1)                 # 2 -> 64, ZERO-INIT
         nn.init.zeros_(self.out.weight)
         nn.init.zeros_(self.out.bias)
-        # H0010: the 2 counttau scalar draws are the LAST init draws (append-only RNG).
-        self.counttau = CountTau()
 
     def forward(self, fine, e):
         # fine: (B,128,96,96); e: (B,K=3,256)
         q = F.normalize(self.qproj(fine), dim=1)                # (B,64,96,96)
         p = F.normalize(self.kproj(e), dim=-1)                  # (B,K,64)
         S = torch.einsum('bchw,bkc->bkhw', q, p)                # (B,K,96,96) cosine in [-1,1]
-        if self.use_counttau:
-            # H0010 count surrogate: per-image stop-gradient object-mass proxy (B,1,1,1).
-            Hf = fine.shape[-2]
-            Wf = fine.shape[-1]
-            g = torch.log(1.0 + fine.detach().mean(dim=1, keepdim=True).clamp_min(0).sum(dim=(2, 3))
-                          / float(Hf * Wf)).view(-1, 1, 1, 1)
-            # Pinned base temperature (parents trained value, detached): the four
-            # refutations (H0005/H0008/H0009/H0007) are exactly a FREE-temp collapse,
-            # so with use_counttau the only selector degrees of freedom are the two
-            # zero-init counttau scalars (w_g evidence gain, w_t temperature scale).
-            tau = self.temp.detach().clamp_min(1e-3) * torch.exp(self.counttau.w_t * g)  # (B,1,1,1)
-        else:
-            tau = self.temp.clamp_min(1e-3)
-        W = (S / tau).softmax(dim=1)                            # softmax over K
+        W = (S / self.temp.clamp_min(1e-3)).softmax(dim=1)      # softmax over K
         top1 = S.max(dim=1, keepdim=True).values                # (B,1,96,96)
         cons = (W * S).sum(dim=1, keepdim=True)                 # (B,1,96,96) softmax-weighted consensus
         ev = torch.cat([top1, cons], dim=1)                     # (B,2,96,96)
-        if self.use_counttau:
-            ev = ev * torch.exp(self.counttau.w_g * g)          # (B,2,96,96) calibrated evidence
         return self.out(ev)                                     # (B,64,96,96), all-zeros at init
+
+
+class MSQ(nn.Module):
+    """H0011 single-step image-query exemplar-key cross-attention lane (`use_msq`).
+
+    h2 image queries (48x48) pull detached exemplar keys/values, fused as a
+    zero-init residual into `cond_map` pre-decoder (GeCo2 PrototypeAttentionBlock
+    mirror: residual + per-token LayerNorm, single-level LUM analog conv+GELU,
+    2x upsample, zero-init 1x1). All projections are the lane's OWN (never
+    aliasing `cond.*` or `simprior.*`); `e` is read-only (detached copy only).
+    decoder in_ch stays 192. Zero-init `head` makes step-0 forward numerically
+    identical to the parent.
+    """
+    def __init__(self, ch_mid=192, d_model=256, d_lane=64):
+        super().__init__()
+        self.qproj = nn.Conv2d(ch_mid, d_lane, 1, bias=False)
+        self.kproj = nn.Linear(d_model, d_lane, bias=False)
+        self.vproj = nn.Linear(d_model, d_lane, bias=False)
+        self.norm = nn.LayerNorm(d_lane)
+        self.conv = nn.Conv2d(d_lane, d_lane, 3, padding=1)
+        self.head = nn.Conv2d(d_lane, d_lane, 1)
+        nn.init.zeros_(self.head.weight)
+        nn.init.zeros_(self.head.bias)
+
+    def forward(self, h2, e):
+        # h2: (B,ch_mid,48,48); e: (B,K,256) attached (Condenser path owns it)
+        e_det = e.detach()                                      # (B,K,256); NO grad into exemplar path
+        Q_grid = self.qproj(h2)                                 # (B,64,48,48)
+        B, C, Hh, Ww = Q_grid.shape
+        Q = Q_grid.flatten(2).transpose(1, 2)                   # (B,2304,64)
+        K = self.kproj(e_det)                                   # (B,K,64)
+        V = self.vproj(e_det)                                   # (B,K,64)
+        A = torch.softmax(Q @ K.transpose(1, 2) / (K.size(-1) ** 0.5), dim=-1)  # (B,2304,K)
+        U = (A @ V).transpose(1, 2).reshape(B, C, Hh, Ww)       # (B,64,48,48)
+        H = self.norm((Q_grid + U).permute(0, 2, 3, 1)).permute(0, 3, 1, 2)
+        J = F.gelu(self.conv(H))                                # (B,64,48,48)
+        lane = self.head(F.interpolate(J, scale_factor=2, mode="bilinear", align_corners=False))
+        return lane                                             # (B,64,96,96)
 
 
 class Counter(nn.Module):
@@ -280,11 +282,14 @@ class Counter(nn.Module):
         # init draws keep their exact RNG positions; only SimPrior's own
         # qproj/kproj init draws are appended. Forward gating lives in
         # CountingHead.forward via self.use_simprior.
-        # H0010: use_counttau is read by the head and passed through; CountTau's
-        # 2 zero-init scalars are the final draws of SimPrior.__init__.
         self.head.simprior = SimPrior(d_fine=D, d_model=_get(cfg, "embed_dim", 256),
-                                      cond_dim=_get(cfg, "cond_dim", 64),
-                                      use_counttau=self.head.use_counttau)
+                                      cond_dim=_get(cfg, "cond_dim", 64))
+        # H0011: MSQ is constructed LAST (append-only RNG order, AGENTS rule 13)
+        # after the SimPrior attach, so all parent + SimPrior init draws keep
+        # their exact RNG positions; only the lane's own qproj/kproj/vproj/conv
+        # draws append (head is zero-init overwrite). Forward gating lives in
+        # CountingHead.forward via self.use_msq.
+        self.head.msq = MSQ(ch_mid=dims[0], d_model=_get(cfg, "embed_dim", 256))
 
     def train(self, mode=True):
         super().train(mode)

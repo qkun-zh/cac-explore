@@ -125,7 +125,7 @@ class FSC147Density(torch.utils.data.Dataset):
             # the draws below are reproducible at `seed` (canonical protocol v2).
             img, dens, bbox, bboxes3 = _augment_scale_flip(img, dens, bbox, bboxes3, S, count0)
 
-        return {"imgs": torch.from_numpy(np.asarray(img)).permute(2, 0, 1).float() / 255.0,
+        return {"imgs": torch.from_numpy(np.array(img)).permute(2, 0, 1).float() / 255.0,
                 "bboxes": bbox, "bboxes3": bboxes3, "density": dens[None],
                 "counts": dens.sum(), "ids": im_id}
 

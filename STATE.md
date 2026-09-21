@@ -124,6 +124,24 @@
      |log(τ'/τ)|<2 (no floor-collapse), qproj/kproj/temp trajectories match
      parent (harness gate).
   4. eval_test is optional/after (user demoted: val≈test, don't burn the queue).
+  5. **STATUS 2026-09-21: GPU ONLINE** (new VM a7m6si2jjnzw48rdsnow.deepln.com:50020
+     via install_key.py; local/address_and_password.md updated; server has no
+     .git so sync = tar-over-ssh excluding .git/run/local). Code committed
+     256f8b5 + synced; server conformance OK; v2 pair RUNNING via
+     `setsid nohup chain_v2.sh` (tmux unavailable in apt): repro baseline_aug_v2
+     then innov_counttau_v2, logs /data/repro/logs/. Poll once per message,
+     never sleep-loop. Minor: fsc147.py:128 numpy non-writable warning
+     (cosmetic; add .copy() later).
+  6. **V2 BASELINE LANDED (journaled): 21.4362 @ep32** (32/32, budget_hit false,
+     1730s, /data/repro/baseline_aug_v2/repro.json). Augment alone: -1.13 vs v1
+     22.5641. **H0010 bars re-instantiated: innov val MAE <= 21.1362 AND
+     gt>500 dense-tail mean |Δ| below v2 baseline tail.** innov_counttau_v2
+     auto-started (cfg override augment=true confirmed, smoke ok, pinned-temp
+     patched model synced before its start).
+  7. **Next cards queued in research (not booked):** H0011 draft
+     `local/research/h0011_msq_draft.md` (use_msq: single-step h2 query lane,
+     GeCo2 PrototypeAttentionBlock semantics verified from repo source, gradual
+     residual fusion; books only after H0010 verdict).
 - **Paper framing (numbers-first)**: lightweight frozen-backbone counting
   (CounTR-class) + mechanism contribution (exemplar-selection entropy collapse
   corpus from the v1 refutations). FSC147-adjacent SOTA (LOCA 17.13 val) is out
