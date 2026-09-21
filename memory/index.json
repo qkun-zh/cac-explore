@@ -2,7 +2,7 @@
   "_meta": {
     "eta": 0.2
   },
-  "rebuilt": "2026-09-21T15:24:57+0800",
+  "rebuilt": "2026-09-21T16:01:05+0800",
   "hypotheses": {
     "H0001": {
       "text": "IF dense exemplar-similarity prior readout IN N0002_h0001 child of N0001_champion with use_simprior=true, THEN final val MAE drops at least 0.30 below live parent 23.293, BECAUSE explicit per-cell cosine match evidence over K=3 exemplar embeddings supplies spatially sharp class-conditioned signal that 3-key cross-attention condensation smooths away and lets the decoder place density mass on true instances, DISPROVED IF final val MAE at seed 20260830 under 32ep/1800s protocol is not at or below 22.99.",
@@ -306,17 +306,39 @@
     },
     "H0015": {
       "text": "IF two-regime per-cell gains routed by fixed spatial-extent cut (use_dualcal) IN the live N0015_h0014 head under v2 protocol seed 20260830, THEN final EMA val MAE falls at least 0.30 below 19.3431 AND gt>500 dense-tail mean |del| falls below 330.81 AND gt<50 sparse slice falls at or below 5.45, BECAUSE the self-normalized spatial-extent count nelev separates sparse from dense images where the global scalar surrogate cannot, and the split weights learn a sparse discount (w_lo < 0) against background-texture overcount while the dense weight keeps the cellcal gain (w_hi > 0), DISPROVED IF final EMA val MAE is not at least 0.30 below the live v2 parent or dense-tail mean |del| is not below the live dense baseline or sparse gt<50 slice exceeds 5.45 or the weights do not split with w_hi > 0 > w_lo.",
+      "confidence": 0.41,
+      "status": "uncertain",
+      "n_tested": 1,
+      "log": [
+        {
+          "type": "create",
+          "ts": "2026-09-21T15:24:57+0800",
+          "source_node": "N0015_h0014"
+        },
+        {
+          "type": "evidence",
+          "ts": "2026-09-21T15:56:01+0800",
+          "evidence_type": "contradicts",
+          "strength": 0.9,
+          "source_node": "N0016_h0015",
+          "note": "in-tree N0016 (use_dualcal) FUTILITY-HALTED at ep24 (best 21.7457, need 0.3378/ep vs 0.12 -> HALT, saved ~8 epochs; result.json clean, futility_hit true). best.pth verdict: val MAE 21.534 vs live 19.3431 (+2.19); dense 443.21 vs 330.81 (+112); sparse 6.0+ (guard missed). Mechanism F2: sign split FAILED — w_hi=+0.034, w_lo=+0.184, BOTH positive (predicted w_hi>0>w_lo). Root cause: the program lives in a global UNDERCOUNT regime (bias -15.8, 782/1286 under); any mass-removing weight fights the L1 count anchor, so the sparse weight learns gain, not discount. Lesson: per-regime GAIN cannot fix a mixed-sign slice; subtraction mechanisms (H0013, H0015-sparse, H0011-lane) all fail in this regime; only mass-ADDING spatially-selective mechanisms (cellcal) work. Sparse slice is NOT the lever — dense recall is the only lever left."
+        }
+      ],
+      "created": "2026-09-21T15:24:57+0800"
+    },
+    "H0016": {
+      "text": "IF additive energy-mass residual from self-normalized cell energy (use_enmass) IN the live N0015_h0014 head under v2 protocol seed 20260830, THEN final EMA val MAE falls at least 0.30 below 19.3431 AND gt>500 dense-tail mean |del| falls below 330.81 AND gt<50 sparse slice falls at or below 5.45, BECAUSE the similarity-independent additive projection places mass from cell energy alone where the cosine matcher is blind, restoring recall on mid-range collapse images whose fine-energy peaks are present while match evidence is absent, DISPROVED IF final EMA val MAE is not at least 0.30 below the live v2 parent or dense-tail mean |del| is not below the live dense baseline or sparse gt<50 slice exceeds 5.45 or the out-projection norm stays near zero or its mean weight is negative.",
       "confidence": 0.5,
       "status": "uncertain",
       "n_tested": 0,
       "log": [
         {
           "type": "create",
-          "ts": "2026-09-21T15:24:57+0800",
+          "ts": "2026-09-21T16:01:05+0800",
           "source_node": "N0015_h0014"
         }
       ],
-      "created": "2026-09-21T15:24:57+0800"
+      "created": "2026-09-21T16:01:05+0800"
     }
   }
 }
