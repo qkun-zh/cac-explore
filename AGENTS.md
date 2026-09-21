@@ -196,7 +196,7 @@ DISPROVED IF [falsification criterion with a number/comparison].
 | Data | `/data/dataset/FSC147` (VarV2 protocol: images_384_VarV2, gt_density_map_adaptive_384_VarV2, annotation_FSC147_384.json, Train_Test_Val_FSC_147.json) |
 | Runs | node-local `run/latest/` on the server copy (best.pth, result.json, tensorboard) |
 | GPU | single RTX3060 12 GB — one card per node run |
-| Protocol (canonical) | augment=false, EMA eval, seeded loaders (seed=20260830 FIXED, never overridden) , cudnn deterministic · 32ep/1800s · every comparison same-seed vs the canonical baseline — pre-2026-09-19-evening runs are historical record only |
+| Protocol (canonical) | **v2 (2026-09-21 user directive)**: augment=true (train-time random scale 0.6–1.25 w/ center placement back to 384 + random hflip, per-worker seeded → reproducible at the fixed seed), EMA eval, seeded loaders (seed=20260830 FIXED, never overridden), cudnn deterministic · 32ep/1800s · every comparison same-seed vs the canonical baseline · test-split eval via `scripts/eval_test.py <node>` (writes test_result.json + test_perimage.json). pre-v2 (augment=false) numbers incl. 22.5641 are historical record; v2 baselines re-instantiated from scratch. Reference: `configs/protocol_augment.toml` |
 | GPU queue | one training tmux chain + one `has-session` watchdog for the next batch; when aborting, kill the WATCHDOG session first, then the chain (else the watchdog fires immediately); never `pkill -f` with a pattern that also appears in the killer's own command line |
 
 ## 8. Directory map
@@ -205,7 +205,7 @@ src/cac/expt/       the paper's machinery, single source (constants, node, hypot
                     select, gates) — change only via §mechanism CLI & §10
 src/cac/engine/     runner (smoke→budget, checksums)   src/cac/models/  champion + pl_module
 src/cac/data/       FSC147 VarV2 datamodule            src/cac/calls/   best.pth, EMA
-scripts/            discovery, conformance, novelty_check, run_node, install_key
+scripts/            discovery, conformance, novelty_check, run_node, repro_run, eval_test, install_key
 tree/               THE trajectory tree (filesystem lineage = parent/child)
   N0001_champion/   seed root: info.json, idea.md, model.py, config.toml, result.json
 memory/             hypotheses.jsonl (append-only) + index.json (rebuilt, not edited)

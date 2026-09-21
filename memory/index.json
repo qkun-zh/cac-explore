@@ -2,7 +2,7 @@
   "_meta": {
     "eta": 0.2
   },
-  "rebuilt": "2026-09-20T20:12:17+0800",
+  "rebuilt": "2026-09-21T11:06:52+0800",
   "hypotheses": {
     "H0001": {
       "text": "IF dense exemplar-similarity prior readout IN N0002_h0001 child of N0001_champion with use_simprior=true, THEN final val MAE drops at least 0.30 below live parent 23.293, BECAUSE explicit per-cell cosine match evidence over K=3 exemplar embeddings supplies spatially sharp class-conditioned signal that 3-key cross-attention condensation smooths away and lets the decoder place density mass on true instances, DISPROVED IF final val MAE at seed 20260830 under 32ep/1800s protocol is not at or below 22.99.",
@@ -193,6 +193,20 @@
         }
       ],
       "created": "2026-09-20T18:47:11+0800"
+    },
+    "H0010": {
+      "text": "IF count-anchored similarity calibration (use_counttau) IN a solo single-switch child of live parent N0002_h0001 trained under the canonical protocol at seed 20260830 for 32ep/1800s with both calibration scalars zero-init and constructed AFTER all parent modules with append-only RNG and the simprior readout otherwise byte-identical, THEN final EMA val MAE falls at least 0.30 below live parent 22.5641 to 22.26 or lower AND gt>500 dense-image mean |del| falls below the parent 511.7 baseline, BECAUSE the confirmed simprior readout's free learnable temperature repeatedly collapses to the 1e-3 floor under joint-loss pressure across four independent refutations (H0005/H0008/H0009/H0007), forcing near-one-hot exemplar commitment that starves dense-region mass, and replacing that free parameter with a deterministic stop-gradient count surrogate — per-image evidence gain exp(w_g*log(1+g)) and temperature exp(w_t*log(1+g)), both weights zero-init — encodes image scale into the readout so dense images up-weight small-object similarity mass while step-0 forward stays byte-identical to the parent, DISPROVED IF final EMA val MAE exceeds 22.26 under the canonical protocol at seed 20260830 AND the gt>500 dense-image mean |del| is not reduced below the parent 511.7 baseline.",
+      "confidence": 0.5,
+      "status": "uncertain",
+      "n_tested": 0,
+      "log": [
+        {
+          "type": "create",
+          "ts": "2026-09-21T11:04:44+0800",
+          "source_node": "N0002_h0001"
+        }
+      ],
+      "created": "2026-09-21T11:04:44+0800"
     }
   }
 }

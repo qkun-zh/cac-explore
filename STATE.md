@@ -87,3 +87,45 @@
 - **Server-return queue**: preflight → run shuffled-exemplar control (minutes,
   inference-only) → book `use_sidetune` via `hypo --new --solo` → Idea/Coding
   subagents → smoke → train.
+
+# STATE — session 2026-09-21 (foundation prep; GPU still OFFLINE)
+
+- **Directive (user, overrides default loop)**: leaderboard numbers FIRST, then a
+  paper from those numbers. Priorities: (1) no training cheating, (2) real
+  frontier-paper backing, (3) publishable novelty. Old head-on-head exploration
+  frozen until the v2 baseline exists.
+- **Protocol v2 (user-authorized)**: canonical = **augment=true** + standard
+  train-time augmentation + test-split evaluation. Reference:
+  `configs/protocol_augment.toml`. The 22.5641 (v1, augment=false) stays as
+  historical parent for future bars but every comparison now re-instantiates
+  against the v2 baseline (AGENTS §6 bars semantics).
+- **Local groundwork DONE (no GPU needed)**:
+  1. `src/cac/data/fsc147.py` — `_augment_scale_flip`: seeded random scale
+     [0.6,1.25] w/ center placement back to 384 + random hflip, box/density
+     joint affine, sum-conserving. Verified on CPU: deterministic at seed,
+     box-vs-density centroid err <1px on both pad/crop branches. Dataset now
+     emits `ids` (for per-image dumps).
+  2. `scripts/eval_test.py` — scores a node's `run/latest/best.pth` on the
+     FSC147 test split (augment=false, EMA weights = canonical): writes
+     `test_result.json` (mae/rmse/bias/tail-summary + checksums) and
+     `test_perimage.json` (preds/gts/ids). Accepts node id or path; mirrors
+     run_node env (hub.setup_hf_env). Verified importable on CPU env.
+  3. `configs/protocol_augment.toml` — read-only v2 canonical reference.
+- **Server-return queue (GPU up ⇒ execute in order)**:
+  1. preflight + smoke per node
+  2. v2 baseline: `repro_run.py N0002_h0001 --out /data/repro/baseline_aug_v2
+     --set augment=true` (budget 1800s) → v2 canonical val baseline
+  3. **THE innovation card (user directive: skip test-split focus, val is the
+     currency):** `run_node.py N0011_h0010 --set augment=true` — H0010
+     count-anchored similarity calibration (`use_counttau`, +2 params, step-0
+     byte-identical). Verdict = same-seed v2 pair vs the v2 baseline: val MAE
+     ≤ baseline−0.30 (bar 22.26 pre-v2, re-instantiated) AND gt>500 dense-tail
+     mean |Δ| < v2 baseline (pre-v2 511.7). Diagnostic read: w_g>0 (mass on),
+     |log(τ'/τ)|<2 (no floor-collapse), qproj/kproj/temp trajectories match
+     parent (harness gate).
+  4. eval_test is optional/after (user demoted: val≈test, don't burn the queue).
+- **Paper framing (numbers-first)**: lightweight frozen-backbone counting
+  (CounTR-class) + mechanism contribution (exemplar-selection entropy collapse
+  corpus from the v1 refutations). FSC147-adjacent SOTA (LOCA 17.13 val) is out
+  of reach under the frozen-32M regime; the paper cuts are same-protocol wins +
+  the collapse diagnosis.
