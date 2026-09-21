@@ -2,7 +2,7 @@
   "_meta": {
     "eta": 0.2
   },
-  "rebuilt": "2026-09-21T13:25:10+0800",
+  "rebuilt": "2026-09-21T14:06:33+0800",
   "hypotheses": {
     "H0001": {
       "text": "IF dense exemplar-similarity prior readout IN N0002_h0001 child of N0001_champion with use_simprior=true, THEN final val MAE drops at least 0.30 below live parent 23.293, BECAUSE explicit per-cell cosine match evidence over K=3 exemplar embeddings supplies spatially sharp class-conditioned signal that 3-key cross-attention condensation smooths away and lets the decoder place density mass on true instances, DISPROVED IF final val MAE at seed 20260830 under 32ep/1800s protocol is not at or below 22.99.",
@@ -240,17 +240,39 @@
     },
     "H0012": {
       "text": "IF per-cell self-normalized energy gain field on confirmed SimPrior evidence (use_cellcal) IN N0002_h0001 head-only v2 protocol seed 20260830, THEN final EMA val MAE falls at least 0.30 below 21.4362 and gt>500 dense-tail mean |del| falls below 423.40, BECAUSE self-normalized per-cell energy directs existing exemplar-similarity mass toward high-energy dense cells where the baseline undercounts, DISPROVED IF final EMA val MAE is not at least 0.30 below the live v2 parent or gt>500 dense-tail mean |del| is not below the live v2 baseline.",
+      "confidence": 0.5800000000000001,
+      "status": "uncertain",
+      "n_tested": 1,
+      "log": [
+        {
+          "type": "create",
+          "ts": "2026-09-21T13:25:10+0800",
+          "source_node": "N0002_h0001"
+        },
+        {
+          "type": "evidence",
+          "ts": "2026-09-21T14:00:22+0800",
+          "evidence_type": "supports",
+          "strength": 0.8,
+          "source_node": "N0013_h0012",
+          "note": "in-tree run_node N0013_h0012 --set augment=true: 20.8861@ep32 (32/32, budget_hit false) vs v2 baseline 21.4362: d_mae=-0.55 (bar -0.30 CLEARED by 0.25); dense gt>500 mean |del| 421.13 vs 423.40 (-2.27, CLEARED thinly). Mechanism engaged as designed: w_c=+0.1658 (mass on); bias -14.02 vs -14.54; RMSE 77.26 vs 77.75 (first card to improve RMSE too); 635/1286 images improved with gains concentrated in tail. Caveats: dense-block reshuffle flavor persists (975 -122, 3425 -119, 6969 -113, 3665 -122 vs 3433 +117, 3488 +57, 840 +66); sparse gt<50 slice +0.32 (P2 guard +0.10 MISSED — background texture amplified too). Next target: kill sparse false positives while keeping dense gain (F6 negative-prototype family)."
+        }
+      ],
+      "created": "2026-09-21T13:25:10+0800"
+    },
+    "H0013": {
+      "text": "IF background-prototype suppression with dense-safe margin gating (use_negsup) IN the live N0013_h0012 head under v2 protocol seed 20260830, THEN final EMA val MAE falls at least 0.30 below 20.8861 AND gt>500 dense-tail mean |del| falls below 421.13 AND gt<50 sparse slice falls at or below 5.45, BECAUSE ReLU(neg-pos-0.1) against detached SimPrior top1 self-disables where positive evidence is strong (dense recall preserved) while subtracting background-match mass exactly on the weak-pos/strong-neg cells that cellcal amplified on sparse images, DISPROVED IF final EMA val MAE is not at least 0.30 below the live v2 parent or dense-tail mean |del| is not below the live dense baseline or sparse gt<50 slice exceeds 5.45 or lam_final stays near zero or sparse/dense supp-active fractions are equal.",
       "confidence": 0.5,
       "status": "uncertain",
       "n_tested": 0,
       "log": [
         {
           "type": "create",
-          "ts": "2026-09-21T13:25:10+0800",
-          "source_node": "N0002_h0001"
+          "ts": "2026-09-21T14:06:33+0800",
+          "source_node": "N0013_h0012"
         }
       ],
-      "created": "2026-09-21T13:25:10+0800"
+      "created": "2026-09-21T14:06:33+0800"
     }
   }
 }

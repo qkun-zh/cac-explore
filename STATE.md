@@ -142,6 +142,17 @@
      `local/research/h0011_msq_draft.md` (use_msq: single-step h2 query lane,
      GeCo2 PrototypeAttentionBlock semantics verified from repo source, gradual
      residual fusion; books only after H0010 verdict).
+  8. **BREAKTHROUGH 2026-09-21: H0012 CONFIRMED (supports w=0.8, conf 0.58).**
+     use_cellcal (+1 param, per-cell self-normalized energy gain on confirmed
+     evidence): v2 val MAE 21.4362 -> **20.8861** (d=-0.55, first bar clearance)
+     and dense tail 423.40 -> **421.13**. w_c=+0.1658; bias/RMSE improved too.
+     Caveat: sparse gt<50 slice +0.32 (P2 guard +0.10 missed — texture
+     amplification); dense-block still reshuffles (975/3425/6969/3665 down,
+     3433/3488/840 up). **New live parent N0013_h0012 (20.8861); next bars
+     re-instantiate at <=20.5861 + dense < 421.13.** Next card direction:
+     kill sparse false positives while keeping dense gain (F6
+     negative/background-prototype family — the survey's untried lever that
+     directly targets false positives). Futility rule 16 now guards all cards.
 - **Paper framing (numbers-first)**: lightweight frozen-backbone counting
   (CounTR-class) + mechanism contribution (exemplar-selection entropy collapse
   corpus from the v1 refutations). FSC147-adjacent SOTA (LOCA 17.13 val) is out
