@@ -131,7 +131,7 @@ def main() -> int:
             tree.mark_tested(node, booked_hyps(os.path.join(nd, "idea.md")))
         except Exception as e:
             print(f"[warn] could not mark tested hypotheses: {e}", flush=True)
-        hit = kwargs.get("budget_seconds") and res.get("budget_hit")
+        hit = (kwargs.get("budget_seconds") and res.get("budget_hit")) or res.get("futility_hit")
         tree.set_status(node, "timeout" if hit else "done")
     else:
         # smoke/--off runs are not node outcomes: restore the pre-run status so a

@@ -161,6 +161,14 @@ before accepting it.
     current adjacent mechanisms (code repos preferred). The survey informs;
     first-principles reasoning to the essence decides — "SOTA did it" is still
     not a mechanism (§6).
+16. Futility-stop is MANDATORY on every hypothesis card (plateau early-stopping
+    is bar-blind and cannot catch hopeless-but-improving runs — H0011 improved
+    every epoch while 4-5x short of pace). Launch commands for cards carry
+    `--set futility_bar=<booked numeric bar>` (ref slope default 0.06/ep =
+    lineage best late slope; gates ep16 WARN-only / ep24 HALT; margin 2.0 (calibrated: spares H0010-class near-misses, still catches H0011-class 4x+ deaths)).
+    Canonical baselines NEVER carry futility_bar (they define the bars). A
+    futility-halted run keeps best.pth: verdict = futility refutation +
+    full eval_test (dense tail + mechanism reads still valid).
 
 ## 6. Hypothesis format & fidelity
 ```

@@ -45,9 +45,9 @@ def _model_from_cfg(cfg: dict[str, Any], node_dir: str | None = None,
     return make_model(cfg)
 
 
-def _BudgetStop_hit(trainer: L.Trainer) -> bool:
+def _FutilityStop_hit(trainer: L.Trainer) -> bool:
     for c in trainer.callbacks:
-        if isinstance(c, _BudgetStop) and c.hit:
+        if isinstance(c, _FutilityStop) and c.hit:
             return True
     return False
 
@@ -107,6 +107,15 @@ def run_train(cfg: dict[str, Any], log_dir: str, node_dir: str | None = None,
         callbacks.append(_BudgetStop(budget_seconds))
     if bool(cfg.get("early_stop", False)):
         callbacks.append(EarlyStopping("val/mae", patience=8, mode="min", min_delta=1e-3))
+    fbar = cfg.get("futility_bar", None)
+    if fbar is not None:
+        gates = [int(g) for g in str(cfg.get("futility_gates", "16,24")).split(",")]
+        callbacks.append(_FutilityStop(save_best, fbar,
+                                       ref_slope=float(cfg.get("futility_ref_slope", 0.06)),
+                                       gates=gates,
+                                       halt_from=int(cfg.get("futility_halt_from", 24)),
+                                       margin=float(cfg.get("futility_margin", 2.0)),
+                                       max_epochs=max_epochs))
     if int(cfg.get("val_every_n_epochs", 1)) != 1:
         callbacks.append(ModelCheckpoint(dirpath=os.path.join(log_dir, "ckpt/"),
                                          every_n_epochs=int(cfg.get("val_every_n_epochs", 1))))
@@ -128,7 +137,51 @@ def run_train(cfg: dict[str, Any], log_dir: str, node_dir: str | None = None,
             "best_mae": save_best.best, "best_epoch": save_best.best_epoch,
             "elapsed": time.time() - t_start,
             "n_epochs_done": trainer.current_epoch,
-            "budget_hit": _BudgetStop_hit(trainer)}
+            "budget_hit": _BudgetStop_hit(trainer),
+            "futility_hit": _FutilityStop_hit(trainer)}
+
+
+class _FutilityStop(L.callbacks.Callback):
+    """Bar-relative futility halt (AGENTS hard rule 16).
+
+    Plateau early-stopping cannot catch hopeless-but-improving runs: H0011
+    improved its val MAE every single epoch while running 4-5x short of the
+    pace its bar needed, burning 8 dead epochs. This callback compares the
+    REQUIRED per-epoch improvement against the best late slope ever observed
+    in the lineage and halts when the booked bar is unreachable.
+    Gate at ep16 WARNS only (mid-run jumps like H0012's ep15 discontinuity
+    happen); halt authority from ep24. Installed ONLY when futility_bar is set
+    — canonical baselines always run without it (they define the bars). A
+    halted run keeps its best.pth, so eval_test + mechanism reads still work;
+    the verdict false-shape is 'futility refutation'."""
+
+    def __init__(self, tracker, bar, ref_slope=0.06, gates=(16, 24),
+                 halt_from=24, margin=2.0, max_epochs=32):
+        self.tracker = tracker
+        self.bar = float(bar)
+        self.ref = float(ref_slope)
+        self.gates = tuple(int(g) for g in gates)
+        self.halt_from = int(halt_from)
+        self.margin = float(margin)
+        self.max_epochs = int(max_epochs)
+        self.hit = False
+
+    def on_validation_epoch_end(self, trainer, pl_module):
+        ep = int(trainer.current_epoch) + 1
+        if ep not in self.gates or self.hit:
+            return
+        best = float(self.tracker.best)
+        if not (best < float("inf")):
+            return
+        required = (best - self.bar) / max(1, self.max_epochs - ep)
+        feasible = required <= self.margin * self.ref
+        verdict = "KEEP" if feasible else ("HALT" if ep >= self.halt_from else "WARN (no halt before ep24)")
+        print(f"[futility] ep{ep}: best {best:.4f} bar {self.bar:.4f} "
+              f"need {required:.4f}/ep vs ref {self.ref:.4f}x{self.margin} -> {verdict}",
+              flush=True)
+        if not feasible and ep >= self.halt_from:
+            trainer.should_stop = True
+            self.hit = True
 
 
 class _BudgetStop(L.callbacks.Callback):
