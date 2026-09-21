@@ -142,7 +142,7 @@
      `local/research/h0011_msq_draft.md` (use_msq: single-step h2 query lane,
      GeCo2 PrototypeAttentionBlock semantics verified from repo source, gradual
      residual fusion; books only after H0010 verdict).
-  8. **BREAKTHROUGH 2026-09-21: H0012 CONFIRMED (supports w=0.8, conf 0.58).**
+  8. **BREAKTHROUGH #1 2026-09-21: H0012 CONFIRMED (supports w=0.8, conf 0.58).**
      use_cellcal (+1 param, per-cell self-normalized energy gain on confirmed
      evidence): v2 val MAE 21.4362 -> **20.8861** (d=-0.55, first bar clearance)
      and dense tail 423.40 -> **421.13**. w_c=+0.1658; bias/RMSE improved too.
@@ -153,6 +153,17 @@
      kill sparse false positives while keeping dense gain (F6
      negative/background-prototype family — the survey's untried lever that
      directly targets false positives). Futility rule 16 now guards all cards.
+  9. **BREAKTHROUGH #2 + HONESTY VERDICT 2026-09-21: H0014 MECHANISM REFUTED
+     (contradicts w=0.85, F1 quiet-null) DESPITE 19.3431 (d=-1.56, dense -90).**
+     use_peakcal NEVER engaged (w_p=0.0017, gain~=1): the discount did nothing.
+     Attribution (inferred, not ablated — GPU discipline): the win rides on
+     temp-pin HYGIENE (N0015 temp pinned exactly 0.07 vs N0013 temp drifted to
+     0.0413 = 7th collapse-corpus instance; w_c 0.148 vs 0.166 similar).
+     Rule established: never credit a null mechanism for hygiene's win; pin is
+     mandatory hygiene on every card from here. **Live parent N0015_h0014
+     (19.3431, peakcal = dead code in it); next bars <=19.0431 + dense <330.81.**
+     Sparse guard missed again (5.814 vs 5.45) — sparse false positives remain
+     THE open target. Commit: honesty over headlines.
 - **Paper framing (numbers-first)**: lightweight frozen-backbone counting
   (CounTR-class) + mechanism contribution (exemplar-selection entropy collapse
   corpus from the v1 refutations). FSC147-adjacent SOTA (LOCA 17.13 val) is out

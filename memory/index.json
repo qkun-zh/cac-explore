@@ -2,7 +2,7 @@
   "_meta": {
     "eta": 0.2
   },
-  "rebuilt": "2026-09-21T14:43:00+0800",
+  "rebuilt": "2026-09-21T15:17:28+0800",
   "hypotheses": {
     "H0001": {
       "text": "IF dense exemplar-similarity prior readout IN N0002_h0001 child of N0001_champion with use_simprior=true, THEN final val MAE drops at least 0.30 below live parent 23.293, BECAUSE explicit per-cell cosine match evidence over K=3 exemplar embeddings supplies spatially sharp class-conditioned signal that 3-key cross-attention condensation smooths away and lets the decoder place density mass on true instances, DISPROVED IF final val MAE at seed 20260830 under 32ep/1800s protocol is not at or below 22.99.",
@@ -284,14 +284,22 @@
     },
     "H0014": {
       "text": "IF energy-peakiness-gated per-cell discount (use_peakcal) IN the live N0013_h0012 head under v2 protocol seed 20260830, THEN final EMA val MAE falls at least 0.30 below 20.8861 AND gt>500 dense-tail mean |del| falls below 421.13 AND gt<50 sparse slice falls at or below 5.45, BECAUSE the fixed-shape diffuse field fires exactly on flat elevated texture that cellcal amplified while vanishing on peaked object centers, and the bounded gain with learned strength discounts precisely the background-texture mass, DISPROVED IF final EMA val MAE is not at least 0.30 below the live v2 parent or dense-tail mean |del| is not below the live dense baseline or sparse gt<50 slice exceeds 5.45 or w_final stays near zero or non-negative or any dense-block prediction drops more than 3 percent vs parent.",
-      "confidence": 0.5,
+      "confidence": 0.415,
       "status": "uncertain",
-      "n_tested": 0,
+      "n_tested": 1,
       "log": [
         {
           "type": "create",
           "ts": "2026-09-21T14:43:00+0800",
           "source_node": "N0013_h0012"
+        },
+        {
+          "type": "evidence",
+          "ts": "2026-09-21T15:17:28+0800",
+          "evidence_type": "contradicts",
+          "strength": 0.85,
+          "source_node": "N0015_h0014",
+          "note": "in-tree N0015 (use_peakcal): 19.3431@ep32 vs live 20.8861 (d=-1.56). BUT the booked mechanism is NULL (F1 quiet-null): w_p=0.0017, gain~=1 throughout => peakcal discount did nothing. The gain is carried by the temp-pin HYGIENE bundled in this card: N0015 temp pinned exactly 0.07 vs live-parent N0013 temp drifted 0.07->0.0413 (soft-collapse, 7th corpus instance); w_c similar (0.148 vs 0.166). Dense 421.13->330.81 (-90) and sparse 5.771->5.814 (+0.04, guard missed) both flow from the pinned operating point, not the discount. Honest attribution: mechanism contradicted; pin-hygiene confirmed as major lever (inferred from temp 0.0413-vs-0.07 + collapse corpus + w_p null; pin-only ablation NOT run — GPU discipline). N0015 weights stand as live artifact (19.34) with peakcal as dead code."
         }
       ],
       "created": "2026-09-21T14:43:00+0800"
