@@ -2,7 +2,7 @@
   "_meta": {
     "eta": 0.2
   },
-  "rebuilt": "2026-09-21T21:53:15+0800",
+  "rebuilt": "2026-09-22T15:13:46+0800",
   "hypotheses": {
     "H0001": {
       "text": "IF dense exemplar-similarity prior readout IN N0002_h0001 child of N0001_champion with use_simprior=true, THEN final val MAE drops at least 0.30 below live parent 23.293, BECAUSE explicit per-cell cosine match evidence over K=3 exemplar embeddings supplies spatially sharp class-conditioned signal that 3-key cross-attention condensation smooths away and lets the decoder place density mass on true instances, DISPROVED IF final val MAE at seed 20260830 under 32ep/1800s protocol is not at or below 22.99.",
@@ -449,6 +449,108 @@
         }
       ],
       "created": "2026-09-21T21:19:29+0800"
+    },
+    "H0022": {
+      "text": "IF a margin-sign-selective per-cell energy gain (`use_margin`) that multiplies only the positive evidence channels of the confirmed SimPrior readout by `exp(w_m·log1p(mhat))` under a stop-gradient sign mask while routing negative-evidence cells through at identity, as a replacement for the sign-blind cellcal gain, IN the live N0015 head on FSC147 v2 at seed 20260830, THEN final EMA val MAE drops at least 0.30 below 19.3431 with dense-tail gt>500 below 330.81 and sparse gt<50 at or below 5.45, BECAUSE the measured dense wipe is a sign-blind-gain artifact — the confirmed cellcal gain `exp(w_c·log1p(mhat))` multiplies predominantly negative similarity evidence (top1 mean ≈ −0.12, H0013/H0019 measured) on high-energy dense cells, so gain>1 deepens a negative contribution to cond_map instead of adding mass, and margin-sign-selective amplification restores the mass-adding invariant of the winner by never amplifying negative margins while keeping the dense energy gain on positive margins. DISPROVED IF final EMA val MAE is not at least 0.30 below 19.3431, or dense-tail is not below 330.81, or sparse gt<50 exceeds 5.45, or the negative-margin amplification fraction does not collapse to identity (gain ≈ 1) on the wiped images.",
+      "confidence": 0.415,
+      "status": "uncertain",
+      "n_tested": 1,
+      "log": [
+        {
+          "type": "create",
+          "ts": "2026-09-22T11:31:15+0800",
+          "source_node": "N0015_h0014"
+        },
+        {
+          "type": "evidence",
+          "ts": "2026-09-22T12:21:33+0800",
+          "evidence_type": "contradicts",
+          "strength": 0.85,
+          "source_node": "N0023_h0022",
+          "note": "in-tree N0023 (use_margin) FUTILITY-HALTED at ep24 (best 22.1632@24, need 0.4032/ep vs 0.12 -> HALT, saved ~8 epochs; result.json clean futility_hit=true). best.pth full eval: val MAE 22.163 vs live 19.3431 (+2.82); dense 458.69 vs 330.81 (+127.9, WORSE not rescued); sparse 5.703 vs 5.814 (-0.11, only mild gain); mid 41.71 vs 37.50 (+4.21). R2 wipe-rescue 0/11 (needs >=7): every wiped image stayed wiped or deepened (935: ratio 0.40->0.15; 3428: 0.23->0.09). Mechanism engaged exactly as booked: w_m=+0.2666 (positive), temp pinned (head.simprior.temp=0.07), cellcal structurally bypassed by margin path (w_c stays 0). Paired trajectory: ahead of parent through ep15 (23.48 vs 23.92), crossover ~ep16, behind by +0.94 at ep23 - sign-selective positive-gain helped mid-train but removing negative-gain on the healthy majority lost late-phase suppression without converting any anti-phase evidence. Triple bars all missed. REFUTED: masking negatives cannot convert anti-phase similarity into mass; the substrate itself must change on the anti-match minority (supports H0023 substrate-swap direction)."
+        }
+      ],
+      "created": "2026-09-22T11:31:15+0800"
+    },
+    "H0023": {
+      "text": "IF a fixed stop-gradient route (use_antimatch) swaps, on images whose whole-image top1 cosine mean is negative, the two evidence channels fed to the confirmed zero-init out-projection from the anti-phase similarity tensors to the in-phase mean-1 fine-energy field mhat while leaving the cellcal gain and every other parent line byte-identical, IN the live N0015 head on FSC147 v2 at seed 20260830, THEN final EMA val MAE drops at least 0.30 below 19.3431 with dense-tail gt>500 below 330.81 and sparse gt<50 at or below 5.45, BECAUSE the dense wipe is a measured anti-match artifact (wiped-set top1 mean -0.258 and 66.7 percent negative cells; post-gain evidence sum -5301), so the sign-blind cellcal gain deepens negative similarity evidence instead of adding mass, and on exactly that anti-match minority the energy field is the only in-phase mass signal the gain/decoder interface accepts, converting the identical confirmed gain from negative-deepener to positive mass source without touching the healthy majority. DISPROVED IF final EMA val MAE is not at least 0.30 below 19.3431, or dense-tail gt>500 is not below 330.81, or sparse gt<50 exceeds 5.45, or fewer than 7 of the 11 measured wiped images reach pred/gt at least 0.65 with the routed post-gain evidence sum not non-negative.",
+      "confidence": 0.415,
+      "status": "uncertain",
+      "n_tested": 1,
+      "log": [
+        {
+          "type": "create",
+          "ts": "2026-09-22T12:07:05+0800",
+          "source_node": "N0015_h0014"
+        },
+        {
+          "type": "evidence",
+          "ts": "2026-09-22T12:48:03+0800",
+          "evidence_type": "contradicts",
+          "strength": 0.85,
+          "source_node": "N0024_h0023",
+          "note": "in-tree N0024 (use_antimatch) FUTILITY-HALTED ep24 (best 23.0618@24, need 0.5251/ep vs 0.12 -> HALT; gate line best 23.2437; result.json clean). Full eval: val 23.062 vs live 19.3431 (+3.72, worse than sibling N0023 +2.82); dense 491.81 vs 330.81 (+161.0); mid 42.64 vs 37.50 (+5.14); sparse 5.972 vs 5.814 (+0.16, now WORSE than parent too); new dense wipes 19 vs parent 11 at gt>=300 ratio<0.5 (R3 no-new-wipes refuted, dense +49%). R2 wipe-rescue 0/11 (needs >=7): of the booked 11, 7 correctly routed (top1_mean<0) with routed post-swap evg_sum +18.8k (construction-true non-negative per R1) yet ratios 0.05-0.48 all stayed wiped; 4 not routed (840/935/3482/3487, top1 slightly positive) also stayed. Mechanism reads (dump_antimatch val_attr.json): dispatch fix CONFIRMED alive (w_c=0.0282 != 0, temp pinned 0.07, w_p=0.0064) but gain stack ran ~5x weaker than parent (parent w_c 0.148-0.166, gain_on_neg 1.017 vs ~1.08-1.10); route gate WAY too coarse (F2): 531/1286=41% of ALL val routed, KEEP routed_frac=0.63, MID 0.55 - hard top1_mean<0 gate fired on the healthy majority, replacing their substrate with the mean-1 field. Causal closure: even correctly-routed wipes with massively positive post-swap evidence gained NO counts -> the ev->out->decoder consumption interface cannot convert evidence sign into density mass (F3); mhat is mean-1 normalized (sum ~18432 by construction) hence phase-correct but absolute-scale-free. Combined with H0022 (mask structurally cannot touch anti-phase negatives, 0/11): two-card sequence localizes the dense wipe BELOW the evidence/gain layer - at the consumption interface (out/decoder) or the evidence lacks count-bearing absolute magnitude. Triple bars all missed; sparse/mid/dense all regressed vs parent. REFUTED decisively, beyond noise band."
+        }
+      ],
+      "created": "2026-09-22T12:07:05+0800"
+    },
+    "H0024": {
+      "text": "IF a zero-parameter stop-gradient exemplar-box unit-mass anchor (`use_canchor`) multiplies the confirmed SimPrior residual returned from the zero-init out-projection by a per-image factor alpha = clamp(1/z, 0.25, 4) where z is the mean spatially-minmax-normalized top1 similarity inside the K annotation exemplar boxes (each box structurally contains exactly one object, so the boxes fix an absolute mass of K), leaving the cellcal gain, the similarity substrate, and every other parent line byte-identical, IN the live N0015 head on FSC147 v2 at seed 20260830, THEN final EMA val MAE drops at least 0.30 below 19.3431 with dense-tail gt>500 below 330.81 and sparse gt<50 at or below 5.45, BECAUSE the two-card closure (H0022 sign-mask 0/11 wipe rescue with the mask fully engaged; H0023 substrate-swap 0/11 even with construction-true positive post-swap evidence sum +18.8k) moves the dense-wipe locus below the evidence-sign layer, and the open fork is absolute magnitude: cosine top1 lives in [-1,1] and the mhat energy field is mean-1 by construction, so both substrates and the linear out-projection are scale-free with no per-image count-bearing amplitude, while the exemplar boxes inject exactly K units of ground-truth mass and alpha transfers that absolute unit onto the residual so the decoder sees per-image demand instead of only relative phase. DISPROVED IF final EMA val MAE is not at least 0.30 below 19.3431, or dense-tail gt>500 is not below 330.81, or sparse gt<50 exceeds 5.45, or the anchor fails its engagement read (val alpha coefficient of variation below 0.05, i.e. no per-image spread) or fails to load the wipe locus (median alpha on the 11 measured wiped images below 1.3 times the median alpha on the 27 KEEP images).",
+      "confidence": 0.415,
+      "status": "uncertain",
+      "n_tested": 1,
+      "log": [
+        {
+          "type": "create",
+          "ts": "2026-09-22T13:05:16+0800",
+          "source_node": "N0015_h0014"
+        },
+        {
+          "type": "evidence",
+          "ts": "2026-09-22T14:07:07+0800",
+          "evidence_type": "contradicts",
+          "strength": 0.85,
+          "source_node": "N0025_h0024",
+          "note": "in-tree N0025 (use_canchor) FUTILITY-HALTED ep24 (best 22.2205@24, need 0.397/ep vs 0.12 -> HALT; result.json clean futility_hit=true). best.pth full eval: val MAE 22.2205 vs live 19.3431 (+2.88, bar 19.0431 missed by 3.18); dense gt>500 mean|d| TBD-from-val_result; sparse TBD; mid context. test 19.437 vs live test 19.066 (+0.37). Trajectory: ahead of N0023 only eps1-4, behind from ep5, ends parity with MarginCal sibling (+0.06) and -0.84 vs N0024. Mechanism engagement reads (alpha CV, wipe median alpha) UNMEASURABLE without attr dump - not claimed. Booked response-based absolute-magnitude fork on residual path REFUTED at val bar; supports decoder-side consumption fork (H0025 CapFilm). Evidence contradicts w=0.85 recorded."
+        }
+      ],
+      "created": "2026-09-22T13:05:16+0800"
+    },
+    "H0025": {
+      "text": "IF a zero-init count-capacity FiLM conditioning of the DensityDecoder hidden block (use_capfilm) that maps GAP(fine) concatenated with the log exemplar-box magnitude embedding ME = mean_K(S²/(w_k·h_k)) (S=input size, each annotation box structurally holds one object) to per-channel gamma,beta and applies h ← h·(1+gamma)+beta on the block output before the final 1×1 head and softplus, while the cond_map concat, the SimPrior residual, and every other parent line stay byte-identical, IN the live N0015 head on FSC147 v2 at seed 20260830, THEN final EMA val MAE drops at least 0.30 below 19.3431 with dense-tail gt>500 below 330.81 and sparse gt<50 at or below 5.45, BECAUSE the leverage probe measures the trained parent as fine=generator and cond/simprior=net-suppressor (fine=0 cuts count 91.6 percent, removing the residual raises count 29.9 percent, cond channel sensitivity is 10x below fine), so six residual-content cards were normalized away or wiped while the measured S-curve miscalibration (gt7-10 ratio 1.40 over to gt138+ ratio 0.685 under, mid50-300 at 0.86 carrying 44 percent of AE) is a missing per-image absolute operating point at the decoder consumption interface - zero-init FiLM injects exactly that capacity-conditioned scale pre-final-conv (SNDM self-normalization moved inside the decoder, CACViT magnitude made geometric), letting the same parent features integrate to different sums without any post-decoder additive and without touching the suppressive residual. DISPROVED IF final EMA val MAE is not at least 0.30 below 19.3431, or dense-tail gt>500 is not below 330.81, or sparse gt<50 exceeds 5.45, or the FiLM fails its engagement read (val coefficient of variation of mean_c(gamma) below 0.05, i.e. no per-image spread, or mean_c(gamma) fails to load capacity: mean on gt>=300 not at least 1.5x mean on gt<50), or the consumption-side leverage read moves the wrong way (cond_map x2 count-ratio after training not closer to 1.0 than the parent's 0.824 in absolute value).",
+      "confidence": 0.415,
+      "status": "uncertain",
+      "n_tested": 1,
+      "log": [
+        {
+          "type": "create",
+          "ts": "2026-09-22T13:54:44+0800",
+          "source_node": "N0015_h0014"
+        },
+        {
+          "type": "evidence",
+          "ts": "2026-09-22T14:57:22+0800",
+          "evidence_type": "contradicts",
+          "strength": 0.85,
+          "source_node": "N0026_h0025",
+          "note": "in-tree N0026 (use_capfilm CapFilm) FUTILITY-HALTED ep24 (best 23.232@24, need 0.524/ep vs 0.12 -> HALT; result.json clean). Full eval: val MAE 23.223 vs live 19.3431 (+3.88, bar 19.0431 missed by 4.18); dense gt>500 508.54 vs 330.81 (+177.7); sparse 6.104 vs 5.45; mid 42.13; test 19.587 vs live 19.066. All three bars failed. Engagement reads (gamma CV, capacity loading) not dumped - quiet-null vs engaged-harmful indeterminate (diagnostic ranks engaged-harmful first from level). Decoder-side zero-init FiLM consumption fork REFUTED at this site under futility window; residual-scale arm already dead (H0024). Evidence contradicts w=0.85 recorded."
+        }
+      ],
+      "created": "2026-09-22T13:54:44+0800"
+    },
+    "H0026": {
+      "text": "IF a zero-init geometry magnitude embedding scale (`use_geme`) multiplies the SimPrior similarity evidence tensor ev = cat[top1, cons] by a per-image factor f = clamp((me/32)^w_g, 0.25, 4) where me = mean_K(S²/(w_k·h_k)) is the exemplar-box order-of-magnitude capacity (S=input size, each annotation box structurally holds one object) and w_g is a single zero-initialized learnable scalar, applied after the unchanged cellcal and peakcal gains and before the unchanged zero-init out-projection, while the similarity substrate, the gain forms, the decoder, and every other parent line stay byte-identical, IN the live N0015 head on FSC147 v2 at seed 20260830, THEN final EMA val MAE drops at least 0.30 below 19.3431 with dense-tail gt>500 below 330.81 and sparse gt<50 at or below 5.45, BECAUSE the measured S-curve miscalibration (gt7-10 ratio 1.40 over to gt138+ ratio 0.685 under, mid50-300 at 0.86 carrying 44 percent of AE) is an order-of-magnitude capacity covariate missing from a scale-free similarity pathway (cosine top1 in [-1,1], mean-1 cellcal gain, zero-init linear out) that the leverage probe measures as net-suppressive (removing the residual raises count 29.9 percent), so exemplar-box geometry me supplies the missing count-capacity covariate while the zero-init learnable w_g lets the loss set the sign that attenuates the suppressive residual on high-capacity images and reinforces it on low-capacity images, flattening the S-curve on the similarity side left open by the reexamination, without any decoder edit and without any gain-form, mask, or substrate change. DISPROVED IF final EMA val MAE is not at least 0.30 below 19.3431, or dense-tail gt>500 is not below 330.81, or sparse gt<50 exceeds 5.45, or exemplar-box magnitude carries no count information on val (Pearson corr of log(me) with log(1+gt) below 0.20), or the scale fails its engagement read (val coefficient of variation of f below 0.05, i.e. w_g collapsed to zero or me too narrow), or the capacity loading runs the wrong way (mean f on gt at least 300 not at most 0.90 times mean f on gt below 50).",
+      "confidence": 0.5,
+      "status": "uncertain",
+      "n_tested": 0,
+      "log": [
+        {
+          "type": "create",
+          "ts": "2026-09-22T14:45:17+0800",
+          "source_node": "N0015_h0014"
+        }
+      ],
+      "created": "2026-09-22T14:45:17+0800"
     }
   }
 }

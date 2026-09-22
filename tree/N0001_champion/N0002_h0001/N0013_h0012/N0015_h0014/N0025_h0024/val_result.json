@@ -1,0 +1,43 @@
+{
+  "node": "N0025_h0024",
+  "split": "val",
+  "seed": 20260830,
+  "data_root": "/data/dataset/FSC147",
+  "input_size": 384,
+  "n": 1286,
+  "mae": 22.21268611673619,
+  "rmse": 80.44685023207481,
+  "mean_gt": 63.53888086805448,
+  "mean_pred": 47.969983922563856,
+  "bias_mean_delta": -15.568896945490621,
+  "n_under": 742,
+  "n_over": 544,
+  "sum_under": 24293.55790901184,
+  "sum_over": 4271.956437110901,
+  "dense_threshold": 500.0,
+  "n_gt_gt_thr": 17,
+  "mae_gt_gt_thr": 454.04980019962085,
+  "slices": {
+    "sparse": {
+      "n": 895,
+      "mae": 5.77889606326652,
+      "mean_signed_delta": -0.21223125564319462
+    },
+    "mid": {
+      "n": 374,
+      "mae": 41.91057691472099,
+      "mean_signed_delta": -32.42512072343877
+    },
+    "dense": {
+      "n": 17,
+      "mae": 454.04980019962085,
+      "mean_signed_delta": -453.2152557373047
+    }
+  },
+  "top1pct_k": 12,
+  "top1pct_share": 0.26527557735812324,
+  "best_path": "/data/cac/tree/N0001_champion/N0002_h0001/N0013_h0012/N0015_h0014/N0025_h0024/run/latest/best.pth",
+  "ckpt_epoch": 24,
+  "config_sha256": "f30d9a561f34090d",
+  "model_sha256": "8599b71f9a5644dd"
+}

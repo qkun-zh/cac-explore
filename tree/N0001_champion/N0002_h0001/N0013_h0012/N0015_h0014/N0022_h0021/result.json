@@ -1,0 +1,19 @@
+{
+  "code": "ok",
+  "log_dir": "/data/cac/tree/N0001_champion/N0002_h0001/N0013_h0012/N0015_h0014/N0022_h0021/run/latest",
+  "epochs": 32,
+  "best_mae": 21.92840003967285,
+  "best_epoch": 24,
+  "elapsed": 1508.0958857536316,
+  "n_epochs_done": 24,
+  "budget_hit": false,
+  "futility_hit": true,
+  "node": "N0022_h0021",
+  "elapsed_s": 1513.3,
+  "config_sha256": "bc0718069b11dcae",
+  "model_sha256": "adc7ebb564072dfe",
+  "cfg_overrides": {
+    "augment": true,
+    "futility_bar": 19.0431
+  }
+}

@@ -182,3 +182,16 @@
   corpus from the v1 refutations). FSC147-adjacent SOTA (LOCA 17.13 val) is out
   of reach under the frozen-32M regime; the paper cuts are same-protocol wins +
   the collapse diagnosis.
+
+# STATE — session 2026-09-22 (rescue; decoder→similarity cards; N0027 in flight)
+
+- **Directive (user)**: achieve val < 18; act autonomously; never mention paper unless goal hit; budget open.
+- **Live parent unchanged: N0015_h0014 val 19.3431 / test 19.066.** Bars ≤19.0431 + dense <330.81 + sparse ≤5.45.
+- **Precision (settled this session)**: same-seed draws {19.34, 20.70, 21.59} mean 20.55 sd~1.13; champion is a lucky draw; ±2.25 same-seed floor exceeds remaining 0.30-bars. 3-seed still needs user approval (seed-fixed rule).
+- **H0024 CountAnchor (N0025) REFUTED** (futility ep24, val 22.2127 +2.88, dense 454.05, sparse 5.779, test 19.437; contradicts w=0.85 conf 0.415). Feedback ×4 + synthesis (0 bookings). Response×post-out magnitude fork closed.
+- **H0025 CapFilm (N0026) REFUTED** (futility ep24, val 23.223 +3.88, dense 508.54 +177.7, sparse 6.104, test 19.587; contradicts w=0.85 conf 0.415). Feedback ×4 + synthesis (0 bookings). Decoder FiLM consumption site closed at this form.
+- **H0026 GemeCal (N0027) BOOKED + RUNNING**: geometry ME scale f=(me/32)^w_g on SimPrior ev post-gain pre-out, +1 param, use_geme; novelty 0.601; smoke ok (cfg c48cbec8d36450f4, mdl f8b0470a4542fd92); futility_bar=19.0431; log /data/repro/logs/n0027_run.log. ep16 WARN best 24.0491 (need 0.313/ep) — on track for ep24 HALT unless late surge.
+- **Research (no booking)**: h0027/h0028/h0029 drafts all NO STRONG CANDIDATE / NO-GO until N0027 lands. TT-norm rejected for training (post-decoder/global-cal bans). ExDiv = expected-negative fallback only.
+- **Offline probes** (`local/research/offline_probes_20260922.md`): CounTR shrink worsens; gt-free pred-binned affine oracle 17.93 (−1.40, overfit risk); gt-binned scale 17.06; wipes 11/38 confirmed, cdino wins 11/11 wipes but loses globally; path to <18 needs train-time count-conditional calibration (−2.3…−7.5 oracle band), not post-hoc shrink.
+- **Queue after N0027**: verdict+feedback+synthesis → if fail, ExDiv only if forced else keep searching legal count-conditional train-time actuator; if confirm, re-parent bars at new live.
+- **Gotcha**: local python3 has no torch/cac — all GPU/eval/smoke on server via `/data/miniconda/envs/cac/bin/python`; sync = tar-over-ssh excluding .git/run/local.

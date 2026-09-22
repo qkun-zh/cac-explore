@@ -258,3 +258,9 @@ To change MATHLE constants, selection order, thresholds, or evidence types:
   per-exemplar channel gate). Live directions were query/similarity-side and
   decoder-side — unproven, re-book fresh if wanted.
 - frozen hs(2,3) readout + cross-attn condenser = load-bearing; don't quietly break them.
+- never: transfer-by-learned-fusion of external/non-parametric evidence into cond
+  (H0021 exkern quiet-null: fully-detached path + joint MSE/L1 never rewards the
+  scalar; distillation-style supervision would be a different program).
+- never: gain-domain masks on SimPrior evidence (sign-selective or otherwise —
+  H0018 form, H0022 domain: masking negatives cannot convert anti-phase evidence,
+  0/11 wipe rescue with mechanism fully engaged).
