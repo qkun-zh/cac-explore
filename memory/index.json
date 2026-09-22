@@ -2,7 +2,7 @@
   "_meta": {
     "eta": 0.2
   },
-  "rebuilt": "2026-09-22T15:13:46+0800",
+  "rebuilt": "2026-09-22T16:42:27+0800",
   "hypotheses": {
     "H0001": {
       "text": "IF dense exemplar-similarity prior readout IN N0002_h0001 child of N0001_champion with use_simprior=true, THEN final val MAE drops at least 0.30 below live parent 23.293, BECAUSE explicit per-cell cosine match evidence over K=3 exemplar embeddings supplies spatially sharp class-conditioned signal that 3-key cross-attention condensation smooths away and lets the decoder place density mass on true instances, DISPROVED IF final val MAE at seed 20260830 under 32ep/1800s protocol is not at or below 22.99.",
@@ -540,17 +540,47 @@
     },
     "H0026": {
       "text": "IF a zero-init geometry magnitude embedding scale (`use_geme`) multiplies the SimPrior similarity evidence tensor ev = cat[top1, cons] by a per-image factor f = clamp((me/32)^w_g, 0.25, 4) where me = mean_K(S²/(w_k·h_k)) is the exemplar-box order-of-magnitude capacity (S=input size, each annotation box structurally holds one object) and w_g is a single zero-initialized learnable scalar, applied after the unchanged cellcal and peakcal gains and before the unchanged zero-init out-projection, while the similarity substrate, the gain forms, the decoder, and every other parent line stay byte-identical, IN the live N0015 head on FSC147 v2 at seed 20260830, THEN final EMA val MAE drops at least 0.30 below 19.3431 with dense-tail gt>500 below 330.81 and sparse gt<50 at or below 5.45, BECAUSE the measured S-curve miscalibration (gt7-10 ratio 1.40 over to gt138+ ratio 0.685 under, mid50-300 at 0.86 carrying 44 percent of AE) is an order-of-magnitude capacity covariate missing from a scale-free similarity pathway (cosine top1 in [-1,1], mean-1 cellcal gain, zero-init linear out) that the leverage probe measures as net-suppressive (removing the residual raises count 29.9 percent), so exemplar-box geometry me supplies the missing count-capacity covariate while the zero-init learnable w_g lets the loss set the sign that attenuates the suppressive residual on high-capacity images and reinforces it on low-capacity images, flattening the S-curve on the similarity side left open by the reexamination, without any decoder edit and without any gain-form, mask, or substrate change. DISPROVED IF final EMA val MAE is not at least 0.30 below 19.3431, or dense-tail gt>500 is not below 330.81, or sparse gt<50 exceeds 5.45, or exemplar-box magnitude carries no count information on val (Pearson corr of log(me) with log(1+gt) below 0.20), or the scale fails its engagement read (val coefficient of variation of f below 0.05, i.e. w_g collapsed to zero or me too narrow), or the capacity loading runs the wrong way (mean f on gt at least 300 not at most 0.90 times mean f on gt below 50).",
+      "confidence": 0.415,
+      "status": "uncertain",
+      "n_tested": 2,
+      "log": [
+        {
+          "type": "create",
+          "ts": "2026-09-22T14:45:17+0800",
+          "source_node": "N0015_h0014"
+        },
+        {
+          "type": "evidence",
+          "ts": "2026-09-22T15:28:56+0800",
+          "evidence_type": "contradicts",
+          "strength": 0.85,
+          "source_node": "N0027_h0026",
+          "note": "in-tree N0027 (use_geme GemeCal) FUTILITY-HALTED ep24: best 22.0878 (need 0.3975/ep vs 0.12 -> HALT; result.json futility_hit true). best 22.088 vs live 19.3431 = +2.74; bar 19.0431 missed by 3.04. Full val/test eval launched for slices. Mechanism engagement (w_g, CV(f), corr(log me,gt)) pending eval/dump. Trajectory ep16 best 24.049 already WARN-class behind. Geometry-ME similarity-side scale did not clear futility window. Evidence contradicts w=0.85 recorded."
+        },
+        {
+          "type": "evidence",
+          "ts": "2026-09-22T16:33:59+0800",
+          "evidence_type": "neutral",
+          "strength": 0.0,
+          "source_node": "N0027_h0026",
+          "note": "slice completion: val_result 22.0730/445.05/5.876, test 19.804 — all three bars failed; supports prior contradicts (no confidence change)."
+        }
+      ],
+      "created": "2026-09-22T14:45:17+0800"
+    },
+    "H0027": {
+      "text": "IF a zero-init geometry capacity scale on the fine feature branch (`use_finescale`) that multiplies fine by f = clamp((me/32)^w_f, 0.25, 4) before the unchanged decoder concatenation, where me = mean_K(S²/(w_k·h_k)) is the exemplar-box order-of-magnitude capacity and w_f is a single zero-initialized learnable scalar, while the SimPrior readout, the cellcal and peakcal gain forms, the Condenser, the decoder weights, the GCA bias path, and every other parent line stay byte-identical, IN the live N0015 head on FSC147 v2 at seed 20260830, THEN final EMA val MAE drops at least 0.30 below 19.3431 (at or below 19.0431) with dense-tail gt>500 below 330.81 and sparse gt<50 at or below 5.45, BECAUSE the measured S-curve under-count is an absolute per-image amplitude error whose oracle gt-binned scale headroom is −2.27 MAE while the dominant generator branch fine carries −91.6 percent leverage versus the weak residual path, so exemplar-box geometry as a count-capacity covariate scaled onto fine at train time lets the loss learn the per-image density amplitude the decoder otherwise compresses toward the training mean. DISPROVED IF final EMA val MAE is not at least 0.30 below 19.3431 (above 19.0431), or dense-tail gt>500 is not below 330.81, or sparse gt<50 exceeds 5.45, or the engagement reads fail: abs(w_f) below 0.01 at best.pth and val coefficient of variation of f below 0.05, or Pearson corr of log me with log(1+gt) on val below 0.20.",
       "confidence": 0.5,
       "status": "uncertain",
       "n_tested": 0,
       "log": [
         {
           "type": "create",
-          "ts": "2026-09-22T14:45:17+0800",
+          "ts": "2026-09-22T16:38:55+0800",
           "source_node": "N0015_h0014"
         }
       ],
-      "created": "2026-09-22T14:45:17+0800"
+      "created": "2026-09-22T16:38:55+0800"
     }
   }
 }
