@@ -1,7 +1,8 @@
 # GRAPH_GUIDE - NeuG read/write manual (one page)
 
-NeuG is a SQLite graph at `neug.db` (gitignored; seed with `python3 scripts/seed_db.py`).
-Tables: `nodes(id,type,data)`, `edges(src,rel,dst)`.
+NeuG is a Cypher graph at `neug.db` (gitignored directory; seed with `python3 scripts/seed_db.py`).
+Requires `pip install neug`. Schema: node tables `Node(id,type,data)`, `Meta(k,v)`;
+rel table `Edge(rel)`.
 Node types: `model | hypo | ban`. Edge types: `CHILD_OF | TESTS | SUPPORTS | CONTRADICTS`.
 Closed families (switches/keywords/bans) live in `scripts/closed_families.json`.
 

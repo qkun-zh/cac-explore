@@ -164,9 +164,10 @@ def process_example(
 
     # Process exemplars
     ex_bboxes = [convert_4corners_to_x1y1x2y2(b) for b in entry['box_examples_coordinates']]
-    if config.num_exemplars is not None:
-        assert config.num_exemplars > 0, "num_exemplars must be greater than 0. config.num_exemplars = " + config.num_exemplars
-        ex_bboxes = ex_bboxes[:config.num_exemplars]
+    _nex = getattr(config, "num_exemplars", None)
+    if _nex is not None:
+        assert _nex > 0, "num_exemplars must be greater than 0"
+        ex_bboxes = ex_bboxes[:_nex]
     bboxes = np.array([(x1 / w, y1 / h, x2 / w, y2 / h) for x1, y1, x2, y2 in ex_bboxes]) * feats.shape[-1]
     if flip_view:
         _g = float(feats.shape[-1])

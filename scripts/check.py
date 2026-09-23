@@ -1,5 +1,5 @@
 """Single constraint gate. Exit 0 + CHECK OK, else list violations. Run before every commit."""
-import json, re, sqlite3, sys
+import json, re, sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -21,7 +21,8 @@ ID_STATUS = {"open", "done", "failed", "timeout"}
 
 # 1. extension whitelist: docs only at root, only the three whitelisted ones
 for f in sorted(ROOT.rglob("*")):
-    if ".git" in f.parts or "__pycache__" in f.parts or "local" in f.parts or f.is_dir() \
+    if ".git" in f.parts or "__pycache__" in f.parts or "local" in f.parts \
+            or "neug.db" in f.parts or f.is_dir() \
             or f.name in ("neug.db", ".gitignore", "LICENSE"):
         continue
     rel = f.relative_to(ROOT)
@@ -43,7 +44,7 @@ for name in sorted(ALLOWED_MD):
 # 3. code: no CJK in .py/.sh (English prose everywhere)
 for f in sorted(ROOT.rglob("*")):
     if ".git" in f.parts or "__pycache__" in f.parts or "local" in f.parts \
-            or f.is_dir() or f.suffix not in SRC_EXT:
+            or "neug.db" in f.parts or f.is_dir() or f.suffix not in SRC_EXT:
         continue
     txt = f.read_text(errors="replace")
     if CJK.search(txt):
@@ -57,18 +58,33 @@ if not any(REQUIRED_MODEL in p.read_text() for p in model_py):
 args_py = ROOT / "models" / "cdino" / "tf_pipeline" / "args.py"
 args_text = args_py.read_text() if args_py.exists() else ""
 
-# 5. NeuG integrity
+# 5. NeuG integrity (real NeuG package, Cypher; read-only so it never fights graph.py)
 db = ROOT / "neug.db"
+ban_rules = None
 if not db.exists():
     err("neug: neug.db missing (run python3 scripts/seed_db.py)")
+elif not db.is_dir():
+    err("neug: neug.db is a legacy SQLite file; NeuG uses a directory (migrate, then delete the file)")
 else:
-    c = sqlite3.connect(db)
     try:
-        ctr = {k: int(c.execute("SELECT v FROM meta WHERE k=?", (k,)).fetchone()[0])
-               for k in ("model_ctr", "hypo_ctr", "ban_ctr")}
+        import neug
+        _neug_db = neug.Database(str(db), mode="read-only")
+        _conn = _neug_db.connect()
+
+        def _q(cy, **params):
+            return list(_conn.execute(cy, parameters=params or None))
+
+        def _one(cy, **params):
+            rows = _q(cy, **params)
+            return rows[0] if rows else None
+
+        meta = {r[0]: r[1] for r in _q("MATCH (m:Meta) RETURN m.k, m.v;")}
+        ctr = {k: int(meta[k]) for k in ("model_ctr", "hypo_ctr", "ban_ctr")}
         nodes = [(r[0], r[1], json.loads(r[2])) for r in
-                 c.execute("SELECT id,type,data FROM nodes")]
-        edges = set(c.execute("SELECT src,rel,dst FROM edges").fetchall())
+                 _q("MATCH (n:Node) RETURN n.id, n.type, n.data;")]
+        edges = set((r[0], r[1], r[2]) for r in _q(
+            "MATCH (a:Node)-[e:Edge]->(b:Node) RETURN a.id, e.rel, b.id;"))
+        ban_rules = {d["rule"] for _i, t, d in nodes if t == "ban" and "rule" in d}
 
         # 5a. ID format + sequence: gaps or invented IDs fail
         expected = {
@@ -152,6 +168,8 @@ else:
             for e in [e for e in edges if e[0] == nid]:
                 if e[2] not in {n[0] for n in nodes}:
                     err(f"neug: edge {e} points to unknown node")
+        _conn.close()
+        _neug_db.close()
     except Exception as e:
         err(f"neug: unreadable ({e})")
 
@@ -184,11 +202,12 @@ if (ROOT / ".git").exists():
 cf_path = ROOT / "scripts" / "closed_families.json"
 if not cf_path.exists():
     err("closed: scripts/closed_families.json missing")
-elif db.exists():
+elif ban_rules is None:
+    if db.exists():
+        err("closed: neug bans unreadable (fix neug integrity first)")
+else:
     try:
         cf = json.loads(cf_path.read_text())
-        ban_rules = {json.loads(r[0])["rule"] for r in
-                     c.execute("SELECT data FROM nodes WHERE type='ban'").fetchall()}
         for rule in cf.get("bans", []):
             if rule not in ban_rules:
                 err(f"closed: ban missing (reseed or graph.py will auto-add on next call): {rule[:60]}...")

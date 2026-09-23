@@ -33,7 +33,8 @@ def build_parser():
     parser.add_argument('--ellipse_normalization', type=str2bool, default=False)
     parser.add_argument('--ellipse_kernel_cleaning', type=str2bool, default=False)
     parser.add_argument('--split', type=str, default='test')
-    parser.add_argument('--num_exemplars', type=int, default=None)
+    parser.add_argument('--num_exemplars', type=int, default=None,
+                        help='cap annotation exemplar boxes (None = all; H0002 tests 1)')
 
     # Wave1: training-free readout / threshold / mass-restore
     parser.add_argument('--filter_thresh_scale', type=float, default=1.0)
@@ -157,6 +158,11 @@ def build_parser():
 
 
 def validate_args(args):
+    if args.num_exemplars is not None:
+        assert isinstance(args.num_exemplars, int) and args.num_exemplars > 0, \
+            'num_exemplars must be a positive int (or None for all boxes)'
+        print(f'NUM_EXEMPLARS cap enabled: using first {args.num_exemplars} annotation box(es)',
+              flush=True)
     assert not (args.dual_convnext and args.dual_density), \
         'dual_convnext (#19) and dual_density (#20) are mutually exclusive'
     assert not (args.mlvl_fuse and args.dual_convnext), \
