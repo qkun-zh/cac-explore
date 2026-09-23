@@ -13,5 +13,7 @@
   pre-v2 server tree is archived once at `/data/cac_v1`; the old v1 working
   copy `/data/cdino_run` stays untouched as historical reference only).
 - Run: `ssh cac-server 'bash /data/cac/models/run_variant.sh <NODE_ID> [flags...]'`
-  (logs land in `/data/repro/logs/<NODE_ID>_sub286.log`).
+  (one override flag only; logs land in `/data/repro/logs/<NODE_ID>_sub286.log`).
+- After a run: `scp cac-server:/data/repro/logs/<NODE_ID>_sub286.log /tmp/` then
+  `graph.py evidence --log` (MAE/type parsed from the log; never hand-typed).
 - Long jobs via `setsid nohup ... &`, poll with a single ssh grep, never sleep-loop.

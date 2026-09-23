@@ -21,7 +21,7 @@ ID_STATUS = {"open", "done", "failed", "timeout"}
 
 # 1. extension whitelist: docs only at root, only the three whitelisted ones
 for f in sorted(ROOT.rglob("*")):
-    if ".git" in f.parts or f.is_dir() or f.name in ("neug.db", ".gitignore", "LICENSE"):
+    if ".git" in f.parts or "__pycache__" in f.parts or f.is_dir() or f.name in ("neug.db", ".gitignore", "LICENSE"):
         continue
     rel = f.relative_to(ROOT)
     if f.suffix == ".md":
@@ -41,7 +41,7 @@ for name in sorted(ALLOWED_MD):
 
 # 3. code: no CJK in .py/.sh (English prose everywhere)
 for f in sorted(ROOT.rglob("*")):
-    if ".git" in f.parts or f.is_dir() or f.suffix not in SRC_EXT:
+    if ".git" in f.parts or "__pycache__" in f.parts or f.is_dir() or f.suffix not in SRC_EXT:
         continue
     txt = f.read_text(errors="replace")
     if CJK.search(txt):
@@ -136,12 +136,17 @@ else:
                     err(f"neug: {nid} switch --{sw} not declared in args.py")
             if d.get("status") == "done" and not isinstance(d.get("subset_mae"), (int, float)):
                 err(f"neug: {nid} status=done but subset_mae missing")
+            if d.get("status") == "open":
+                err(f"neug: {nid} status=open (run + evidence/fail before commit)")
             parent = d.get("parent")
             if parent:
                 if (nid, "CHILD_OF", parent) not in edges:
                     err(f"neug: {nid} missing CHILD_OF edge to {parent}")
                 if not any(e[0] == nid and e[1] == "TESTS" for e in edges):
                     err(f"neug: {nid} has no TESTS edge (new-model creates it; do not delete)")
+            if d.get("status") == "done" and nid != "N0029":
+                if not any(e[0] == nid and e[1] in ("SUPPORTS", "CONTRADICTS") for e in edges):
+                    err(f"neug: {nid} status=done but no SUPPORTS/CONTRADICTS edge (use graph.py evidence)")
             for e in [e for e in edges if e[0] == nid]:
                 if e[2] not in {n[0] for n in nodes}:
                     err(f"neug: edge {e} points to unknown node")
@@ -154,6 +159,39 @@ for needle, label in (("20260830", "fixed seed 20260830"), (REQUIRED_MODEL, "req
                        ("64M", "64M cap"), ("subset286", "subset286 gate")):
     if needle not in prot:
         err(f"protocol: PROTOCOL.md missing {label}")
+
+# 6b. run_variant must pin the subset file and allow only one override flag
+rv = ROOT / "models" / "run_variant.sh"
+if not rv.exists():
+    err("runner: models/run_variant.sh missing")
+else:
+    rvt = rv.read_text()
+    if "/data/repro/val_subset286.json" not in rvt:
+        err("runner: run_variant.sh must pin --subset_file /data/repro/val_subset286.json")
+    if "n_override" not in rvt or "FORBIDDEN" not in rvt:
+        err("runner: run_variant.sh missing single-flag + forbidden-key guard")
+
+# 6c. pre-commit hook must run check.py (mechanical, not documented-only)
+if (ROOT / ".git").exists():
+    hook = ROOT / ".git" / "hooks" / "pre-commit"
+    if not hook.exists() or "check.py" not in hook.read_text(errors="replace"):
+        err("git: .git/hooks/pre-commit missing or does not run scripts/check.py "
+            "(run python3 scripts/install_hooks.py)")
+
+# 6d. closed-family bans must be present (seeded from closed_families.json)
+cf_path = ROOT / "scripts" / "closed_families.json"
+if not cf_path.exists():
+    err("closed: scripts/closed_families.json missing")
+elif db.exists():
+    try:
+        cf = json.loads(cf_path.read_text())
+        ban_rules = {json.loads(r[0])["rule"] for r in
+                     c.execute("SELECT data FROM nodes WHERE type='ban'").fetchall()}
+        for rule in cf.get("bans", []):
+            if rule not in ban_rules:
+                err(f"closed: ban missing (reseed or graph.py will auto-add on next call): {rule[:60]}...")
+    except Exception as e:
+        err(f"closed: unreadable ({e})")
 
 # 7. doc-referenced CLI flags must exist (args.py flags + graph.py flags only)
 graph_py = ROOT / "scripts" / "graph.py"
