@@ -29,7 +29,7 @@ for a in "$@"; do
       echo "FORBIDDEN key: $a (champion constant closed by bans)" >&2
       exit 2
       ;;
-    --tta_flip|--scale_views|--input_size|--density_warp|--feature_modulation|--dense_fs_gate|--dense_norm_gate|--dense_hr_gate|--multi_scale_ex|--dense_struct_stage|--context_aware_sim|--soft_exemplar_cef|--dual_convnext|--dual_density|--mlvl_fuse|--filter_otsu|--filter_prenorm|--roi_norm_per_exemplar|--per_exemplar_filter|--transductive_proto|--exemplar_reduce|--box_peak_residual|--thresh_expand|--bg_sub_integral|--tile_split|--local_contrast|--input_unsharp|--cosine_similarity|--boxwise_counts|--guided_density|--exemplar_avg|--count_readout|--mass_restore|--thresh_mode|--filter_thresh_scale)
+    --tta_flip|--scale_views|--input_size|--density_warp|--feature_modulation|--dense_fs_gate|--dense_norm_gate|--dense_hr_gate|--multi_scale_ex|--dense_struct_stage|--context_aware_sim|--soft_exemplar_cef|--dual_convnext|--dual_density|--mlvl_fuse|--filter_otsu|--filter_prenorm|--roi_norm_per_exemplar|--per_exemplar_filter|--transductive_proto|--exemplar_reduce|--box_peak_residual|--thresh_expand|--bg_sub_integral|--tile_split|--local_contrast|--input_unsharp|--cosine_similarity|--boxwise_counts|--guided_density|--exemplar_avg|--normalize_features|--count_readout|--mass_restore|--thresh_mode|--filter_thresh_scale)
       echo "FORBIDDEN key: $a (closed family; see graph.py bans)" >&2
       exit 2
       ;;

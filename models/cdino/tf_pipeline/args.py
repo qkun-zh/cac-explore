@@ -417,4 +417,14 @@ def validate_args(args):
             'exemplar_avg incompatible with gate+scalar filters (#11/#12)'
         assert args.count_readout == 'density', 'exemplar_avg (#36) requires count_readout=density'
         print('EXEMPLAR AVG enabled (#36): one shared ROI-kernel mean before density assembly', flush=True)
+    if args.normalize_features:
+        assert not args.cosine_similarity, 'normalize_features (#37) is L2-only; cosine_similarity (#33) is closed'
+        assert not args.exemplar_avg, 'normalize_features incompatible with exemplar_avg (#36)'
+        assert not args.boxwise_counts, 'normalize_features incompatible with boxwise_counts (#34)'
+        assert not args.guided_density, 'normalize_features incompatible with guided_density (#35)'
+        assert args.count_readout == 'density', 'normalize_features (#37) requires count_readout=density'
+        print('NORMALIZE FEATURES enabled (#37): channel-wise L2 on feats, multi-channel depthwise conv kept', flush=True)
+    if args.normalize_only_biggest_bbox:
+        assert args.normalize_features, 'normalize_only_biggest_bbox requires normalize_features (#37)'
+        print('NORMALIZE ONLY BIGGEST BBOX enabled: L2 from largest annotation ROI only', flush=True)
     return args

@@ -38,7 +38,8 @@
     "never: cosine_similarity L2 unit-norm matching #33 (closed refuted 36.023)",
     "never: boxwise_counts per-box unit-mass mean #34 (closed refuted 30.393)",
     "never: guided_density self-guided pre-cut smooth #35 (closed refuted 25.770)",
-    "never: exemplar_avg shared ROI-kernel mean #36 (closed refuted 734.014, empty bbox path)"
+    "never: exemplar_avg shared ROI-kernel mean #36 (closed refuted 734.014, empty bbox path)",
+    "never: normalize_features channel-L2 multi-channel conv #37 (closed refuted 36.023)"
   ],
   "switches": [
     "tta_flip",
@@ -88,6 +89,7 @@
     "boxwise_counts",
     "guided_density",
     "exemplar_avg",
+    "normalize_features",
     "count_readout",
     "mass_restore",
     "thresh_mode",
@@ -158,6 +160,8 @@
     "guided filter",
     "exemplar_avg",
     "shared ROI-kernel",
+    "normalize_features",
+    "channel-wise L2",
     "count_readout",
     "mass_restore",
     "peak readout",
