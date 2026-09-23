@@ -22,6 +22,9 @@ class Dinov3VitBackbone(nn.Module):
             hub.setup_hf_env()
             tok = hub.hf_token()
         except Exception:
+            import os
+            os.environ.setdefault("HF_HOME", "/data/asset/hf")
+            os.environ.setdefault("HF_HUB_OFFLINE", "1")
             tok = None
         self.net = AutoModel.from_pretrained(
             hf_name, token=tok, trust_remote_code=True)
