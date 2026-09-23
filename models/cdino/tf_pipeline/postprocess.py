@@ -218,6 +218,19 @@ def _reduce_exemplar_maps(stacked, conv_maps, config, pooled_feats,
             dim=0,
         ).sum(dim=0)
         output = stacked_w
+        if bool(getattr(config, "local_contrast", False)):
+            # #31 / H0006: S / avg_pool(S) before final minmax; global z/cut unchanged.
+            blurred = F.avg_pool2d(
+                output.unsqueeze(0).unsqueeze(0), kernel_size=5, stride=1, padding=2
+            ).squeeze(0).squeeze(0)
+            before = float(output.clamp_min(0).sum().item())
+            output = output / (blurred + 1e-6)
+            after = float(output.clamp_min(0).sum().item())
+            print(
+                f"LCONTRAST path=mwex soft_pre={before:.4f} soft_post={after:.4f} "
+                f"max={float(output.max().item()):.4f} k=5",
+                flush=True,
+            )
         if config.use_minmax_norm:
             output = rescale_tensor(output)
         print(
@@ -237,6 +250,19 @@ def _reduce_exemplar_maps(stacked, conv_maps, config, pooled_feats,
 
     # ---- champion: plain mean over stacked channels+exemplars ----
     output = stacked.mean(dim=0)
+    if bool(getattr(config, "local_contrast", False)):
+        # #31 / H0006: S / avg_pool(S) before minmax; global z/cut unchanged.
+        blurred = F.avg_pool2d(
+            output.unsqueeze(0).unsqueeze(0), kernel_size=5, stride=1, padding=2
+        ).squeeze(0).squeeze(0)
+        before = float(output.clamp_min(0).sum().item())
+        output = output / (blurred + 1e-6)
+        after = float(output.clamp_min(0).sum().item())
+        print(
+            f"LCONTRAST soft_pre={before:.4f} soft_post={after:.4f} "
+            f"max={float(output.max().item()):.4f} k=5",
+            flush=True,
+        )
     if config.use_minmax_norm:
         output = rescale_tensor(output)
     return output, _roi_norm_coeff(output, bboxes, resize_ratios, config)

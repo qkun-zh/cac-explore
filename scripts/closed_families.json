@@ -32,7 +32,8 @@
     "never: filter_thresh_scale re-tune away from 0.5 (locked champion fs)",
     "never: thresh_expand convex keep-form #28 (closed refuted 92.103)",
     "never: bg_sub_integral exterior-floor box-restore #29 (closed refuted 34.578)",
-    "never: tile_split always-on 2x2 local contrast quadrants #30 (closed refuted 31.930)"
+    "never: tile_split always-on 2x2 local contrast quadrants #30 (closed refuted 31.930)",
+    "never: local_contrast pre-minmax S/boxblur ratio #31 (closed refuted 84.107)"
   ],
   "switches": [
     "tta_flip",
@@ -76,6 +77,7 @@
     "thresh_expand",
     "bg_sub_integral",
     "tile_split",
+    "local_contrast",
     "count_readout",
     "mass_restore",
     "thresh_mode",
@@ -134,6 +136,8 @@
     "background-subtracted box-mass",
     "tile_split",
     "tile-split",
+    "local_contrast",
+    "local contrast",
     "count_readout",
     "mass_restore",
     "peak readout",

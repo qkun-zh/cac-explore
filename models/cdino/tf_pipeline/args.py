@@ -120,6 +120,9 @@ def build_parser():
     # attempt #30 / H0005: always-on 2x2 tile-split local contrast + per-quadrant z
     parser.add_argument('--tile_split', type=str2bool, default=False,
                         help='#30: always-on 2x2 quadrants; local minmax + per-quadrant ROI-norm (empty quad uses global z), locked cut, stitch')
+    # attempt #31 / H0006: pre-minmax local contrast = S / boxblur(S)
+    parser.add_argument('--local_contrast', type=str2bool, default=False,
+                        help='#31: divide exemplar-mean similarity by its avg-pool blur before minmax/z (locked k=5, eps=1e-6)')
     # P2: transductive second pass (0 = off); harvested kernel half-size in cells
     parser.add_argument('--transductive_proto', type=int, default=0)
     parser.add_argument('--transductive_half', type=int, default=3)
@@ -315,4 +318,18 @@ def validate_args(args):
         assert not args.dense_struct_stage, 'tile_split incompatible with dense_struct_stage (#16)'
         assert not args.count_readout != 'density', 'tile_split (#30) requires count_readout=density'
         print('TILE SPLIT enabled (#30): 2x2 local contrast + per-quadrant ROI-norm then locked cut', flush=True)
+    if args.local_contrast:
+        assert not args.filter_otsu, 'local_contrast incompatible with filter_otsu (#22)'
+        assert not args.filter_prenorm, 'local_contrast incompatible with filter_prenorm (#23)'
+        assert not args.roi_norm_per_exemplar, 'local_contrast incompatible with roi_norm_per_exemplar (#24)'
+        assert not args.per_exemplar_filter, 'local_contrast incompatible with per_exemplar_filter (#25)'
+        assert not args.box_peak_residual, 'local_contrast incompatible with box_peak_residual (#27)'
+        assert not args.thresh_expand, 'local_contrast incompatible with thresh_expand (#28)'
+        assert not args.bg_sub_integral, 'local_contrast incompatible with bg_sub_integral (#29)'
+        assert not args.tile_split, 'local_contrast incompatible with tile_split (#30)'
+        assert not args.dense_norm_gate and not args.dense_fs_gate, \
+            'local_contrast incompatible with gate+scalar filters (#11/#12)'
+        assert not args.context_aware_sim, 'local_contrast incompatible with context_aware_sim (#17)'
+        assert not args.count_readout != 'density', 'local_contrast (#31) requires count_readout=density'
+        print('LOCAL CONTRAST enabled (#31): S / boxblur(S) before minmax and locked z', flush=True)
     return args
