@@ -1,0 +1,17 @@
+# Quant feedback — N0030_h0028 (full-flag CountingDINO dinov3_vitl16)
+
+## Config (locked)
+- model: dinov3_vitl16
+- divide_et_impera=True, filter_background=True, ellipse_normalization=True, ellipse_kernel_cleaning=True
+- cosine/normalize flags as run in `results/results.csv` row
+
+## Metrics
+| split | MAE | RMSE | notes |
+|---|---|---|---|
+| val | TBD | TBD | bar ≤38.696 = 39.696 − 1% |
+
+## Pass/fail
+TBD vs H0028 bar ≤38.696.
+
+## Pair honesty
+Compare against seed vits16 full 39.696 and DEI-only vitl16 41.062.

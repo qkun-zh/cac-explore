@@ -216,7 +216,7 @@ H0024    0.500uncertain       0
 5. **EXPLICIT — does NOT count toward the 3-card HANDOFF budget.** N0022/H0021 is a
    **pre-HANDOFF card**: it ran and was refuted 2026-09-21, before the 2026-09-22
    HANDOFF, and is already folded into the history that *created* the budget —
-   `HANDOFF.md:48` ("H0010–H0021 除 cellcal 外全部 REFUTED" is precisely why HANDOFF then
+   `HANDOFF.md:48` ("H0010–H0021 all REFUTED except cellcal" is precisely why HANDOFF then
    granted three fresh cards) and `HANDOFF.md:64` (the "3 cards no >1.5 → paper" rule).
    The three budgeted cards are (1) N0023/H0022 MarginCal, (2) N0024/H0023
    `use_antimatch`, (3) the registered third card, now booked as H0024 `use_canchor`

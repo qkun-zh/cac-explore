@@ -1,0 +1,9 @@
+{
+  "split": "val",
+  "mae": 32.53102221162656,
+  "rmse": 81.95480225236436,
+  "bar": 38.696,
+  "supports": true,
+  "model": "dinov3_vitl16",
+  "flags": "DEI+filter+ellipse"
+}

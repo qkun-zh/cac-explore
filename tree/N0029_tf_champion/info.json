@@ -1,0 +1,14 @@
+{
+  "id": "N0029_tf_champion",
+  "parent": null,
+  "status": "done",
+  "created_ts": "2026-09-22T17:29:57+0800",
+  "title": "training-free seed root \u2014 CountingDINO/DINOv3 baselines (pivot 2026-09-22)",
+  "best_metric": 32.53102221162656,
+  "train_seconds": 0.0,
+  "epochs": 0,
+  "tested_hypotheses": [],
+  "updated_ts": "2026-09-22T17:39:15+0800",
+  "source": "PIVOT 2026-09-22: supervised SOLO corridor closed after 6x futility-HALT (N0023-28, H0022-27). New arc = training-free / inference-side only. Seed baselines: local cdino dinov3_vits16 val 39.696 (DEI=True); dinov3_vitl16 val 41.062 (DEI=False, config-mismatch pending DEI=True rerun); paper CountingDINO DINOv2-L val 25.48/test 20.93; our trained N0015 19.34/19.07 kept as OUT-OF-TREE reference only, not parent of this root. | see calibration_trainfit.md for N0015 train-fit scale/affine val 18.42/18.39 te 19.61/19.46",
+  "updated_at": "2026-09-22T18:21:35Z"
+}

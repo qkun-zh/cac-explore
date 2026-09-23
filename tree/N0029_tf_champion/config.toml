@@ -1,0 +1,14 @@
+# training-free root config — not a train loop config
+# method: CountingDINO-style ROI-prototype similarity on frozen DINOv3
+seed = 20260830
+split_eval = val
+data_root = /data/dataset/FSC147
+hf_home = /data/asset/hf
+# local method defaults that produced 39.696 (vits16):
+divide_et_impera = true
+use_roi_norm = true
+roi_norm_after_mean = true
+use_minmax_norm = true
+correct_bbox_resize = true
+scaling_coeff = 1.0
+# pending A/B: divide_et_impera for vitl16; ellipse/filter/cosine paper flags

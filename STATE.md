@@ -195,3 +195,18 @@
 - **Offline probes** (`local/research/offline_probes_20260922.md`): CounTR shrink worsens; gt-free pred-binned affine oracle 17.93 (−1.40, overfit risk); gt-binned scale 17.06; wipes 11/38 confirmed, cdino wins 11/11 wipes but loses globally; path to <18 needs train-time count-conditional calibration (−2.3…−7.5 oracle band), not post-hoc shrink.
 - **Queue after N0027**: verdict+feedback+synthesis → if fail, ExDiv only if forced else keep searching legal count-conditional train-time actuator; if confirm, re-parent bars at new live.
 - **Gotcha**: local python3 has no torch/cac — all GPU/eval/smoke on server via `/data/miniconda/envs/cac/bin/python`; sync = tar-over-ssh excluding .git/run/local.
+
+
+## 2026-09-22
+- Focus: training-free N0029_tf_champion; eval gate subset286.
+- Archive: `archive_local/README_ARCHIVED.md`.
+
+# STATE — session 2026-09-23 (TF rapid-goal update)
+
+- **User directive:** success bar = **subset286 MAE ≤ 20.0** (rapid iteration); run the full TF works autonomously. Champion/board rows remain full val 1286 only.
+- Docs updated same-session: `tree/N0029_tf_champion/{constraints_and_goal,baseline_board,HANDOFF_TF}.md`.
+- **Server rotated:** `ssh -p 46315 root@beuqr6fzapk1bhxosnow.deepln.com` (password in `local/address_and_password.md`); old hzpcqeuyl…:52662 entry replaced. Host key scanned into known_hosts; BatchMode preflight pending password path (no sshpass yet).
+- Local conformance OK at session start; git clean vs origin (`f1d5c55`).
+- Rapid gap: subset286 best **26.339 → 20.0 = −6.34**. Structural queue unchanged (P2 transductive / TTA / dense-bin focus — no more fs micro-tuning).
+- **Docs language lock (user 2026-09-23):** all project documentation must be precise English only; Chinese forbidden (constraints_and_goal.md §5b).
+

@@ -1,0 +1,1 @@
+H0030 cosine val MAE=38.8078 RMSE=87.9709 bar=39.696 verdict=SUPPORTS

@@ -224,10 +224,10 @@ consistent with the N0023 diagnostic §5, with my card count stated explicitly: 
 "3 cards no >1.5 → paper" rule (`HANDOFF.md:64`) counts exactly three post-HANDOFF cards —
 (1) N0023/H0022 MarginCal (ran: +2.82, no drop), (2) N0024/H0023 use_antimatch (pending),
 (3) the registered exemplar-distinctness / exemplar-encoding-interface card
-(`HANDOFF.md:48` "remaining 残血 idea, 期望为负"; dense-targeted variant `HANDOFF.md:62`) —
+(`HANDOFF.md:48` "remaining residual idea, expected-negative"; dense-targeted variant `HANDOFF.md:62`) —
 and it does **not** count N0022/H0021: exkern ran 2026-09-21, *before* the 2026-09-22
 HANDOFF, and is already folded into the history that *created* the budget
-(`HANDOFF.md:48`: "H0010–H0021 除 cellcal 外全部 REFUTED" — that sentence is precisely why
+(`HANDOFF.md:48`: "H0010–H0021 all REFUTED except cellcal" — that sentence is precisely why
 HANDOFF then granted three fresh cards); retroactively charging exkern against the budget
 would shrink a budget granted with exkern already known, i.e. outcome-shopping the stop
 rule. Operationally: arbitrate N0024 by mechanism reads first (R1/R2/w_c, ep24 ≤20.00

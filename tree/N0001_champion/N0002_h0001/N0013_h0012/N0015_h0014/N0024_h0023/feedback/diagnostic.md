@@ -238,8 +238,8 @@ falsifier — and neither clears novelty vs the refuted parent id.
 **Ruling: remaining budget = exactly one card (the exemplar-distinctness /
 exemplar-encoding-interface card), then the paper decision.**
 
-- HANDOFF §5 sets "3 cards no >1.5 net drop → 转论文收官" (`HANDOFF.md:64`); the registered
-  remaining idea is "exemplar-distinctness (期望为负)" (`HANDOFF.md:48`), with a dense-targeted
+- HANDOFF §5 sets "3 cards no >1.5 net drop → switch to paper wrap-up" (`HANDOFF.md:64`); the registered
+  remaining idea is "exemplar-distinctness (expected-negative)" (`HANDOFF.md:48`), with a dense-targeted
   variant as the H0022/H0023-successor form (`HANDOFF.md:62`).
 - Budget composition was explicitly resolved this session (`journal/events.jsonl:60`,
   12:41:45): **3 cards = N0023 (H0022) + N0024 (H0023) + exemplar-distinctness**; paper
@@ -275,7 +275,7 @@ and final post-HANDOFF card. Do NOT go straight to paper.**
    (logit-var 0.0134, top1 mean −0.125; `journal/events.jsonl:32`) — and the two-card
    closure (§3) points upstream of the gain at the **exemplar-encoding interface** as the
    one locus neither mask nor swap touched (H0022 F3 successor `h0022_idea_DRAFT.md:131`;
-   HANDOFF:48 期望为负 / :62 dense-targeted variant). It is cheap, zero-to-few params, and
+   HANDOFF:48 expected-negative / :62 dense-targeted variant). It is cheap, zero-to-few params, and
    its **expected-negative outcome is itself paper-grade**: it completes the collapse-corpus
    story (wipe localized below evidence/gain; exemplar side measured dead) that
    `paper_spine.md` already positions.

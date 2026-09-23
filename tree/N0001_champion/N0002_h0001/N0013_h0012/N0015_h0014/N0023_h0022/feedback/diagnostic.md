@@ -225,8 +225,8 @@ routed evg_sum ≥0, R2 ≥7/11 wipe rescue, w_c≠0 proving the dispatch fix), 
 ep24 gate watch (≤20.00 to finish; a HALT in (20.0, 21.6) is draw-contaminated, not a clean kill) —
 then, unless N0024 clears the triple bars with R1/R2 true (which would re-open the lineage under a
 new live parent and void the stop rule), **book the registered third-card direction — the
-exemplar-distinctness / exemplar-encoding interface card** (`HANDOFF.md:48` "remaining 残血 idea,
-期望为负"; dense-targeted variant `HANDOFF.md:62`; H0022's F1/F3 successors
+exemplar-distinctness / exemplar-encoding interface card** (`HANDOFF.md:48` "remaining residual idea,
+expected-negative"; dense-targeted variant `HANDOFF.md:62`; H0022's F1/F3 successors
 `h0022_idea_DRAFT.md:129,131`; H0023a's F1 successor `h0023a_idea_DRAFT.md:125`) as the third and
 final post-HANDOFF card, and only trigger the HANDOFF *"3 cards no >1.5 → paper"* decision
 (`HANDOFF.md:64`) after that third card also fails to deliver >1.5 net drop (or dies honestly at the

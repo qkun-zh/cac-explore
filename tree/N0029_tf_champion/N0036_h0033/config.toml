@@ -1,0 +1,18 @@
+# N0036 — CDINO vitb16 full flags (H0033)
+seed = 20260830
+method = "countingdino"
+model_name = "dinov3_vitb16"
+split = "val"
+img_size = 832
+divide_et_impera = true
+divide_et_impera_twice = false
+filter_background = true
+ellipse_normalization = true
+ellipse_kernel_cleaning = true
+use_roi_norm = true
+roi_norm_after_mean = true
+use_minmax_norm = true
+correct_bbox_resize = true
+scaling_coeff = 1.0
+cosine_similarity = false
+normalize_features = false

@@ -1,0 +1,10 @@
+# N0031 — train-fit global scale (NOT a train config)
+seed = 20260830
+method = "train_fit_global_scale"
+fit_split = "train"
+eval_splits = ["val", "test"]
+source_node = "N0015_h0014"
+# measured (recompute via fit_scale.py):
+scale = 1.1029862538958246
+bar_val_mae = 18.50
+bar_test_mae = 19.70

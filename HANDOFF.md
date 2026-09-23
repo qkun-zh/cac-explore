@@ -1,72 +1,118 @@
-# HANDOFF — 交接文档 (2026-09-22)
+# HANDOFF — Handoff document
 
-目标:把 FSC147 冻结头 counting 的 val EMA 从 **19.3431 (N0015_h0014)** 推到 **< 18**,全程:
-冻结 backbone、头 ≤32M、seed 20260830、不算作弊、真实前沿背书、可发表创新
-(test 数据已有 19.066,仅在收官论文时用;val 是对照货币)。
-
-新服务器已在跑,GPU 空着,可直接开工。这文档是唯一交接物——先读 STATE.md + journal/events.jsonl + memory/hypotheses.jsonl 再动手。
+> **Current focus (from 2026-09-22) = training-free `tree/N0029_tf_champion`**  
+> **Latest handoff (progress / scores / eval gate / cleanup): `tree/N0029_tf_champion/HANDOFF_TF.md`**  
+> Authoritative constraints: same directory `constraints_and_goal.md` · scoreboard: `baseline_board.md`  
+> Old N0001 training tree sealed → `archive_local/README_ARCHIVED.md`  
+> Everything below = historical training track (N0001/N0015), archive only, **not the current default task**.
 
 ---
 
-## 1. 服务器(新,已配好 ssh)
+## [Historical] Goal (pre-2026-09-22 training track)
+
+Goal: push FSC147 frozen-head counting val EMA from **19.3431 (N0015_h0014)** to **< 18**, throughout:
+frozen backbone, head ≤32M, seed 20260830, no cheating, real frontier backing, publishable novelty
+(test already at 19.066, use only for the final paper; val is the comparison currency).
+
+New server is already running, GPU idle, ready to start. This document is the only handoff artifact —
+read STATE.md + journal/events.jsonl + memory/hypotheses.jsonl before acting.
+
+---
+
+## 1. Server (new, ssh configured)
 
 ```
 ssh cac-server        # -> root@hzpcqeuyl8w9sljhsnow.deepln.com:52662
-                      # 密码见 local/address_and_password.md (gitignored)
+                      # password: see local/address_and_password.md (gitignored)
 ```
-- RTX 3060 12GB;torch 2.10.0+cu128;python 用 `/data/miniconda/envs/cac/bin/python`
-- `/data` 完整保留:工作副本 `/data/cac`(源码,用 tar-over-ssh 同步,无远程 git)、`/data/dataset/FSC147`、`/data/repro`(all 历史重训)、`/data/cdino_run`(CountingDINO 复现)、`/data/asset/hf`(DINOv3 ViT-S/16 缓存)
-- HF 环境流:`export HF_HUB_OFFLINE=1 HF_HOME=/data/asset/hf`
-- 同步命令范式:本地 `tar czf - --exclude 各类 | ssh cac-server 'tar xzf - -C /data/cac'`
-- 跑训练:`setsid nohup ... > log 2>&1 </dev/null &`(无 tmux 可用)
+- RTX 3060 12GB; torch 2.10.0+cu128; python = `/data/miniconda/envs/cac/bin/python`
+- `/data` fully preserved: working copy `/data/cac` (source, synced via tar-over-ssh, no remote git),
+  `/data/dataset/FSC147`, `/data/repro` (all historical retrains), `/data/cdino_run` (CountingDINO repro),
+  `/data/asset/hf` (DINOv3 ViT-S/16 cache)
+- HF env: `export HF_HUB_OFFLINE=1 HF_HOME=/data/asset/hf`
+- Sync pattern: local `tar czf - --exclude <various> | ssh cac-server 'tar xzf - -C /data/cac'`
+- Launch training: `setsid nohup ... > log 2>&1 </dev/null &` (tmux unavailable)
 
-## 2. 当前冠军与规程
+## 2. Current champion and protocol
 
-- Live = `tree/N0001_champion/N0002_h0001/N0013_h0012/N0015_h0014`(val 19.3431 / test 19.066)
-- 全部机制在 `src/cac/expt/mechanisms.py`(单源):cellcal(w_c=+0.148,CONFIRMED 首个突破)、temp-pin 卫生(peakcal 已 dp 删除,机制 null)
-- 运行范式:`scripts/run_node.py --parent <parent> --hyp <idea_FINAL.md> --set <overrides> --set futility_bar=<bar>`
-- futility-stop 是 AGENTS 硬规则 16:`ep16 仅 WARN、ep24 可 HALT`;
-- **AGENTS IRON RULE #0:GPU 在跑时绝不空等**——单次 ssh 轮询查看,禁 sleep 循环;有洞就立刻续新卡,否则算事故。
-- v2 协议 = `configs/protocol_augment.toml`(augment=true, seed 20260830, 32ep/1800s, EMA eval)
+- Live = `tree/N0001_champion/N0002_h0001/N0013_h0012/N0015_h0014` (val 19.3431 / test 19.066)
+- All mechanisms in `src/cac/expt/mechanisms.py` (single source): cellcal(w_c=+0.148, first CONFIRMED breakthrough),
+  temp-pin hygiene (peakcal already deleted via dp; mechanism null)
+- Run pattern: `scripts/run_node.py --parent <parent> --hyp <idea_FINAL.md> --set <overrides> --set futility_bar=<bar>`
+- futility-stop is AGENTS hard rule 16: `ep16 WARN only, ep24 may HALT`
+- **AGENTS IRON RULE #0: never idle while the GPU runs** — single ssh grep poll, no sleep loops;
+  if there is a gap, start the next card immediately, otherwise it is an incident.
+- v2 protocol = `configs/protocol_augment.toml` (augment=true, seed 20260830, 32ep/1800s, EMA eval)
 
-## 3. 重要事实(接手前必须内化)
+## 3. Critical facts (internalize before taking over)
 
-1. **确定性危机(最硬的事实)**:同 seed 同代码重跑结果不同,噪声地板 **±1–2 MAE**(CUDA atomic 非确定性 + fp 非结合率在混沌训练放大)。AGENTS 里"同 seed ±0.02"是错的,已作废。
-   → 任何 ±1.5 以内的"改进"都不可信;大效应(崩/NaN/+2 以上)才可信。
-   → **3-seed 多次复现迄今未做**(用户未批),是 precision 危机的唯一正解,也是挡在"继续增量"前的根。
-2. **Hybrid 路线已判死(最新结论,勿再回头)**:本会话全 val 精确配对(N0015 vs CountingDINO ViT-S/16)后,
-   所有确定性推理混合 router 全部变差:max +14.6, collapse-T 网格 +4~+15, ratio 网格最优 +4.1, blend +3~+12;oracle **−5.5**(上限)。
-   根因:ViT-S aux 太弱(sparse 22.0),错误与 base **高度相关**(err-err pearson 0.566 / signed 0.553)——两个方法撞同一堵墙,无互补信号可白捡。
-   router 脚本:`/data/cdino_run/hybrid_router.py`。
-3. **共因诊断(定位根源)**:base 与 cdino 在同一 bin 同向失败——
-   - `[0,50)` 都**过数**(base +3.5~-0.9 / cdino +14~+19 bias)
-   - `[50,500)` 都**亏数**(base −10.6/−73.7 / cdino +14.9/−72.6)
-   - `[500,∞)` 都**大幅亏数**(base −168/−721 / cdino −247/−663)
-   → 根源 = **高密度区域的系统性欠数(collapse/normalization 失能)**,稀疏区过数来自共享朴实 bias。
-   → 真正能推 <18 的不是第二个计数法,而是**提高 exemplar 到 dense-region 的信令**(解码端)。
-4. **CountingDINO(reall 背书,WACV 2026, arXiv:2504.16570)已复现**:val MAE 39.70(用缓存 ViT-S/16,非论文 ViT-L;对灾难尾 8 图反杀 base 170–370)。原版 ViT-L/14 权重 1.2GB **在此网络下不 可 下载**,别在上面耗时间。复现目录 `/data/cdino_run`,已打 ids 补丁,val ids 已跑完(ids.npy 在)。
-5. **H0010–H0021 除 cellcal 外全部 REFUTED**:verdict 细节在 memory/hypotheses.jsonl。readout 侧(exemplar→density 融合)已判**接近穷尽**;remaining 残血 idea = exemplar-distinctness(期望为负)。分支树:`local/research/h0014_branches.md`、`h0018_branches.md`。
+1. **Determinism crisis (hardest fact):** same seed + same code reruns differ; noise floor **±1–2 MAE**
+   (CUDA atomic nondeterminism + fp non-associativity amplified in chaotic training). The AGENTS claim
+   "same seed ±0.02" is wrong and void.
+   → any "improvement" within ±1.5 is untrustworthy; only large effects (crash/NaN/+2 or more) are credible.
+   → **3-seed multi-replication never done** (user not approved); only real fix for the precision crisis
+   and the root blocker before further incremental gains.
+2. **Hybrid route dead (latest conclusion, do not revisit):** full-val paired comparison this session
+   (N0015 vs CountingDINO ViT-S/16): all deterministic inference hybrid routers worse — max +14.6,
+   collapse-T grid +4~+15, ratio grid best +4.1, blend +3~+12; oracle **−5.5** (upper bound).
+   Root cause: ViT-S aux too weak (sparse 22.0), errors highly **correlated** with base
+   (err-err pearson 0.566 / signed 0.553) — both methods hit the same wall, no complementary signal to free-lunch.
+   Router script: `/data/cdino_run/hybrid_router.py`.
+3. **Common-cause diagnosis (root located):** base and cdino fail in the same direction in the same bin —
+   - `[0,50)` both **overcount** (base +3.5~-0.9 / cdino +14~+19 bias)
+   - `[50,500)` both **undercount** (base −10.6/−73.7 / cdino +14.9/−72.6)
+   - `[500,∞)` both **severely undercount** (base −168/−721 / cdino −247/−663)
+   → root = **systematic undercount in high-density regions (collapse/normalization failure)**;
+   sparse overcount comes from shared naive bias.
+   → what can actually push <18 is not a second counting method but **stronger exemplar→dense-region signaling** (decoder side).
+4. **CountingDINO (peer-endorsed, WACV 2026, arXiv:2504.16570) reproduced:** val MAE 39.70 (cached ViT-S/16, not paper ViT-L;
+   beats base by 170–370 on the 8 disaster-tail images). Original ViT-L/14 weights 1.2GB **cannot be downloaded on this network** — do not waste time.
+   Repro dir `/data/cdino_run`, ids patch applied, full val ids already run (ids.npy present).
+5. **H0010–H0021 all REFUTED except cellcal:** verdicts in memory/hypotheses.jsonl. Readout side
+   (exemplar→density fusion) judged **near-exhausted**; remaining residual idea = exemplar-distinctness (expected negative).
+   Branch trees: `local/research/h0014_branches.md`, `h0018_branches.md`.
 
-## 4. 本地工件(会话后唯一权威副本)
+## 4. Local artifacts (sole authoritative copies after the session)
 
-- `/home/qkun/cac_backup/`:N0015_best.pth(125MB)、N0015 val/test perimage(有 `ids` 字段)、baseline_v2_val_perimage.json、`cdino_results/`(predictions/targets)、`cdino_ids.npy`(与其配对)
-- `local/research/`:paper_spine/methods(论文骨架)、各 h00XX_idea_FINAL(下一卡设计模板)、survey_mechanisms/runaway_meta(first-principles 级分析)
-- 很干净:所有 `__pycache__` 已清;git 在远端 `main`,最新 commit 含本会话 journal
+- `/home/qkun/cac_backup/`: N0015_best.pth (125MB), N0015 val/test perimage (with `ids` field),
+  baseline_v2_val_perimage.json, `cdino_results/` (predictions/targets), `cdino_ids.npy` (paired)
+- `local/research/`: paper_spine/methods (paper skeleton), each h00XX_idea_FINAL (next-card design templates),
+  survey_mechanisms/runaway_meta (first-principles-level analysis)
+- Clean: all `__pycache__` cleared; git on remote `main`, latest commit includes this session's journal
 
-## 5. 自主执行的建议次序(别停下来问)
+## 5. Suggested autonomous execution order (do not stop to ask)
 
-G与空闲 GPU 在手时,按此推进(此基线已获用户授意"治本、不必汇报、自主行动"):
+With a free GPU in hand, proceed in this order (this baseline was authorized by the user as
+"fix the root cause, no need to report, act autonomously"):
 
-1. **治本 #1 = precision**:解 `futility`/seed 工期约束跑 **N0015 3 组复现**(同 cfg 不同 seed)标定噪声 ≥3 次独立估 —— 这是下面一切判断的乘数。产出:阈值"真实改进 vs 噪声"从猜测变实测。
-2. **定位 dense 欠数的机械来源**(诊断,不烧卡):在 N0015 上对 dense 尾(gt>300)做逐成分归因——v1 的 perimage 工具 + `local/research/perimage_diagnostic.md`。查三点:(a)回归头饱和/残差 block 容量;(b)exemplar 全局池对 dense 局部密度的信令稀释;(c)boosting 归一化(求和→密度→回乘)在 dense 的静默崩。
-3. 依据归因,出 **H0022 卡**(或直写新 idea_FINAL,沿用现有 authoring 流程):e.g. dense-aware readout(局域密度提示 + 计数感知归一化)、或 exemplar-distinctness 变体在 dense 的靶向版。过 novelty_check + conformance,进队列。
-4. 每张卡必带 futility_bar;verdict 用 `eval_test.py --set` 全切片出,记录比对 baseline 各 bin(sparse/mid/dense)。
-5. 若 3 张卡仍无 >1.5 净降,**转论文收官**(numbers + 语料已是现货)。paper 各骨架文件在 local/research/ 下,直接续写。
+1. **Root fix #1 = precision:** under the `futility`/seed schedule constraint, run **N0015 3-group replication**
+   (same cfg, different seeds) to calibrate noise with ≥3 independent estimates — this is the multiplier
+   for every judgment below. Output: threshold "true improvement vs noise" goes from guess to measurement.
+2. **Locate mechanical source of dense undercount** (diagnostic, no GPU burn): on N0015, component-wise
+   attribution on the dense tail (gt>300) — v1 perimage tools + `local/research/perimage_diagnostic.md`.
+   Check three points: (a) regression head saturation / residual block capacity;
+   (b) exemplar global pooling diluting dense local density signaling;
+   (c) boosting normalization (sum→density→multiply-back) silent collapse on dense.
+3. Based on attribution, issue **H0022 card** (or write a new idea_FINAL directly, using the existing authoring flow):
+   e.g. dense-aware readout (local density hint + count-aware normalization), or dense-targeted exemplar-distinctness variant.
+   Pass novelty_check + conformance, enter queue.
+4. Every card must carry futility_bar; verdict via `eval_test.py --set` full slices, compare against baseline bins (sparse/mid/dense).
+5. If 3 cards still show no >1.5 net drop, **switch to paper wrap-up** (numbers + corpus already in hand).
+   Paper skeleton files are under local/research/ — continue writing directly.
 
-## 6. 戒律
+## 6. Commandments
 
-- 别做 test 优先实验;val 是对照货币
-- 别碰"第二个计数法/大模型换权"的路子(hybrid 已判死,ViT-L 下不了)
-- 每个 train 必须带 futility_bar,ep24 无净降就 HALT 省时
-- 所有新文档:继承现模板(header 写 id/父/机理/制约),journal 记 booking→verdict
-- 沟通:用中文,结论先行;自主推进,不必每步汇报
+- No test-first experiments; val is the comparison currency
+- Do not touch "second counting method / large-model weight swap" (hybrid dead, ViT-L cannot download)
+- Every train must carry futility_bar; HALT at ep24 if no net drop, to save time
+- All new documents: inherit the existing template (header with id/parent/mechanism/constraints); journal records booking→verdict
+- Communication: conclusion first; advance autonomously, no need to report every step
+
+## 2026-09-22 cleanup
+- Active tree: `tree/N0029_tf_champion` (TF, subset286 locked).
+- Old N0001 sealed; see `archive_local/README_ARCHIVED.md`.
+
+## 2026-09-23 update
+- Rapid success bar (user): **subset286 MAE ≤ 20.0** for fast iteration; champion/board rows remain full val 1286 only.
+- Documentation language (user): **English only** — no Chinese in any project doc (`constraints_and_goal.md` §5b).
+- Current server: see `local/address_and_password.md` (host/port rotated 2026-09-23).

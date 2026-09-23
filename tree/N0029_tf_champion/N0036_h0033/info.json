@@ -1,0 +1,12 @@
+{
+  "id": "N0036_h0033",
+  "parent": "N0029_tf_champion",
+  "status": "proposed",
+  "created_ts": "2026-09-22T18:27:01+0800",
+  "title": "evolve N0029_tf_champion on H0033 (+0)",
+  "best_metric": null,
+  "train_seconds": null,
+  "epochs": null,
+  "tested_hypotheses": [],
+  "updated_ts": "2026-09-22T18:27:01+0800"
+}
