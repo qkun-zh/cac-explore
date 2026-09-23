@@ -135,6 +135,9 @@ def build_parser():
     # attempt #39 / H0015: apply locked hard cut only outside annotation box union
     parser.add_argument('--outside_only_cut', type=str2bool, default=False,
                         help='#39: zero cells below thresh only outside exemplar box union; in-box kept')
+    # attempt #40 / H0016: ROI-norm coefficient = median of per-box pools (not mean)
+    parser.add_argument('--roi_norm_median', type=str2bool, default=False,
+                        help='#40: robust z = median of per-box ellipse pool instead of mean')
     # P2: transductive second pass (0 = off); harvested kernel half-size in cells
     parser.add_argument('--transductive_proto', type=int, default=0)
     parser.add_argument('--transductive_half', type=int, default=3)
@@ -452,6 +455,24 @@ def validate_args(args):
             'outside_only_cut incompatible with gate+scalar filters (#11/#12)'
         assert args.count_readout == 'density', 'outside_only_cut (#39) requires count_readout=density'
         print('OUTSIDE ONLY CUT enabled (#39): hard cut only outside exemplar box union', flush=True)
+    if args.roi_norm_median:
+        assert args.use_roi_norm and args.roi_norm_after_mean, \
+            'roi_norm_median (#40) requires use_roi_norm + roi_norm_after_mean'
+        assert args.filter_background, 'roi_norm_median (#40) requires filter_background True'
+        assert not args.roi_norm_per_exemplar, 'roi_norm_median incompatible with roi_norm_per_exemplar (#24)'
+        assert not args.per_exemplar_filter, 'roi_norm_median incompatible with per_exemplar_filter (#25)'
+        assert not args.boxwise_counts, 'roi_norm_median incompatible with boxwise_counts (#34)'
+        assert not args.guided_density, 'roi_norm_median incompatible with guided_density (#35)'
+        assert not args.exemplar_avg, 'roi_norm_median incompatible with exemplar_avg (#36)'
+        assert not args.normalize_features, 'roi_norm_median incompatible with normalize_features (#37)'
+        assert not args.remove_bbox_intersection, 'roi_norm_median incompatible with remove_bbox_intersection (#38)'
+        assert not args.outside_only_cut, 'roi_norm_median incompatible with outside_only_cut (#39)'
+        assert not args.filter_otsu and not args.filter_prenorm, \
+            'roi_norm_median incompatible with filter_otsu/prenorm (#22/#23)'
+        assert not args.dense_norm_gate and not args.dense_fs_gate, \
+            'roi_norm_median incompatible with gate+scalar filters (#11/#12)'
+        assert args.count_readout == 'density', 'roi_norm_median (#40) requires count_readout=density'
+        print('ROI NORM MEDIAN enabled (#40): z = median of per-box ellipse pools', flush=True)
     if args.remove_bbox_intersection:
         assert args.count_readout == 'density', 'remove_bbox_intersection (#38) requires count_readout=density'
         assert not args.exemplar_avg, 'remove_bbox_intersection incompatible with exemplar_avg (#36)'

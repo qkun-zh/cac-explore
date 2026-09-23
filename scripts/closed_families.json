@@ -41,7 +41,8 @@
     "never: exemplar_avg shared ROI-kernel mean #36 (closed refuted 734.014, empty bbox path)",
     "never: normalize_features channel-L2 multi-channel conv #37 (closed refuted 36.023)",
     "never: remove_bbox_intersection ceil-inward integer boxes #38 (closed refuted 77.495)",
-    "never: outside_only_cut in-box keep hard cut #39 (closed refuted 25.8178 tie)"
+    "never: outside_only_cut in-box keep hard cut #39 (closed refuted 25.8178 tie)",
+    "never: roi_norm_median robust z #40 (closed refuted 29.259)"
   ],
   "switches": [
     "tta_flip",
@@ -94,6 +95,7 @@
     "normalize_features",
     "remove_bbox_intersection",
     "outside_only_cut",
+    "roi_norm_median",
     "count_readout",
     "mass_restore",
     "thresh_mode",
@@ -170,6 +172,9 @@
     "ceil-inward",
     "outside_only_cut",
     "box union",
+    "roi_norm_median",
+    "median of per-box",
+    "hot exemplar",
     "count_readout",
     "mass_restore",
     "peak readout",

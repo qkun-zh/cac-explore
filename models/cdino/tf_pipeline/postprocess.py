@@ -2,6 +2,7 @@
 import torch
 import torch.nn.functional as F
 import torchvision.ops as ops
+import numpy as np
 
 from src.helpers import (
     rescale_tensor,
@@ -65,13 +66,37 @@ def _roi_align_2d(map2d, scaled_bbox):
 
 
 def _roi_norm_coeff(map2d, bboxes, resize_ratios, config):
-    """Champion global ROI-norm: mean over boxes of ellipse (or plain) pool / scaling_coeff."""
+    """Champion global ROI-norm: mean over boxes of ellipse (or plain) pool / scaling_coeff.
+
+    #40 / H0016: with roi_norm_median, z = median of per-box pools (robust to
+    one hot exemplar that inflates mean z and undercounts dense scenes).
+    """
     pooled_vals = [
         _roi_align_2d(map2d, _scale_bbox(bbox, ratio))
         for bbox, ratio in zip(bboxes, resize_ratios)
     ]
     if not pooled_vals:
         return torch.tensor(1.0, device=map2d.device)
+    if bool(getattr(config, "roi_norm_median", False)):
+        per_box = []
+        for p in pooled_vals:
+            if config.ellipse_normalization:
+                w = ellipse_coverage(p.shape[-2], p.shape[-1]).to(device)
+                per_box.append(float((p[0, 0] * w).sum().item()))
+            else:
+                per_box.append(float(p.sum().item()))
+        norm_coeff = torch.tensor(
+            float(np.median(per_box)) / (float(config.scaling_coeff) or 1.0),
+            device=map2d.device,
+        )
+        if config.fixed_norm_coeff is not None:
+            norm_coeff = torch.tensor(config.fixed_norm_coeff, device=map2d.device)
+        print(
+            f"ROIMED z={float(norm_coeff):.6g} boxes={len(per_box)} "
+            f"pools={[round(v, 4) for v in per_box]}",
+            flush=True,
+        )
+        return norm_coeff
     if config.ellipse_normalization:
         acc = sum(
             (p[0, 0] * ellipse_coverage(p.shape[-2], p.shape[-1]).to(device)).sum()
