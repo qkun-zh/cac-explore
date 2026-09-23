@@ -117,6 +117,9 @@ def build_parser():
     # attempt #29 / H0004: exterior bg subtract with box-mass preserve
     parser.add_argument('--bg_sub_integral', type=str2bool, default=False,
                         help='#29: subtract exterior median bg after ROI-norm, restore box integral, then filter')
+    # attempt #30 / H0005: always-on 2x2 tile-split local contrast + per-quadrant z
+    parser.add_argument('--tile_split', type=str2bool, default=False,
+                        help='#30: always-on 2x2 quadrants; local minmax + per-quadrant ROI-norm (empty quad uses global z), locked cut, stitch')
     # P2: transductive second pass (0 = off); harvested kernel half-size in cells
     parser.add_argument('--transductive_proto', type=int, default=0)
     parser.add_argument('--transductive_half', type=int, default=3)
@@ -298,4 +301,18 @@ def validate_args(args):
             'bg_sub_integral incompatible with gate+scalar filters (#11/#12)'
         assert not args.count_readout != 'density', 'bg_sub_integral (#29) requires count_readout=density'
         print('BG SUB INTEGRAL enabled (#29): exterior median bg out, box mass restored', flush=True)
+    if args.tile_split:
+        assert not args.filter_otsu, 'tile_split incompatible with filter_otsu (#22)'
+        assert not args.filter_prenorm, 'tile_split incompatible with filter_prenorm (#23)'
+        assert not args.roi_norm_per_exemplar, 'tile_split incompatible with roi_norm_per_exemplar (#24)'
+        assert not args.per_exemplar_filter, 'tile_split incompatible with per_exemplar_filter (#25)'
+        assert not args.box_peak_residual, 'tile_split incompatible with box_peak_residual (#27)'
+        assert not args.thresh_expand, 'tile_split incompatible with thresh_expand (#28)'
+        assert not args.bg_sub_integral, 'tile_split incompatible with bg_sub_integral (#29)'
+        assert not args.dense_norm_gate and not args.dense_fs_gate, \
+            'tile_split incompatible with gate+scalar filters (#11/#12)'
+        assert not args.context_aware_sim, 'tile_split incompatible with context_aware_sim (#17)'
+        assert not args.dense_struct_stage, 'tile_split incompatible with dense_struct_stage (#16)'
+        assert not args.count_readout != 'density', 'tile_split (#30) requires count_readout=density'
+        print('TILE SPLIT enabled (#30): 2x2 local contrast + per-quadrant ROI-norm then locked cut', flush=True)
     return args

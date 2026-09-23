@@ -422,6 +422,81 @@ def _bg_sub_integral(output, bboxes, config):
     return adjusted
 
 
+def _tile_split_apply(output, norm_coeff, pooled_feats, bboxes, resize_ratios, config):
+    """#30 / H0005: always-on 2x2 tile split (LC-A style count assembly).
+
+    Each quadrant: local minmax contrast, ROI-norm from boxes whose center falls
+    in the tile (empty quadrant keeps global z), locked (1/area)*fs cut; stitch.
+    Lifts crowded low-contrast tiles that a single global minmax/z leaves dim.
+    """
+    h, w = int(output.shape[-2]), int(output.shape[-1])
+    scaled_boxes = []
+    for bbox, ratio in zip(bboxes, resize_ratios):
+        sb = _scale_bbox(bbox, ratio)
+        scaled_boxes.append((
+            float(sb[0]), float(sb[1]), float(sb[2]), float(sb[3]),
+        ))
+    area = max(f.shape[-2] * f.shape[-1] for f in pooled_feats)
+    fs = float(getattr(config, "filter_thresh_scale", 1.0))
+    if fs is None:
+        fs = 1.0
+    thresh = (1.0 / area) * fs if fs > 0 else -1.0
+    ys = (0, h // 2, h)
+    xs = (0, w // 2, w)
+    n_global = max(float(norm_coeff), 1e-12)
+    soft0 = float(output.clamp_min(0).sum().item())
+    out = torch.zeros_like(output)
+    n_tile_list = []
+    soft_tile = []
+    for yi in range(2):
+        for xi in range(2):
+            y0, y1 = ys[yi], ys[yi + 1]
+            x0, x1 = xs[xi], xs[xi + 1]
+            if y1 <= y0 or x1 <= x0:
+                continue
+            tile = output[y0:y1, x0:x1]
+            tmin = float(tile.min().item())
+            tmax = float(tile.max().item())
+            if tmax > tmin + 1e-12:
+                local = (tile - tmin) / (tmax - tmin)
+            else:
+                local = tile.clone()
+            boxes_t = []
+            for bx1, by1, bx2, by2 in scaled_boxes:
+                cx = 0.5 * (bx1 + bx2)
+                cy = 0.5 * (by1 + by2)
+                if not (x0 <= cx < x1 and y0 <= cy < y1):
+                    continue
+                b = (
+                    max(0.0, bx1 - x0), max(0.0, by1 - y0),
+                    min(float(x1 - x0), bx2 - x0),
+                    min(float(y1 - y0), by2 - y0),
+                )
+                if b[2] > b[0] and b[3] > b[1]:
+                    boxes_t.append(torch.tensor(b, dtype=torch.float, device=local.device))
+            if boxes_t:
+                ones = [(1.0, 1.0)] * len(boxes_t)
+                n_t = float(_roi_norm_coeff(local, boxes_t, ones, config).item())
+                n_t = max(n_t, 1e-12)
+            else:
+                n_t = n_global
+            tile_out = local / n_t
+            if thresh > 0:
+                tile_out = tile_out.clone()
+                tile_out[tile_out < thresh] = 0
+            out[y0:y1, x0:x1] = tile_out
+            n_tile_list.append(round(n_t, 4))
+            soft_tile.append(round(float(tile_out.clamp_min(0).sum().item()), 2))
+    soft1 = float(out.clamp_min(0).sum().item())
+    print(
+        f"TILESPLIT n_tiles={len(n_tile_list)} z={n_tile_list} "
+        f"soft_tile={soft_tile} soft0={soft0:.2f} soft1={soft1:.2f} "
+        f"ratio={soft1 / max(soft0, 1e-12):.4f} thresh={thresh:.6g}",
+        flush=True,
+    )
+    return out
+
+
 def post_process_density_map(conv_maps, pooled_feats, bboxes, output_sizes, config, feats=None):
     """Density post-process pipeline.
 
@@ -458,6 +533,13 @@ def post_process_density_map(conv_maps, pooled_feats, bboxes, output_sizes, conf
     output, norm_coeff = _reduce_exemplar_maps(
         stacked, conv_maps, config, pooled_feats, bboxes, resize_ratios, feats
     )
+
+    # #30 / H0005: always-on 2x2 tile-split replaces the single global
+    # /norm_coeff + hard cut with per-quadrant contrast + ROI-norm + cut.
+    if bool(getattr(config, "tile_split", False)):
+        return _tile_split_apply(
+            output, norm_coeff, pooled_feats, bboxes, resize_ratios, config
+        )
 
     # #23 pre-norm hard-filter (closed): cut before /norm_coeff, skip post-cut
     prenorm = (
