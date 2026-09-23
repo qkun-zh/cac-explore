@@ -155,6 +155,19 @@ for needle, label in (("20260830", "fixed seed 20260830"), (REQUIRED_MODEL, "req
     if needle not in prot:
         err(f"protocol: PROTOCOL.md missing {label}")
 
+# 7. doc-referenced CLI flags must exist (args.py flags + graph.py flags only)
+graph_py = ROOT / "scripts" / "graph.py"
+graph_flags = set(re.findall(r'add_argument\("--([a-z0-9-]+)"', graph_py.read_text())) if graph_py.exists() else set()
+args_flags = set(re.findall(r"add_argument\('--([a-z0-9_-]+)'", args_text))
+allowed_flags = graph_flags | args_flags
+for name in sorted(ALLOWED_MD):
+    f = ROOT / name
+    if not f.exists():
+        continue
+    for fl in re.findall(r"--([a-z][a-z0-9_-]*)", f.read_text()):
+        if fl not in allowed_flags:
+            err(f"doc: {name} references undeclared flag --{fl} (not in args.py or graph.py)")
+
 if ERRS:
     print("CHECK FAIL:")
     for e in ERRS:

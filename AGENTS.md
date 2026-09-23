@@ -34,11 +34,12 @@ python3 scripts/graph.py live-parent
 python3 scripts/graph.py untested --parent <live_parent>
 # 2. book hypothesis (format + novelty gate run inline)
 python3 scripts/graph.py new-hypo --text "IF <choice> IN <scope>, THEN <measured effect>, BECAUSE <mechanism>. DISPROVED IF <bar with a number>."
-# 3. book child node. --switch IS the CLI flag name (without --).
-python3 scripts/graph.py new-model --parent <live_parent> --hypo Hxxxx --switch <flag_name>
-# 4. implement: declare --<flag_name> (str2bool, default False) in
-#    models/cdino/tf_pipeline/args.py + validate it in validate_args();
+# 3. implement BEFORE booking the node: declare --<flag_name> (str2bool/int,
+#    default off) in models/cdino/tf_pipeline/args.py + validate in validate_args();
 #    gate the logic with getattr(config, "<flag_name>", False). One switch only.
+#    new-model refuses any switch not yet declared in args.py.
+# 4. book child node. --switch IS the CLI flag name (without --).
+python3 scripts/graph.py new-model --parent <live_parent> --hypo Hxxxx --switch <flag_name>
 python3 scripts/check.py         # must print CHECK OK (also verifies flag exists)
 # 5. run on server (sync first: bash scripts/sync.sh)
 bash scripts/sync.sh
@@ -51,19 +52,21 @@ python3 scripts/graph.py evidence --hypo Hxxxx --model Nxxxx --mae <v> --type su
 python3 scripts/check.py         # green again, then commit
 ```
 
-## Worked example (concrete)
+## Worked example (concrete; tta_flip is already declared in args.py)
 
 ```bash
-python3 scripts/graph.py new-hypo --text "IF use_mass_sharpen IN density readout, THEN subset286 MAE drops by at least 0.30, BECAUSE squaring the normalized density concentrates mass on true peaks and cuts diffuse background overcount. DISPROVED IF subset286 MAE is not at least 0.30 lower than parent 25.818."
-# -> H0001
-python3 scripts/graph.py new-model --parent N0029 --hypo H0001 --switch mass_sharpen --params 0
-# -> N0030   (fails unless args.py already declares --mass_sharpen)
-# ... implement mass_sharpen in postprocess.py behind getattr(config, "mass_sharpen", False) ...
+python3 scripts/graph.py new-hypo --text "IF tta_flip IN density readout, THEN subset286 MAE drops by at least 0.30, BECAUSE averaging horizontal-flip TTA cancels orientation-sensitive peak jitter in the density map. DISPROVED IF subset286 MAE is not at least 0.30 lower than parent 25.818."
+# prints Hxxxx (next auto id, e.g. H0002); never invent or reuse an id
+python3 scripts/graph.py new-model --parent N0029 --hypo Hxxxx --switch tta_flip --params 0
+# prints Nxxxx (next auto id, e.g. N0031); gate passes because --tta_flip is in args.py
 python3 scripts/check.py
 bash scripts/sync.sh
-ssh cac-server 'bash /data/cac/models/run_variant.sh N0030 --mass_sharpen True'
-# read final MAE from /data/repro/logs/N0030_sub286.log, say 25.10 (< bar 25.518):
-python3 scripts/graph.py evidence --hypo H0001 --model N0030 --mae 25.10 --type support --note "bar cleared 25.518 -> 25.10"
+ssh cac-server 'bash /data/cac/models/run_variant.sh Nxxxx --tta_flip 1'
+# read final MAE from /data/repro/logs/Nxxxx_sub286.log, then record evidence:
+#   support    iff subset_mae <= that run's next_bar (cleared the bar)
+#   contradict iff subset_mae >  bar (missed the bar)
+#   neutral    only if the run crashed before any metric
+python3 scripts/graph.py evidence --hypo Hxxxx --model Nxxxx --mae <v> --type support --note "..."
 python3 scripts/check.py
 ```
 

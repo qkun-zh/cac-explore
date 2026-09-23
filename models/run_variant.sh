@@ -1,7 +1,7 @@
 #!/bin/bash
 # Run a graph model node on the server: champion flags + your overrides.
 # Usage: run_variant.sh <NODE_ID> [--extra_flag value ...]
-# Example: run_variant.sh N0030 --mass_sharpen True
+# Example: run_variant.sh N0030 --box_peak_residual True
 # Logs: /data/repro/logs/<NODE_ID>_sub286.log
 set -u
 NODE=${1:?usage: run_variant.sh <NODE_ID> [flags...]}; shift || true

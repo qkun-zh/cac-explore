@@ -17,8 +17,8 @@ python3 scripts/graph.py tree                 # ASCII lineage
 
 ```bash
 python3 scripts/graph.py new-hypo --text "IF ... IN ... THEN ... BECAUSE ... DISPROVED IF ... 0.30 ..."
-python3 scripts/graph.py new-model --parent N0029 --hypo H0001 --switch mass_sharpen --params 0
-python3 scripts/graph.py evidence --hypo H0001 --model N0030 --mae 25.10 --type support --weight 0.85 --note "..."
+python3 scripts/graph.py new-model --parent N0029 --hypo H0001 --switch box_peak_residual --params 0
+python3 scripts/graph.py evidence --hypo H0001 --model N0030 --mae 25.8179 --type contradict --weight 0.85 --note "..."
 python3 scripts/graph.py ban --rule "never: <mechanism>" --ref H0001
 ```
 
