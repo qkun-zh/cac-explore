@@ -144,6 +144,9 @@ def build_parser():
     # attempt #42 / H0018: keep feature-grid boxes as-is (skip output/feat rescale)
     parser.add_argument('--skip_bbox_rescale', type=str2bool, default=False,
                         help='#42: force correct_bbox_resize off; ROI pools use feature-grid boxes')
+    # attempt #43 / H0019: median half-plane suppression path (use_threshold)
+    parser.add_argument('--median_cut_path', type=str2bool, default=False,
+                        help='#43: force use_threshold; channel-mean then zero below map median')
     # P2: transductive second pass (0 = off); harvested kernel half-size in cells
     parser.add_argument('--transductive_proto', type=int, default=0)
     parser.add_argument('--transductive_half', type=int, default=3)
@@ -509,6 +512,16 @@ def validate_args(args):
         assert not args.filter_area_sum, 'skip_bbox_rescale incompatible with filter_area_sum (#41)'
         assert args.count_readout == 'density', 'skip_bbox_rescale (#42) requires count_readout=density'
         print('SKIP BBOX RESCALE enabled (#42): correct_bbox_resize forced False', flush=True)
+    if args.median_cut_path:
+        args.use_threshold = True
+        assert not args.exemplar_avg, 'median_cut_path incompatible with exemplar_avg (#36)'
+        assert not args.remove_bbox_intersection, 'median_cut_path incompatible with remove_bbox_intersection (#38)'
+        assert not args.skip_bbox_rescale, 'median_cut_path incompatible with skip_bbox_rescale (#42)'
+        assert not args.filter_area_sum, 'median_cut_path incompatible with filter_area_sum (#41)'
+        assert not args.roi_norm_median, 'median_cut_path incompatible with roi_norm_median (#40)'
+        assert not args.outside_only_cut, 'median_cut_path incompatible with outside_only_cut (#39)'
+        assert args.count_readout == 'density', 'median_cut_path (#43) requires count_readout=density'
+        print('MEDIAN CUT PATH enabled (#43): use_threshold forces median half-plane', flush=True)
     if args.remove_bbox_intersection:
         assert args.count_readout == 'density', 'remove_bbox_intersection (#38) requires count_readout=density'
         assert not args.exemplar_avg, 'remove_bbox_intersection incompatible with exemplar_avg (#36)'

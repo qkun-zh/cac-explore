@@ -44,7 +44,8 @@
     "never: outside_only_cut in-box keep hard cut #39 (closed refuted 25.8178 tie)",
     "never: roi_norm_median robust z #40 (closed refuted 29.259)",
     "never: filter_area_sum sum-areas cut denominator #41 (closed refuted 28.625)",
-    "never: skip_bbox_rescale feature-grid box geometry #42 (closed refuted 33.369)"
+    "never: skip_bbox_rescale feature-grid box geometry #42 (closed refuted 33.369)",
+    "never: median_cut_path median half-plane path #43 (closed refuted 541.517)"
   ],
   "switches": [
     "tta_flip",
@@ -100,6 +101,7 @@
     "roi_norm_median",
     "filter_area_sum",
     "skip_bbox_rescale",
+    "median_cut_path",
     "count_readout",
     "mass_restore",
     "thresh_mode",
@@ -183,6 +185,9 @@
     "sum of pooled",
     "skip_bbox_rescale",
     "feature-grid box",
+    "median_cut_path",
+    "median half-plane",
+    "channel-mean then zeroed",
     "count_readout",
     "mass_restore",
     "peak readout",

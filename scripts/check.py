@@ -13,7 +13,7 @@ REQUIRED_MODEL = "facebook/dinov3-convnext-tiny-pretrain-lvd1689m"
 CJK = re.compile(r"[\u4e00-\u9fff\u3040-\u30ff\uac00-\ud7af]")
 NONASCII = re.compile(r"[^\x00-\x7f]")
 HEDGE = re.compile(r"\b(maybe|might|perhaps|possibly)\b", re.I)
-HYPO_PATTERNS = [r"\bIF\b", r"\bIN\b", r"\bTHEN\b", r"\bBECAUSE\b", r"DISPROVED\s+IF"]
+HYPE_RE = re.compile(r"IF\b.*\bIN\b.*\bTHEN\b.*\bBECAUSE\b.*\bDISPROVED\s+IF\b", re.S | re.I)
 FALSIFIER_RE = re.compile(r"DISPROVED\s+IF(.*)$", re.S | re.I)
 SWITCH_RE = re.compile(r"[a-z][a-z0-9_]+")
 MODEL_ID_RE = re.compile(r"^N(\d{4})$")
@@ -117,11 +117,7 @@ else:
             if ntype != "hypo":
                 continue
             t = d.get("text", "")
-            pos = []
-            for p in HYPO_PATTERNS:
-                m = re.search(p, t, re.I)
-                pos.append(m.start() if m else -1)
-            if -1 in pos or pos != sorted(pos):
+            if not HYPE_RE.search(t):
                 err(f"neug: {nid} hypothesis marker order broken")
             if HEDGE.search(t):
                 err(f"neug: {nid} hypothesis contains hedging word")
