@@ -34,7 +34,8 @@
     "never: bg_sub_integral exterior-floor box-restore #29 (closed refuted 34.578)",
     "never: tile_split always-on 2x2 local contrast quadrants #30 (closed refuted 31.930)",
     "never: local_contrast pre-minmax S/boxblur ratio #31 (closed refuted 84.107)",
-    "never: input_unsharp query-image UnsharpMask #32 (closed refuted 27.370)"
+    "never: input_unsharp query-image UnsharpMask #32 (closed refuted 27.370)",
+    "never: cosine_similarity L2 unit-norm matching #33 (closed refuted 36.023)"
   ],
   "switches": [
     "tta_flip",
@@ -80,6 +81,7 @@
     "tile_split",
     "local_contrast",
     "input_unsharp",
+    "cosine_similarity",
     "count_readout",
     "mass_restore",
     "thresh_mode",
@@ -142,6 +144,8 @@
     "local contrast",
     "input_unsharp",
     "unsharp mask",
+    "cosine_similarity",
+    "cosine similarity",
     "count_readout",
     "mass_restore",
     "peak readout",
