@@ -147,6 +147,9 @@ def build_parser():
     # attempt #43 / H0019: median half-plane suppression path (use_threshold)
     parser.add_argument('--median_cut_path', type=str2bool, default=False,
                         help='#43: force use_threshold; channel-mean then zero below map median')
+    # attempt #44 / H0020: MWEx weight from full-grid response mass (not in-box ROI)
+    parser.add_argument('--exemplar_global_weight', type=str2bool, default=False,
+                        help='#44: MWEx weights use clamp_min(0).sum() over the whole map instead of in-box ROI mass')
     # P2: transductive second pass (0 = off); harvested kernel half-size in cells
     parser.add_argument('--transductive_proto', type=int, default=0)
     parser.add_argument('--transductive_half', type=int, default=3)
@@ -522,6 +525,25 @@ def validate_args(args):
         assert not args.outside_only_cut, 'median_cut_path incompatible with outside_only_cut (#39)'
         assert args.count_readout == 'density', 'median_cut_path (#43) requires count_readout=density'
         print('MEDIAN CUT PATH enabled (#43): use_threshold forces median half-plane', flush=True)
+    if args.exemplar_global_weight:
+        assert args.mass_weight_exemplar, 'exemplar_global_weight (#44) only changes MWEx weight source'
+        assert args.use_roi_norm and args.roi_norm_after_mean, \
+            'exemplar_global_weight (#44) requires use_roi_norm + roi_norm_after_mean'
+        assert not args.roi_norm_per_exemplar, 'exemplar_global_weight incompatible with roi_norm_per_exemplar (#24)'
+        assert not args.per_exemplar_filter, 'exemplar_global_weight incompatible with per_exemplar_filter (#25)'
+        assert not args.boxwise_counts, 'exemplar_global_weight incompatible with boxwise_counts (#34)'
+        assert not args.exemplar_avg, 'exemplar_global_weight incompatible with exemplar_avg (#36)'
+        assert not args.normalize_features, 'exemplar_global_weight incompatible with normalize_features (#37)'
+        assert not args.median_cut_path, 'exemplar_global_weight incompatible with median_cut_path (#43)'
+        assert not args.outside_only_cut, 'exemplar_global_weight incompatible with outside_only_cut (#39)'
+        assert not args.filter_area_sum, 'exemplar_global_weight incompatible with filter_area_sum (#41)'
+        assert not args.skip_bbox_rescale, 'exemplar_global_weight incompatible with skip_bbox_rescale (#42)'
+        assert not args.dense_norm_gate and not args.dense_fs_gate, \
+            'exemplar_global_weight incompatible with gate+scalar filters (#11/#12)'
+        assert args.exemplar_reduce == 'mean', 'exemplar_global_weight (#44) requires exemplar_reduce=mean'
+        assert args.filter_background, 'exemplar_global_weight (#44) requires filter_background True'
+        assert args.count_readout == 'density', 'exemplar_global_weight (#44) requires count_readout=density'
+        print('EXEMPLAR GLOBAL WEIGHT enabled (#44): MWEx weights from full-grid positive mass', flush=True)
     if args.remove_bbox_intersection:
         assert args.count_readout == 'density', 'remove_bbox_intersection (#38) requires count_readout=density'
         assert not args.exemplar_avg, 'remove_bbox_intersection incompatible with exemplar_avg (#36)'

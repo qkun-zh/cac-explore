@@ -230,13 +230,18 @@ def _reduce_exemplar_maps(stacked, conv_maps, config, pooled_feats,
             mi = per_ex[i].mean(dim=0)
             if config.use_minmax_norm:
                 mi = rescale_tensor(mi)
-            pooled = _roi_align_2d(mi, _scale_bbox(bboxes[i], resize_ratios[i]))
-            if config.ellipse_normalization:
-                m_i = float(
-                    (pooled[0, 0] * ellipse_coverage(pooled.shape[-2], pooled.shape[-1]).to(device)).sum().item()
-                )
+            if bool(getattr(config, "exemplar_global_weight", False)):
+                # #44 / H0020: full-grid positive mass -> scene-typical exemplar
+                # dominates the blend (in-box ROI mass barely moves on dense scenes).
+                m_i = float(mi.clamp_min(0).sum().item())
             else:
-                m_i = float(pooled.sum().item())
+                pooled = _roi_align_2d(mi, _scale_bbox(bboxes[i], resize_ratios[i]))
+                if config.ellipse_normalization:
+                    m_i = float(
+                        (pooled[0, 0] * ellipse_coverage(pooled.shape[-2], pooled.shape[-1]).to(device)).sum().item()
+                    )
+                else:
+                    m_i = float(pooled.sum().item())
             masses.append(max(m_i, 0.0))
             maps.append(mi)
         m_sum = float(sum(masses))
