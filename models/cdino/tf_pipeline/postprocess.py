@@ -376,6 +376,52 @@ def _box_peak_residual(pre, post, bboxes, config):
     return out
 
 
+def _box_cell_mask(bboxes, height, width, device):
+    """Boolean mask of cells covered by any exemplar box (grid coords)."""
+    mask = torch.zeros((height, width), dtype=torch.bool, device=device)
+    for bbox in bboxes:
+        x1 = max(0, min(width, int(bbox[0])))
+        y1 = max(0, min(height, int(bbox[1])))
+        x2 = max(0, min(width, int(bbox[2])))
+        y2 = max(0, min(height, int(bbox[3])))
+        if x2 > x1 and y2 > y1:
+            mask[y1:y2, x1:x2] = True
+    return mask
+
+
+def _bg_sub_integral(output, bboxes, config):
+    """#29: subtract exterior median floor, restore pre-subtract box integral.
+
+    Sparse overcount often comes from a diffuse exterior floor that the locked
+    hard filter only partly removes. Dense undercount benefits when box mass is
+    held fixed and peak cells re-scale after the floor drops out.
+    """
+    if not bool(getattr(config, "bg_sub_integral", False)):
+        return output
+    if not bboxes or output.numel() == 0:
+        return output
+    h, w = int(output.shape[-2]), int(output.shape[-1])
+    in_box = _box_cell_mask(bboxes, h, w, output.device)
+    exterior = ~in_box
+    if not bool(exterior.any()) or not bool(in_box.any()):
+        return output
+    bg = float(output[exterior].median().item())
+    box_before = float(output[in_box].clamp_min(0).sum().item())
+    adjusted = (output - bg).clamp_min(0)
+    box_after = float(adjusted[in_box].sum().item())
+    if box_after > 1e-12 and box_before > 1e-12:
+        adjusted = adjusted * (box_before / box_after)
+    soft_before = float(output.clamp_min(0).sum().item())
+    soft_after = float(adjusted.clamp_min(0).sum().item())
+    print(
+        f"BGSUB bg={bg:.6g} box0={box_before:.4f} box1={box_after:.4f} "
+        f"soft0={soft_before:.2f} soft1={soft_after:.2f} "
+        f"ratio={soft_after / max(soft_before, 1e-12):.4f}",
+        flush=True,
+    )
+    return adjusted
+
+
 def post_process_density_map(conv_maps, pooled_feats, bboxes, output_sizes, config, feats=None):
     """Density post-process pipeline.
 
@@ -439,6 +485,8 @@ def post_process_density_map(conv_maps, pooled_feats, bboxes, output_sizes, conf
         and getattr(config, "filter_background", False)
     ):
         output = _apply_context_sim(output, feats, bboxes, config)
+
+    output = _bg_sub_integral(output, bboxes, config)
 
     pre_filter = (
         output.clone()

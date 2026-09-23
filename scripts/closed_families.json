@@ -30,7 +30,8 @@
     "never: box_peak_residual mass repair #27 (closed tie 25.8179 bar 25.518)",
     "never: count_readout/mass_restore readout re-tune away from density (locked)",
     "never: filter_thresh_scale re-tune away from 0.5 (locked champion fs)",
-    "never: thresh_expand convex keep-form #28 (closed refuted 92.103)"
+    "never: thresh_expand convex keep-form #28 (closed refuted 92.103)",
+    "never: bg_sub_integral exterior-floor box-restore #29 (closed refuted 34.578)"
   ],
   "switches": [
     "tta_flip",
@@ -72,6 +73,7 @@
     "exemplar_reduce",
     "box_peak_residual",
     "thresh_expand",
+    "bg_sub_integral",
     "count_readout",
     "mass_restore",
     "thresh_mode",
@@ -126,6 +128,8 @@
     "box_peak_residual",
     "thresh_expand",
     "superlinear density expansion",
+    "bg_sub_integral",
+    "background-subtracted box-mass",
     "count_readout",
     "mass_restore",
     "peak readout",

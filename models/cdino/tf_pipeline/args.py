@@ -114,6 +114,9 @@ def build_parser():
     # attempt #28 / H0003: superlinear keep above locked hard-filter cut
     parser.add_argument('--thresh_expand', type=str2bool, default=False,
                         help='#28: cells >= locked cut become x*(x/t) instead of x (convex lift, cut unchanged)')
+    # attempt #29 / H0004: exterior bg subtract with box-mass preserve
+    parser.add_argument('--bg_sub_integral', type=str2bool, default=False,
+                        help='#29: subtract exterior median bg after ROI-norm, restore box integral, then filter')
     # P2: transductive second pass (0 = off); harvested kernel half-size in cells
     parser.add_argument('--transductive_proto', type=int, default=0)
     parser.add_argument('--transductive_half', type=int, default=3)
@@ -285,4 +288,14 @@ def validate_args(args):
             'thresh_expand incompatible with gate+scalar filters (#11/#12)'
         assert not args.count_readout != 'density', 'thresh_expand (#28) requires count_readout=density'
         print('THRESH EXPAND enabled (#28): kept cells x -> x*(x/t) at locked cut t', flush=True)
+    if args.bg_sub_integral:
+        assert args.filter_background, 'bg_sub_integral (#29) requires filter_background True'
+        assert not args.filter_otsu, 'bg_sub_integral incompatible with filter_otsu (#22)'
+        assert not args.filter_prenorm, 'bg_sub_integral incompatible with filter_prenorm (#23)'
+        assert not args.thresh_expand, 'bg_sub_integral incompatible with thresh_expand (#28)'
+        assert not args.box_peak_residual, 'bg_sub_integral incompatible with box_peak_residual (#27)'
+        assert not args.dense_norm_gate and not args.dense_fs_gate, \
+            'bg_sub_integral incompatible with gate+scalar filters (#11/#12)'
+        assert not args.count_readout != 'density', 'bg_sub_integral (#29) requires count_readout=density'
+        print('BG SUB INTEGRAL enabled (#29): exterior median bg out, box mass restored', flush=True)
     return args
