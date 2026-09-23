@@ -31,6 +31,10 @@ Start point: N0029 TF champion (CountingDINO + DINOv3 ConvNeXt-T, full-val 26.48
 python3 scripts/seed_db.py       # installs pre-commit + creates neug.db: N0029 + bans
 python3 scripts/check.py         # must print CHECK OK
 python3 scripts/graph.py live-parent   # parent + bars + bans in one call
+# Server preflight (required before any run/evidence step):
+ssh -o ConnectTimeout=8 -o BatchMode=yes cac-server 'echo OK'
+# If that fails: read local/address_and_password.md (gitignored; ssh line + password),
+# then python3 scripts/install_key.py and retry.
 ```
 
 ## One evolution step

@@ -21,7 +21,8 @@ ID_STATUS = {"open", "done", "failed", "timeout"}
 
 # 1. extension whitelist: docs only at root, only the three whitelisted ones
 for f in sorted(ROOT.rglob("*")):
-    if ".git" in f.parts or "__pycache__" in f.parts or f.is_dir() or f.name in ("neug.db", ".gitignore", "LICENSE"):
+    if ".git" in f.parts or "__pycache__" in f.parts or "local" in f.parts or f.is_dir() \
+            or f.name in ("neug.db", ".gitignore", "LICENSE"):
         continue
     rel = f.relative_to(ROOT)
     if f.suffix == ".md":
@@ -41,7 +42,8 @@ for name in sorted(ALLOWED_MD):
 
 # 3. code: no CJK in .py/.sh (English prose everywhere)
 for f in sorted(ROOT.rglob("*")):
-    if ".git" in f.parts or "__pycache__" in f.parts or f.is_dir() or f.suffix not in SRC_EXT:
+    if ".git" in f.parts or "__pycache__" in f.parts or "local" in f.parts \
+            or f.is_dir() or f.suffix not in SRC_EXT:
         continue
     txt = f.read_text(errors="replace")
     if CJK.search(txt):

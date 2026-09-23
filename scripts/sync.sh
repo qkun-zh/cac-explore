@@ -3,7 +3,7 @@
 # First sync archives the pre-v2 server tree at /data/cac_v1 (kept forever).
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-tar czf - --exclude .git --exclude neug.db --exclude __pycache__ -C "$ROOT" . \
+tar czf - --exclude .git --exclude neug.db --exclude __pycache__ --exclude local -C "$ROOT" . \
   | ssh cac-server '
       set -e
       rm -rf /data/cac_new
