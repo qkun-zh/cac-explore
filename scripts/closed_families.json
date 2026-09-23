@@ -29,7 +29,8 @@
     "never: exemplar_reduce max aggregation (closed refuted 27.597)",
     "never: box_peak_residual mass repair #27 (closed tie 25.8179 bar 25.518)",
     "never: count_readout/mass_restore readout re-tune away from density (locked)",
-    "never: filter_thresh_scale re-tune away from 0.5 (locked champion fs)"
+    "never: filter_thresh_scale re-tune away from 0.5 (locked champion fs)",
+    "never: thresh_expand convex keep-form #28 (closed refuted 92.103)"
   ],
   "switches": [
     "tta_flip",
@@ -70,6 +71,7 @@
     "transductive_half",
     "exemplar_reduce",
     "box_peak_residual",
+    "thresh_expand",
     "count_readout",
     "mass_restore",
     "thresh_mode",
@@ -122,6 +124,8 @@
     "exemplar_reduce",
     "exemplar max",
     "box_peak_residual",
+    "thresh_expand",
+    "superlinear density expansion",
     "count_readout",
     "mass_restore",
     "peak readout",

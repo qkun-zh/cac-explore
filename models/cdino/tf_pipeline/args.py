@@ -111,6 +111,9 @@ def build_parser():
     # attempt #27: box-local peak residual re-injection after hard filter
     parser.add_argument('--box_peak_residual', type=str2bool, default=False,
                         help='#27: re-inject filter-wiped mass inside each exemplar box at pre-filter argmax')
+    # attempt #28 / H0003: superlinear keep above locked hard-filter cut
+    parser.add_argument('--thresh_expand', type=str2bool, default=False,
+                        help='#28: cells >= locked cut become x*(x/t) instead of x (convex lift, cut unchanged)')
     # P2: transductive second pass (0 = off); harvested kernel half-size in cells
     parser.add_argument('--transductive_proto', type=int, default=0)
     parser.add_argument('--transductive_half', type=int, default=3)
@@ -273,4 +276,13 @@ def validate_args(args):
         assert not args.multi_scale_ex, 'box_peak_residual incompatible with multi_scale_ex (#14)'
         assert not (args.count_readout != 'density'), 'box_peak_residual (#27) requires count_readout=density'
         print('BOX PEAK RESIDUAL enabled (#27): re-inject wiped in-box mass at pre-filter argmax', flush=True)
+    if args.thresh_expand:
+        assert args.filter_background, 'thresh_expand (#28) requires filter_background True'
+        assert not args.filter_otsu, 'thresh_expand incompatible with filter_otsu (#22)'
+        assert not args.filter_prenorm, 'thresh_expand incompatible with filter_prenorm (#23)'
+        assert not args.box_peak_residual, 'thresh_expand incompatible with box_peak_residual (#27)'
+        assert not args.dense_norm_gate and not args.dense_fs_gate, \
+            'thresh_expand incompatible with gate+scalar filters (#11/#12)'
+        assert not args.count_readout != 'density', 'thresh_expand (#28) requires count_readout=density'
+        print('THRESH EXPAND enabled (#28): kept cells x -> x*(x/t) at locked cut t', flush=True)
     return args

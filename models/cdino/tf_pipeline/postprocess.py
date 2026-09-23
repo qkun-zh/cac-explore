@@ -333,6 +333,19 @@ def _apply_hard_filter(output, norm_coeff, pooled_feats, config, prenorm_skipped
     if scale <= 0:
         return output
     thresh = (1.0 / area) * scale
+    if bool(getattr(config, "thresh_expand", False)):
+        # #28 / H0003: convex lift of kept cells at the locked cut (x -> x*(x/t)).
+        # Same t as champion; only the value map above t changes shape.
+        keep = output >= thresh
+        expanded = output * (output / thresh)
+        output = torch.where(keep, expanded, torch.zeros_like(output))
+        soft2 = float(output.clamp_min(0).sum().item())
+        print(
+            f"THEXPD t={thresh:.6g} soft_pre={soft:.2f} soft_post={soft2:.2f} "
+            f"ratio={soft2 / max(soft, 1e-12):.4f}",
+            flush=True,
+        )
+        return output
     output[output < thresh] = 0
     return output
 
