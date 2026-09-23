@@ -132,6 +132,9 @@ def build_parser():
     # attempt #35 / H0010: self-guided density smooth before locked hard cut
     parser.add_argument('--guided_density', type=str2bool, default=False,
                         help='#35: guided filter on density (guide=src, locked r=2 eps=0.01) before hard filter')
+    # attempt #39 / H0015: apply locked hard cut only outside annotation box union
+    parser.add_argument('--outside_only_cut', type=str2bool, default=False,
+                        help='#39: zero cells below thresh only outside exemplar box union; in-box kept')
     # P2: transductive second pass (0 = off); harvested kernel half-size in cells
     parser.add_argument('--transductive_proto', type=int, default=0)
     parser.add_argument('--transductive_half', type=int, default=3)
@@ -427,4 +430,33 @@ def validate_args(args):
     if args.normalize_only_biggest_bbox:
         assert args.normalize_features, 'normalize_only_biggest_bbox requires normalize_features (#37)'
         print('NORMALIZE ONLY BIGGEST BBOX enabled: L2 from largest annotation ROI only', flush=True)
+    if args.outside_only_cut:
+        assert args.filter_background, 'outside_only_cut (#39) requires filter_background True'
+        assert args.use_roi_norm and args.roi_norm_after_mean, \
+            'outside_only_cut (#39) requires use_roi_norm + roi_norm_after_mean'
+        assert not args.filter_otsu, 'outside_only_cut incompatible with filter_otsu (#22)'
+        assert not args.filter_prenorm, 'outside_only_cut incompatible with filter_prenorm (#23)'
+        assert not args.roi_norm_per_exemplar, 'outside_only_cut incompatible with roi_norm_per_exemplar (#24)'
+        assert not args.per_exemplar_filter, 'outside_only_cut incompatible with per_exemplar_filter (#25)'
+        assert not args.box_peak_residual, 'outside_only_cut incompatible with box_peak_residual (#27)'
+        assert not args.thresh_expand, 'outside_only_cut incompatible with thresh_expand (#28)'
+        assert not args.bg_sub_integral, 'outside_only_cut incompatible with bg_sub_integral (#29)'
+        assert not args.tile_split, 'outside_only_cut incompatible with tile_split (#30)'
+        assert not args.local_contrast, 'outside_only_cut incompatible with local_contrast (#31)'
+        assert not args.boxwise_counts, 'outside_only_cut incompatible with boxwise_counts (#34)'
+        assert not args.guided_density, 'outside_only_cut incompatible with guided_density (#35)'
+        assert not args.exemplar_avg, 'outside_only_cut incompatible with exemplar_avg (#36)'
+        assert not args.normalize_features, 'outside_only_cut incompatible with normalize_features (#37)'
+        assert not args.remove_bbox_intersection, 'outside_only_cut incompatible with remove_bbox_intersection (#38)'
+        assert not args.dense_norm_gate and not args.dense_fs_gate, \
+            'outside_only_cut incompatible with gate+scalar filters (#11/#12)'
+        assert args.count_readout == 'density', 'outside_only_cut (#39) requires count_readout=density'
+        print('OUTSIDE ONLY CUT enabled (#39): hard cut only outside exemplar box union', flush=True)
+    if args.remove_bbox_intersection:
+        assert args.count_readout == 'density', 'remove_bbox_intersection (#38) requires count_readout=density'
+        assert not args.exemplar_avg, 'remove_bbox_intersection incompatible with exemplar_avg (#36)'
+        assert not args.boxwise_counts, 'remove_bbox_intersection incompatible with boxwise_counts (#34)'
+        assert not args.guided_density, 'remove_bbox_intersection incompatible with guided_density (#35)'
+        assert not args.normalize_features, 'remove_bbox_intersection incompatible with normalize_features (#37)'
+        print('REMOVE BBOX INTERSECTION enabled (#38): ceil-inward integer boxes before ROI', flush=True)
     return args

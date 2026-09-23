@@ -320,7 +320,7 @@ def _apply_context_sim(output, feats, bboxes, config):
     return output
 
 
-def _apply_hard_filter(output, norm_coeff, pooled_feats, config, prenorm_skipped):
+def _apply_hard_filter(output, norm_coeff, pooled_feats, config, prenorm_skipped, bboxes=None):
     """Post-divide hard filter (champion fs=0.5 / #22 Otsu / #23 prenorm skip)."""
     if config.filter_background is not True:
         return output
@@ -359,6 +359,29 @@ def _apply_hard_filter(output, norm_coeff, pooled_feats, config, prenorm_skipped
     if scale <= 0:
         return output
     thresh = (1.0 / area) * scale
+    if bool(getattr(config, "outside_only_cut", False)) and bboxes is not None:
+        # #39 / H0015: zero cells below thresh only outside the box union;
+        # in-box cells keep full response (recovers dense mass under the cut).
+        h, w = output.shape[-2:]
+        inside = torch.zeros(h, w, dtype=torch.bool, device=output.device)
+        for bbox in bboxes:
+            x1 = max(0, int(bbox[0]))
+            y1 = max(0, int(bbox[1]))
+            x2 = min(w, int(bbox[2]))
+            y2 = min(h, int(bbox[3]))
+            if x2 > x1 and y2 > y1:
+                inside[y1:y2, x1:x2] = True
+        low = output < thresh
+        n_cut = int((low & ~inside).sum().item())
+        n_keep_in = int((low & inside).sum().item())
+        output = torch.where(low & ~inside, torch.zeros_like(output), output)
+        soft2 = float(output.clamp_min(0).sum().item())
+        print(
+            f"OUTCUT t={thresh:.6g} soft={soft:.2f} soft_post={soft2:.2f} "
+            f"cut_out={n_cut} keep_in_low={n_keep_in} inside={int(inside.sum().item())}",
+            flush=True,
+        )
+        return output
     if bool(getattr(config, "thresh_expand", False)):
         # #28 / H0003: convex lift of kept cells at the locked cut (x -> x*(x/t)).
         # Same t as champion; only the value map above t changes shape.
@@ -686,7 +709,8 @@ def post_process_density_map(conv_maps, pooled_feats, bboxes, output_sizes, conf
         else None
     )
     filtered = _apply_hard_filter(
-        output, norm_coeff, pooled_feats, config, prenorm_skipped=prenorm
+        output, norm_coeff, pooled_feats, config, prenorm_skipped=prenorm,
+        bboxes=bboxes,
     )
     if pre_filter is not None:
         filtered = _box_peak_residual(pre_filter, filtered, bboxes, config)
