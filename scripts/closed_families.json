@@ -46,7 +46,8 @@
     "never: filter_area_sum sum-areas cut denominator #41 (closed refuted 28.625)",
     "never: skip_bbox_rescale feature-grid box geometry #42 (closed refuted 33.369)",
     "never: median_cut_path median half-plane path #43 (closed refuted 541.517)",
-    "never: exemplar_global_weight full-grid MWEx weight #44 (closed refuted 26.518)"
+    "never: exemplar_global_weight full-grid MWEx weight #44 (closed refuted 26.518)",
+    "never: num_exemplars cap-at-2 MWEx #45 (closed refuted 29.069)"
   ],
   "switches": [
     "tta_flip",
@@ -104,6 +105,7 @@
     "skip_bbox_rescale",
     "median_cut_path",
     "exemplar_global_weight",
+    "num_exemplars",
     "count_readout",
     "mass_restore",
     "thresh_mode",
@@ -193,6 +195,9 @@
     "exemplar_global_weight",
     "full-grid positive response",
     "scene-typical exemplar",
+    "num_exemplars",
+    "cap at two",
+    "third prototype",
     "count_readout",
     "mass_restore",
     "peak readout",
