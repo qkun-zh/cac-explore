@@ -27,3 +27,10 @@ python scripts/graph.py evidence --hypo Hxxxx --model Nxxxx --mae <v> --note "..
 ```
 
 See GRAPH_GUIDE.md for query reference, PROTOCOL.md for eval protocol.
+
+## Model code
+
+Runnable champion lives in `models/` (pulled from server `/data/cdino_run`):
+`models/cdino/` = pipeline package, `models/champion.json` = winning flags,
+`models/run_champion.sh` = server run entry. New variants add a `use_<name>`
+switch in `models/cdino/tf_pipeline/` + flags in `args.py`, never a forked copy.
