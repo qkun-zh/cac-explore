@@ -111,14 +111,21 @@ def _roi_norm_coeff(map2d, bboxes, resize_ratios, config):
 
 
 def _abs_filter_thresh(pooled_feats, config):
-    """Locked hard-filter threshold: (1 / max pooled spatial area) * fs."""
-    area = max(f.shape[-2] * f.shape[-1] for f in pooled_feats)
+    """Locked hard-filter threshold: (1 / max pooled spatial area) * fs.
+
+    #41 / H0017: with filter_area_sum, denominator = sum of pooled areas
+    (strictly lower tau for multi-box scenes; fs unchanged).
+    """
+    if bool(getattr(config, "filter_area_sum", False)):
+        area = sum(f.shape[-2] * f.shape[-1] for f in pooled_feats)
+    else:
+        area = max(f.shape[-2] * f.shape[-1] for f in pooled_feats)
     fs = float(getattr(config, "filter_thresh_scale", 1.0))
     if fs is None:
         fs = 1.0
     if fs <= 0:
         return -1.0, fs
-    return (1.0 / area) * fs, fs
+    return (1.0 / max(area, 1)) * fs, fs
 
 
 def _reduce_exemplar_maps(stacked, conv_maps, config, pooled_feats,
@@ -349,7 +356,11 @@ def _apply_hard_filter(output, norm_coeff, pooled_feats, config, prenorm_skipped
     """Post-divide hard filter (champion fs=0.5 / #22 Otsu / #23 prenorm skip)."""
     if config.filter_background is not True:
         return output
-    area = max(f.shape[-2] * f.shape[-1] for f in pooled_feats)
+    if bool(getattr(config, "filter_area_sum", False)):
+        area = sum(f.shape[-2] * f.shape[-1] for f in pooled_feats)
+    else:
+        area = max(f.shape[-2] * f.shape[-1] for f in pooled_feats)
+    area = max(area, 1)
     scale = float(getattr(config, "filter_thresh_scale", 1.0))
     if scale is None:
         scale = 1.0

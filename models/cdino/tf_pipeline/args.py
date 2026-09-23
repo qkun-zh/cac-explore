@@ -138,6 +138,9 @@ def build_parser():
     # attempt #40 / H0016: ROI-norm coefficient = median of per-box pools (not mean)
     parser.add_argument('--roi_norm_median', type=str2bool, default=False,
                         help='#40: robust z = median of per-box ellipse pool instead of mean')
+    # attempt #41 / H0017: hard-cut denominator = sum of pooled box areas (not max)
+    parser.add_argument('--filter_area_sum', type=str2bool, default=False,
+                        help='#41: thresh = fs / sum(pooled areas) instead of fs / max(pooled area)')
     # P2: transductive second pass (0 = off); harvested kernel half-size in cells
     parser.add_argument('--transductive_proto', type=int, default=0)
     parser.add_argument('--transductive_half', type=int, default=3)
@@ -473,6 +476,29 @@ def validate_args(args):
             'roi_norm_median incompatible with gate+scalar filters (#11/#12)'
         assert args.count_readout == 'density', 'roi_norm_median (#40) requires count_readout=density'
         print('ROI NORM MEDIAN enabled (#40): z = median of per-box ellipse pools', flush=True)
+    if args.filter_area_sum:
+        assert args.filter_background, 'filter_area_sum (#41) requires filter_background True'
+        assert args.use_roi_norm and args.roi_norm_after_mean, \
+            'filter_area_sum (#41) requires use_roi_norm + roi_norm_after_mean'
+        assert not args.filter_otsu and not args.filter_prenorm, \
+            'filter_area_sum incompatible with filter_otsu/prenorm (#22/#23)'
+        assert not args.roi_norm_per_exemplar, 'filter_area_sum incompatible with roi_norm_per_exemplar (#24)'
+        assert not args.per_exemplar_filter, 'filter_area_sum incompatible with per_exemplar_filter (#25)'
+        assert not args.box_peak_residual, 'filter_area_sum incompatible with box_peak_residual (#27)'
+        assert not args.thresh_expand, 'filter_area_sum incompatible with thresh_expand (#28)'
+        assert not args.bg_sub_integral, 'filter_area_sum incompatible with bg_sub_integral (#29)'
+        assert not args.tile_split, 'filter_area_sum incompatible with tile_split (#30)'
+        assert not args.boxwise_counts, 'filter_area_sum incompatible with boxwise_counts (#34)'
+        assert not args.guided_density, 'filter_area_sum incompatible with guided_density (#35)'
+        assert not args.exemplar_avg, 'filter_area_sum incompatible with exemplar_avg (#36)'
+        assert not args.normalize_features, 'filter_area_sum incompatible with normalize_features (#37)'
+        assert not args.remove_bbox_intersection, 'filter_area_sum incompatible with remove_bbox_intersection (#38)'
+        assert not args.outside_only_cut, 'filter_area_sum incompatible with outside_only_cut (#39)'
+        assert not args.roi_norm_median, 'filter_area_sum incompatible with roi_norm_median (#40)'
+        assert not args.dense_norm_gate and not args.dense_fs_gate, \
+            'filter_area_sum incompatible with gate+scalar filters (#11/#12)'
+        assert args.count_readout == 'density', 'filter_area_sum (#41) requires count_readout=density'
+        print('FILTER AREA SUM enabled (#41): thresh denominator = sum of pooled box areas', flush=True)
     if args.remove_bbox_intersection:
         assert args.count_readout == 'density', 'remove_bbox_intersection (#38) requires count_readout=density'
         assert not args.exemplar_avg, 'remove_bbox_intersection incompatible with exemplar_avg (#36)'
