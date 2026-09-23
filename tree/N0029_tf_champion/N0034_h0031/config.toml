@@ -1,7 +1,0 @@
-# N0034_h0031 — training-free TF baseline (NOT a train config)
-seed = 20260830
-method = "external_tf"
-split = "val"
-device = "cuda:0"
-model_type = "vit_b"
-vr12gb_gate = true

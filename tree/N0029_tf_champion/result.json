@@ -1,7 +1,0 @@
-{
-  "code": "ok",
-  "node": "N0029_tf_champion",
-  "kind": "training_free_seed",
-  "best_val_mae": 39.696440092697856,
-  "note": "seed metric = local CountingDINO dinov3_vits16 DEI=True; vitl16 DEI=False 41.062 logged as non-matching config"
-}

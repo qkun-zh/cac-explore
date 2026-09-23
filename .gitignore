@@ -1,13 +1,2 @@
+neug.db
 __pycache__/
-*.pyc
-*.pth
-*.ckpt
-*.pt
-runs/
-.env
-local/
-
-
-tmp_ideas_round2/
-
-**/run/
