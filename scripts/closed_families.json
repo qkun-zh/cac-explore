@@ -33,7 +33,8 @@
     "never: thresh_expand convex keep-form #28 (closed refuted 92.103)",
     "never: bg_sub_integral exterior-floor box-restore #29 (closed refuted 34.578)",
     "never: tile_split always-on 2x2 local contrast quadrants #30 (closed refuted 31.930)",
-    "never: local_contrast pre-minmax S/boxblur ratio #31 (closed refuted 84.107)"
+    "never: local_contrast pre-minmax S/boxblur ratio #31 (closed refuted 84.107)",
+    "never: input_unsharp query-image UnsharpMask #32 (closed refuted 27.370)"
   ],
   "switches": [
     "tta_flip",
@@ -78,6 +79,7 @@
     "bg_sub_integral",
     "tile_split",
     "local_contrast",
+    "input_unsharp",
     "count_readout",
     "mass_restore",
     "thresh_mode",
@@ -138,6 +140,8 @@
     "tile-split",
     "local_contrast",
     "local contrast",
+    "input_unsharp",
+    "unsharp mask",
     "count_readout",
     "mass_restore",
     "peak readout",

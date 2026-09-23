@@ -54,6 +54,12 @@ def process_example(
     if flip_view:
         img = ImageOps.mirror(img)
 
+    # #32 / H0007: always-on input unsharp before DEI/crops/features.
+    if bool(getattr(config, "input_unsharp", False)):
+        from PIL import ImageFilter
+        img = img.filter(ImageFilter.UnsharpMask(radius=2, percent=150, threshold=3))
+        print(f"UNSHARP {img_filename} r=2 p=150 t=3", flush=True)
+
     if density_map_dir is None:
         assert gt_count is not None, "gt_count must be provided if density_map_dir is None"
         density_map = None

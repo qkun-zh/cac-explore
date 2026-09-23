@@ -123,6 +123,9 @@ def build_parser():
     # attempt #31 / H0006: pre-minmax local contrast = S / boxblur(S)
     parser.add_argument('--local_contrast', type=str2bool, default=False,
                         help='#31: divide exemplar-mean similarity by its avg-pool blur before minmax/z (locked k=5, eps=1e-6)')
+    # attempt #32 / H0007: always-on input unsharp before backbone
+    parser.add_argument('--input_unsharp', type=str2bool, default=False,
+                        help='#32: PIL UnsharpMask on query image before features (locked r=2 p=150 t=3)')
     # P2: transductive second pass (0 = off); harvested kernel half-size in cells
     parser.add_argument('--transductive_proto', type=int, default=0)
     parser.add_argument('--transductive_half', type=int, default=3)
@@ -332,4 +335,18 @@ def validate_args(args):
         assert not args.context_aware_sim, 'local_contrast incompatible with context_aware_sim (#17)'
         assert not args.count_readout != 'density', 'local_contrast (#31) requires count_readout=density'
         print('LOCAL CONTRAST enabled (#31): S / boxblur(S) before minmax and locked z', flush=True)
+    if args.input_unsharp:
+        assert not args.filter_otsu, 'input_unsharp incompatible with filter_otsu (#22)'
+        assert not args.filter_prenorm, 'input_unsharp incompatible with filter_prenorm (#23)'
+        assert not args.roi_norm_per_exemplar, 'input_unsharp incompatible with roi_norm_per_exemplar (#24)'
+        assert not args.per_exemplar_filter, 'input_unsharp incompatible with per_exemplar_filter (#25)'
+        assert not args.box_peak_residual, 'input_unsharp incompatible with box_peak_residual (#27)'
+        assert not args.thresh_expand, 'input_unsharp incompatible with thresh_expand (#28)'
+        assert not args.bg_sub_integral, 'input_unsharp incompatible with bg_sub_integral (#29)'
+        assert not args.tile_split, 'input_unsharp incompatible with tile_split (#30)'
+        assert not args.local_contrast, 'input_unsharp incompatible with local_contrast (#31)'
+        assert not args.dense_norm_gate and not args.dense_fs_gate, \
+            'input_unsharp incompatible with gate+scalar filters (#11/#12)'
+        assert not args.count_readout != 'density', 'input_unsharp (#32) requires count_readout=density'
+        print('INPUT UNSHARP enabled (#32): UnsharpMask r=2 p=150 t=3 before backbone', flush=True)
     return args
