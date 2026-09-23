@@ -36,7 +36,8 @@
     "never: local_contrast pre-minmax S/boxblur ratio #31 (closed refuted 84.107)",
     "never: input_unsharp query-image UnsharpMask #32 (closed refuted 27.370)",
     "never: cosine_similarity L2 unit-norm matching #33 (closed refuted 36.023)",
-    "never: boxwise_counts per-box unit-mass mean #34 (closed refuted 30.393)"
+    "never: boxwise_counts per-box unit-mass mean #34 (closed refuted 30.393)",
+    "never: guided_density self-guided pre-cut smooth #35 (closed refuted 25.770)"
   ],
   "switches": [
     "tta_flip",
@@ -84,6 +85,7 @@
     "input_unsharp",
     "cosine_similarity",
     "boxwise_counts",
+    "guided_density",
     "count_readout",
     "mass_restore",
     "thresh_mode",
@@ -150,6 +152,8 @@
     "cosine similarity",
     "boxwise_counts",
     "boxwise",
+    "guided_density",
+    "guided filter",
     "count_readout",
     "mass_restore",
     "peak readout",

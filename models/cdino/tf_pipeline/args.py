@@ -129,6 +129,9 @@ def build_parser():
     # attempt #34 / H0009: per-box closed unit-mass path, mean of box maps
     parser.add_argument('--boxwise_counts', type=str2bool, default=False,
                         help='#34: each box gets own minmax/z/cut; mean the filtered box maps; no shared z')
+    # attempt #35 / H0010: self-guided density smooth before locked hard cut
+    parser.add_argument('--guided_density', type=str2bool, default=False,
+                        help='#35: guided filter on density (guide=src, locked r=2 eps=0.01) before hard filter')
     # P2: transductive second pass (0 = off); harvested kernel half-size in cells
     parser.add_argument('--transductive_proto', type=int, default=0)
     parser.add_argument('--transductive_half', type=int, default=3)
@@ -372,4 +375,24 @@ def validate_args(args):
             'boxwise_counts incompatible with gate+scalar filters (#11/#12)'
         assert not args.count_readout != 'density', 'boxwise_counts (#34) requires count_readout=density'
         print('BOXWISE COUNTS enabled (#34): own minmax/z/cut per box, mean filtered maps', flush=True)
+    if args.guided_density:
+        assert args.use_roi_norm and args.roi_norm_after_mean, \
+            'guided_density (#35) requires use_roi_norm + roi_norm_after_mean'
+        assert args.filter_background, 'guided_density (#35) requires filter_background True'
+        assert not args.filter_otsu, 'guided_density incompatible with filter_otsu (#22)'
+        assert not args.filter_prenorm, 'guided_density incompatible with filter_prenorm (#23)'
+        assert not args.roi_norm_per_exemplar, 'guided_density incompatible with roi_norm_per_exemplar (#24)'
+        assert not args.per_exemplar_filter, 'guided_density incompatible with per_exemplar_filter (#25)'
+        assert not args.box_peak_residual, 'guided_density incompatible with box_peak_residual (#27)'
+        assert not args.thresh_expand, 'guided_density incompatible with thresh_expand (#28)'
+        assert not args.bg_sub_integral, 'guided_density incompatible with bg_sub_integral (#29)'
+        assert not args.tile_split, 'guided_density incompatible with tile_split (#30)'
+        assert not args.local_contrast, 'guided_density incompatible with local_contrast (#31)'
+        assert not args.input_unsharp, 'guided_density incompatible with input_unsharp (#32)'
+        assert not args.cosine_similarity, 'guided_density incompatible with cosine_similarity (#33)'
+        assert not args.boxwise_counts, 'guided_density incompatible with boxwise_counts (#34)'
+        assert not args.dense_norm_gate and not args.dense_fs_gate, \
+            'guided_density incompatible with gate+scalar filters (#11/#12)'
+        assert args.count_readout == 'density', 'guided_density (#35) requires count_readout=density'
+        print('GUIDED DENSITY enabled (#35): self-guided r=2 eps=0.01 before hard cut', flush=True)
     return args

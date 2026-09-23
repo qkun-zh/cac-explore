@@ -560,6 +560,40 @@ def _boxwise_counts_apply(stacked, conv_maps, pooled_feats, bboxes, resize_ratio
     return output
 
 
+def _box_filter(x, radius):
+    """Mean filter via replicate pad + avg_pool2d (edge-safe box)."""
+    k = 2 * int(radius) + 1
+    if k < 1:
+        return x
+    r = int(radius)
+    y = F.pad(x.unsqueeze(0).unsqueeze(0), (r, r, r, r), mode="replicate")
+    y = F.avg_pool2d(y, k, stride=1)
+    return y.view(x.shape)
+
+
+def _guided_density_apply(x, radius=2, eps=0.01):
+    """#35 / H0010: self-guided filter (guide=src) with locked radius/eps.
+
+    a = var/(var+eps) keeps edges, flattens near-constant noise; mass in flat
+    crowded cells is consolidated before the locked hard cut.
+    """
+    mean_i = _box_filter(x, radius)
+    mean_ii = _box_filter(x * x, radius)
+    var = (mean_ii - mean_i * mean_i).clamp_min(0)
+    a = var / (var + float(eps))
+    b = mean_i * (1.0 - a)
+    q = _box_filter(a, radius) * x + _box_filter(b, radius)
+    soft0 = float(x.clamp_min(0).sum().item())
+    soft1 = float(q.clamp_min(0).sum().item())
+    print(
+        f"GUIDED r={radius} eps={eps} soft0={soft0:.2f} soft1={soft1:.2f} "
+        f"ratio={soft1 / max(soft0, 1e-12):.4f} "
+        f"minmax=({float(x.min()):.5g},{float(x.max()):.5g})",
+        flush=True,
+    )
+    return q
+
+
 def post_process_density_map(conv_maps, pooled_feats, bboxes, output_sizes, config, feats=None):
     """Density post-process pipeline.
 
@@ -641,6 +675,10 @@ def post_process_density_map(conv_maps, pooled_feats, bboxes, output_sizes, conf
         output = _apply_context_sim(output, feats, bboxes, config)
 
     output = _bg_sub_integral(output, bboxes, config)
+
+    # #35 / H0010: consolidate mass under the locked cut (guide=src, r=2, eps=0.01).
+    if bool(getattr(config, "guided_density", False)):
+        output = _guided_density_apply(output)
 
     pre_filter = (
         output.clone()
