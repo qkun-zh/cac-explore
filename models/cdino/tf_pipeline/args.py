@@ -141,6 +141,9 @@ def build_parser():
     # attempt #41 / H0017: hard-cut denominator = sum of pooled box areas (not max)
     parser.add_argument('--filter_area_sum', type=str2bool, default=False,
                         help='#41: thresh = fs / sum(pooled areas) instead of fs / max(pooled area)')
+    # attempt #42 / H0018: keep feature-grid boxes as-is (skip output/feat rescale)
+    parser.add_argument('--skip_bbox_rescale', type=str2bool, default=False,
+                        help='#42: force correct_bbox_resize off; ROI pools use feature-grid boxes')
     # P2: transductive second pass (0 = off); harvested kernel half-size in cells
     parser.add_argument('--transductive_proto', type=int, default=0)
     parser.add_argument('--transductive_half', type=int, default=3)
@@ -499,6 +502,13 @@ def validate_args(args):
             'filter_area_sum incompatible with gate+scalar filters (#11/#12)'
         assert args.count_readout == 'density', 'filter_area_sum (#41) requires count_readout=density'
         print('FILTER AREA SUM enabled (#41): thresh denominator = sum of pooled box areas', flush=True)
+    if args.skip_bbox_rescale:
+        args.correct_bbox_resize = False
+        assert not args.exemplar_avg, 'skip_bbox_rescale incompatible with exemplar_avg (#36)'
+        assert not args.remove_bbox_intersection, 'skip_bbox_rescale incompatible with remove_bbox_intersection (#38)'
+        assert not args.filter_area_sum, 'skip_bbox_rescale incompatible with filter_area_sum (#41)'
+        assert args.count_readout == 'density', 'skip_bbox_rescale (#42) requires count_readout=density'
+        print('SKIP BBOX RESCALE enabled (#42): correct_bbox_resize forced False', flush=True)
     if args.remove_bbox_intersection:
         assert args.count_readout == 'density', 'remove_bbox_intersection (#38) requires count_readout=density'
         assert not args.exemplar_avg, 'remove_bbox_intersection incompatible with exemplar_avg (#36)'
