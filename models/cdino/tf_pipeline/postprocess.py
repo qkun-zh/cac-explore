@@ -523,6 +523,43 @@ def _tile_split_apply(output, norm_coeff, pooled_feats, bboxes, resize_ratios, c
     return out
 
 
+def _boxwise_counts_apply(stacked, conv_maps, pooled_feats, bboxes, resize_ratios, config):
+    """#34 / H0009: closed unit-mass path per annotation box, mean of filtered maps."""
+    n_ex = len(conv_maps)
+    c_per = conv_maps[0].shape[0] if n_ex else 0
+    if n_ex == 0 or c_per == 0 or stacked.shape[0] != n_ex * c_per:
+        return None
+    area = max(f.shape[-2] * f.shape[-1] for f in pooled_feats)
+    fs = float(getattr(config, "filter_thresh_scale", 1.0))
+    if fs is None:
+        fs = 1.0
+    thresh = (1.0 / area) * fs if fs > 0 else -1.0
+    maps = []
+    z_list = []
+    soft_list = []
+    for i in range(n_ex):
+        mi = stacked[i * c_per:(i + 1) * c_per].mean(dim=0)
+        if config.use_minmax_norm:
+            mi = rescale_tensor(mi)
+        n_i = _roi_norm_coeff(mi, [bboxes[i]], [resize_ratios[i]], config)
+        n_i = max(float(n_i.item()), 1e-12)
+        mi = mi / n_i
+        if thresh > 0:
+            mi = mi.clone()
+            mi[mi < thresh] = 0
+        maps.append(mi)
+        z_list.append(round(n_i, 4))
+        soft_list.append(round(float(mi.clamp_min(0).sum().item()), 2))
+    output = torch.stack(maps, dim=0).mean(dim=0)
+    soft = float(output.clamp_min(0).sum().item())
+    print(
+        f"BOXWISE n_ex={n_ex} z={z_list} soft_box={soft_list} "
+        f"soft_mean={soft:.2f} thresh={thresh:.6g}",
+        flush=True,
+    )
+    return output
+
+
 def post_process_density_map(conv_maps, pooled_feats, bboxes, output_sizes, config, feats=None):
     """Density post-process pipeline.
 
@@ -556,6 +593,15 @@ def post_process_density_map(conv_maps, pooled_feats, bboxes, output_sizes, conf
         return output
 
     stacked, resize_ratios = resize_conv_maps(conv_maps)
+
+    # #34 / H0009: per-box closed path replaces shared MWEx z + global cut.
+    if bool(getattr(config, "boxwise_counts", False)):
+        bw = _boxwise_counts_apply(
+            stacked, conv_maps, pooled_feats, bboxes, resize_ratios, config
+        )
+        if bw is not None:
+            return bw
+
     output, norm_coeff = _reduce_exemplar_maps(
         stacked, conv_maps, config, pooled_feats, bboxes, resize_ratios, feats
     )

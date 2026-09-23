@@ -126,6 +126,9 @@ def build_parser():
     # attempt #32 / H0007: always-on input unsharp before backbone
     parser.add_argument('--input_unsharp', type=str2bool, default=False,
                         help='#32: PIL UnsharpMask on query image before features (locked r=2 p=150 t=3)')
+    # attempt #34 / H0009: per-box closed unit-mass path, mean of box maps
+    parser.add_argument('--boxwise_counts', type=str2bool, default=False,
+                        help='#34: each box gets own minmax/z/cut; mean the filtered box maps; no shared z')
     # P2: transductive second pass (0 = off); harvested kernel half-size in cells
     parser.add_argument('--transductive_proto', type=int, default=0)
     parser.add_argument('--transductive_half', type=int, default=3)
@@ -349,4 +352,24 @@ def validate_args(args):
             'input_unsharp incompatible with gate+scalar filters (#11/#12)'
         assert not args.count_readout != 'density', 'input_unsharp (#32) requires count_readout=density'
         print('INPUT UNSHARP enabled (#32): UnsharpMask r=2 p=150 t=3 before backbone', flush=True)
+    if args.boxwise_counts:
+        assert args.use_roi_norm and args.roi_norm_after_mean, \
+            'boxwise_counts (#34) requires use_roi_norm + roi_norm_after_mean'
+        assert args.filter_background, 'boxwise_counts (#34) requires filter_background True'
+        assert not args.filter_otsu, 'boxwise_counts incompatible with filter_otsu (#22)'
+        assert not args.filter_prenorm, 'boxwise_counts incompatible with filter_prenorm (#23)'
+        assert not args.roi_norm_per_exemplar, 'boxwise_counts incompatible with roi_norm_per_exemplar (#24)'
+        assert not args.per_exemplar_filter, 'boxwise_counts incompatible with per_exemplar_filter (#25)'
+        assert not args.mass_weight_exemplar or True, 'boxwise_counts replaces shared MWEx z'
+        assert not args.box_peak_residual, 'boxwise_counts incompatible with box_peak_residual (#27)'
+        assert not args.thresh_expand, 'boxwise_counts incompatible with thresh_expand (#28)'
+        assert not args.bg_sub_integral, 'boxwise_counts incompatible with bg_sub_integral (#29)'
+        assert not args.tile_split, 'boxwise_counts incompatible with tile_split (#30)'
+        assert not args.local_contrast, 'boxwise_counts incompatible with local_contrast (#31)'
+        assert not args.input_unsharp, 'boxwise_counts incompatible with input_unsharp (#32)'
+        assert not args.cosine_similarity, 'boxwise_counts incompatible with cosine_similarity (#33)'
+        assert not args.dense_norm_gate and not args.dense_fs_gate, \
+            'boxwise_counts incompatible with gate+scalar filters (#11/#12)'
+        assert not args.count_readout != 'density', 'boxwise_counts (#34) requires count_readout=density'
+        print('BOXWISE COUNTS enabled (#34): own minmax/z/cut per box, mean filtered maps', flush=True)
     return args

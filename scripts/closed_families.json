@@ -35,7 +35,8 @@
     "never: tile_split always-on 2x2 local contrast quadrants #30 (closed refuted 31.930)",
     "never: local_contrast pre-minmax S/boxblur ratio #31 (closed refuted 84.107)",
     "never: input_unsharp query-image UnsharpMask #32 (closed refuted 27.370)",
-    "never: cosine_similarity L2 unit-norm matching #33 (closed refuted 36.023)"
+    "never: cosine_similarity L2 unit-norm matching #33 (closed refuted 36.023)",
+    "never: boxwise_counts per-box unit-mass mean #34 (closed refuted 30.393)"
   ],
   "switches": [
     "tta_flip",
@@ -82,6 +83,7 @@
     "local_contrast",
     "input_unsharp",
     "cosine_similarity",
+    "boxwise_counts",
     "count_readout",
     "mass_restore",
     "thresh_mode",
@@ -146,6 +148,8 @@
     "unsharp mask",
     "cosine_similarity",
     "cosine similarity",
+    "boxwise_counts",
+    "boxwise",
     "count_readout",
     "mass_restore",
     "peak readout",
