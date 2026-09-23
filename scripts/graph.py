@@ -195,8 +195,14 @@ def _depth(models, mid, limit=100):
 
 
 def _live(models):
+    # Champion + supports only: a contradict must not become parent even if
+    # absolute MAE is slightly lower (0.30 bar is the promotion gate).
     done = [(i, d) for i, d in models.items()
-            if d.get("status") == "done" and d.get("subset_mae") is not None]
+            if d.get("status") == "done"
+            and d.get("subset_mae") is not None
+            and d.get("subset_mae") < 50.0
+            and (d.get("evidence_type") == "support"
+                 or d.get("switch") is None)]
     if not done:
         return None, None
     return min(done, key=lambda x: (round(x[1]["subset_mae"], 3), _depth(models, x[0])))

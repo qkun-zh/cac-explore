@@ -395,4 +395,26 @@ def validate_args(args):
             'guided_density incompatible with gate+scalar filters (#11/#12)'
         assert args.count_readout == 'density', 'guided_density (#35) requires count_readout=density'
         print('GUIDED DENSITY enabled (#35): self-guided r=2 eps=0.01 before hard cut', flush=True)
+    if args.exemplar_avg:
+        assert args.use_roi_norm and args.roi_norm_after_mean, \
+            'exemplar_avg (#36) requires use_roi_norm + roi_norm_after_mean'
+        assert args.filter_background, 'exemplar_avg (#36) requires filter_background True'
+        assert not args.filter_otsu, 'exemplar_avg incompatible with filter_otsu (#22)'
+        assert not args.filter_prenorm, 'exemplar_avg incompatible with filter_prenorm (#23)'
+        assert not args.roi_norm_per_exemplar, 'exemplar_avg incompatible with roi_norm_per_exemplar (#24)'
+        assert not args.per_exemplar_filter, 'exemplar_avg incompatible with per_exemplar_filter (#25)'
+        assert not args.box_peak_residual, 'exemplar_avg incompatible with box_peak_residual (#27)'
+        assert not args.thresh_expand, 'exemplar_avg incompatible with thresh_expand (#28)'
+        assert not args.bg_sub_integral, 'exemplar_avg incompatible with bg_sub_integral (#29)'
+        assert not args.tile_split, 'exemplar_avg incompatible with tile_split (#30)'
+        assert not args.local_contrast, 'exemplar_avg incompatible with local_contrast (#31)'
+        assert not args.input_unsharp, 'exemplar_avg incompatible with input_unsharp (#32)'
+        assert not args.cosine_similarity, 'exemplar_avg incompatible with cosine_similarity (#33)'
+        assert not args.boxwise_counts, 'exemplar_avg incompatible with boxwise_counts (#34)'
+        assert not args.guided_density, 'exemplar_avg incompatible with guided_density (#35)'
+        assert not args.multi_scale_ex, 'exemplar_avg incompatible with multi_scale_ex (#14)'
+        assert not args.dense_norm_gate and not args.dense_fs_gate, \
+            'exemplar_avg incompatible with gate+scalar filters (#11/#12)'
+        assert args.count_readout == 'density', 'exemplar_avg (#36) requires count_readout=density'
+        print('EXEMPLAR AVG enabled (#36): one shared ROI-kernel mean before density assembly', flush=True)
     return args
