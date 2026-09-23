@@ -731,6 +731,29 @@ def post_process_density_map(conv_maps, pooled_feats, bboxes, output_sizes, conf
 
     output = output / norm_coeff
 
+    if bool(getattr(config, "outbox_parity", False)) and bboxes is not None:
+        h, w = output.shape[-2:]
+        inside = torch.zeros(h, w, dtype=torch.bool, device=output.device)
+        for bbox in bboxes:
+            x1 = max(0, int(bbox[0]))
+            y1 = max(0, int(bbox[1]))
+            x2 = min(w, int(bbox[2]))
+            y2 = min(h, int(bbox[3]))
+            if x2 > x1 and y2 > y1:
+                inside[y1:y2, x1:x2] = True
+        pos = output.clamp_min(0)
+        sum_in = float(pos[inside].sum().item()) if bool(inside.any()) else 0.0
+        sum_out = float(pos[~inside].sum().item()) if bool((~inside).any()) else 0.0
+        scale = 1.0
+        if sum_out > 0.0 and sum_in > sum_out:
+            scale = sum_in / sum_out
+            output = torch.where(inside, output, output * scale)
+        print(
+            f"OBOXPAR in={sum_in:.4f} out={sum_out:.4f} scale={scale:.4f} "
+            f"soft={float(output.clamp_min(0).sum().item()):.4f}",
+            flush=True,
+        )
+
     if (
         bool(getattr(config, "context_aware_sim", False))
         and feats is not None

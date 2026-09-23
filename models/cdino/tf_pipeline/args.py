@@ -150,6 +150,9 @@ def build_parser():
     # attempt #44 / H0020: MWEx weight from full-grid response mass (not in-box ROI)
     parser.add_argument('--exemplar_global_weight', type=str2bool, default=False,
                         help='#44: MWEx weights use clamp_min(0).sum() over the whole map instead of in-box ROI mass')
+    # attempt #45 / H0022: after /z, lift out-of-box positive mass to in-box parity
+    parser.add_argument('--outbox_parity', type=str2bool, default=False,
+                        help='#45: if outside-rectangle positive mass < inside, scale outside cells up to match inside')
     # P2: transductive second pass (0 = off); harvested kernel half-size in cells
     parser.add_argument('--transductive_proto', type=int, default=0)
     parser.add_argument('--transductive_half', type=int, default=3)
@@ -544,6 +547,23 @@ def validate_args(args):
         assert args.filter_background, 'exemplar_global_weight (#44) requires filter_background True'
         assert args.count_readout == 'density', 'exemplar_global_weight (#44) requires count_readout=density'
         print('EXEMPLAR GLOBAL WEIGHT enabled (#44): MWEx weights from full-grid positive mass', flush=True)
+    if args.outbox_parity:
+        assert args.use_roi_norm and args.roi_norm_after_mean, \
+            'outbox_parity (#45) requires use_roi_norm + roi_norm_after_mean'
+        assert not args.roi_norm_per_exemplar, 'outbox_parity incompatible with roi_norm_per_exemplar (#24)'
+        assert not args.per_exemplar_filter, 'outbox_parity incompatible with per_exemplar_filter (#25)'
+        assert not args.boxwise_counts, 'outbox_parity incompatible with boxwise_counts (#34)'
+        assert not args.exemplar_avg, 'outbox_parity incompatible with exemplar_avg (#36)'
+        assert not args.normalize_features, 'outbox_parity incompatible with normalize_features (#37)'
+        assert not args.median_cut_path, 'outbox_parity incompatible with median_cut_path (#43)'
+        assert not args.outside_only_cut, 'outbox_parity incompatible with outside_only_cut (#39)'
+        assert not args.filter_area_sum, 'outbox_parity incompatible with filter_area_sum (#41)'
+        assert not args.skip_bbox_rescale, 'outbox_parity incompatible with skip_bbox_rescale (#42)'
+        assert not args.exemplar_global_weight, 'outbox_parity incompatible with exemplar_global_weight (#44)'
+        assert not args.dense_norm_gate and not args.dense_fs_gate, \
+            'outbox_parity incompatible with gate+scalar filters (#11/#12)'
+        assert args.count_readout == 'density', 'outbox_parity (#45) requires count_readout=density'
+        print('OUTBOX PARITY enabled (#45): lift outside-rectangle mass to inside parity', flush=True)
     if args.remove_bbox_intersection:
         assert args.count_readout == 'density', 'remove_bbox_intersection (#38) requires count_readout=density'
         assert not args.exemplar_avg, 'remove_bbox_intersection incompatible with exemplar_avg (#36)'
